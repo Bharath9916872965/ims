@@ -79,7 +79,7 @@ public class JpaConfigurationMySql
 	    private Properties jpaProperties() {
 	        Properties properties = new Properties();
 	        properties.put("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
-	        properties.put("hibernate.hbm2ddl.auto", "update");
+	        properties.put("hibernate.hbm2ddl.auto", "validate");
 	        properties.put("hibernate.show_sql", "true");
 	        return properties;
 	    }
