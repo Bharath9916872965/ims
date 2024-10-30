@@ -158,7 +158,7 @@ public class QmsController {
     }
 	
 	
-	@PostMapping(value = "/add-docSummary", produces = "application/json")
+	@PostMapping(value = "/add-docsummary", produces = "application/json")
 	public long addQmDocSummary(@RequestBody QmsQmDocumentSummaryDto qmsQmDocumentSummaryDto, @RequestHeader String username) throws Exception {
 		logger.info(new Date() + " Inside add-docSummary " + username);
 		
