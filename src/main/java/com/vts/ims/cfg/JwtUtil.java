@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import java.security.Key;
 import java.util.*;
 
-@Service
+//@Service
 public class JwtUtil {
 
 	private String secret;

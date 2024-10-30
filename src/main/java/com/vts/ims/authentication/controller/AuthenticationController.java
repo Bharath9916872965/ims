@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-@RestController
+//@RestController
 public class AuthenticationController {
 
 	@Autowired
