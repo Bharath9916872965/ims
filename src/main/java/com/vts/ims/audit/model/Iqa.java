@@ -1,6 +1,6 @@
 package com.vts.ims.audit.model;
 
-
+import java.sql.Date;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
@@ -13,23 +13,31 @@ import lombok.Data;
 
 @Entity
 @Data
-@Table(name="ims_audit_auditor")
-public class Auditor {
+@Table(name = "ims_audit_iqa")
+public class Iqa {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "AuditorId")
-	private long auditorId;
-	@Column(name = "EmpId")
-	private long empId;
-	@Column(name = "CreatedBy")
+	@Column(name="IqaId")
+	private Long iqaId;
+	@Column(name="IqaNo")
+	private Long iqaNo;
+	@Column(name="FromDate")
+	private Date fromDate;
+	@Column(name="ToDate")
+	private Date toDate;
+	@Column(name="Scope")
+	private String scope;
+	@Column(name="Description")
+	private String description;
+	@Column(name="CreatedBy")
 	private String createdBy;
-	@Column(name = "CreatedDate")
+	@Column(name="CreatedDate")
 	private LocalDateTime createdDate;
-	@Column(name = "ModifiedBy")
+	@Column(name="ModifiedBy")
 	private String modifiedBy;
-	@Column(name = "ModifiedDate")
+	@Column(name="ModifiedDate")
 	private LocalDateTime modifiedDate;
-	@Column(name = "IsActive")
+	@Column(name="IsActive")
 	private int isActive;
 }
