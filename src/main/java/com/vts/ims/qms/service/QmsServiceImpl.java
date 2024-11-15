@@ -290,7 +290,7 @@ public class QmsServiceImpl implements QmsService {
 			}
 			return res;
 		} catch (Exception e) {
-			logger.info(new Date() + " Inside updateQmChapterName() "+ e );
+			logger.error(new Date() + " Inside updateQmChapterName() "+ e );
 			e.printStackTrace();
 			return 0l;
 		}
@@ -325,7 +325,7 @@ public class QmsServiceImpl implements QmsService {
 			
 			return res;
 		} catch (Exception e) {
-			logger.info(new Date() + " Inside addNewQmRevision() "+ e );
+			logger.error(new Date() + " Inside addNewQmRevision() "+ e );
 			e.printStackTrace();
 			return 0l;
 		}
@@ -362,7 +362,7 @@ public class QmsServiceImpl implements QmsService {
 			return res;
 			
 		} catch (Exception e) {
-			logger.info(new Date() + " Inside addQmDocSummary() "+ e );
+			logger.error(new Date() + " Inside addQmDocSummary() "+ e );
 			e.printStackTrace();
 			return 0l;
 		}
@@ -395,9 +395,60 @@ public class QmsServiceImpl implements QmsService {
 			
 			return qmsQmDocumentSummary;
 		} catch (Exception e) {
-			logger.info(new Date() + " Inside getQmDocSummarybyId() "+ e );
+			logger.error(new Date() + " Inside getQmDocSummarybyId() "+ e );
 			e.printStackTrace();
 			return null;
+		}
+	}
+	
+	@Override
+	public long deleteQmChapterById(long chapterId , String username) throws Exception {
+		try {
+			Long res = 0l;
+			Optional<QmsQmChapters> optionalChapters = qmsQmChaptersRepo.findById(chapterId);
+			if (optionalChapters.isPresent()) {
+				QmsQmChapters qmsQmChapters = optionalChapters.get();
+				qmsQmChapters.setIsActive(0);
+				qmsQmChapters.setModifiedBy(username);
+				qmsQmChapters.setModifiedDate(LocalDateTime.now());
+				
+				res = qmsQmChaptersRepo.save(qmsQmChapters).getChapterId();
+			}
+			return res;
+		} catch (Exception e) {
+			logger.error(new Date()  + "Inside DAO deleteQmChapterById() " + e);
+			e.printStackTrace();
+			return 0;
+		}
+	}
+	
+	@Override
+	public QmsQmChaptersDto getQmChapterById(long chapterId) throws Exception {
+		logger.info(new Date() + " Inside getQmChapterById() " );
+		try {
+			QmsQmChaptersDto qmsQmChaptersDto = QmsQmChaptersDto.builder().build();
+			Optional<QmsQmChapters> optionalChapters = qmsQmChaptersRepo.findById(chapterId);
+			if(optionalChapters.isPresent()) {
+						QmsQmChapters chapter = optionalChapters.get();
+						qmsQmChaptersDto = QmsQmChaptersDto.builder()
+						.ChapterId(chapter.getChapterId())
+						.ChapterParentId(chapter.getChapterParentId())
+						.SectionId(chapter.getSectionId())
+						.ChapterName(chapter.getChapterName())
+						.ChapterContent(chapter.getChapterContent())
+						.CreatedBy(chapter.getCreatedBy())
+						.CreatedDate(chapter.getCreatedDate())
+						.ModifiedBy(chapter.getModifiedBy())
+						.ModifiedDate(chapter.getModifiedDate())
+						.IsActive(chapter.getIsActive())
+						.build();
+				
+			}
+			return qmsQmChaptersDto;
+		} catch (Exception e) {
+			logger.error(new Date() + " Inside getQmChapterById() "+ e );
+			e.printStackTrace();
+			return QmsQmChaptersDto.builder().build();
 		}
 	}
 	
