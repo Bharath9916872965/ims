@@ -1,6 +1,5 @@
 package com.vts.ims.audit.model;
 
-
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
@@ -13,15 +12,21 @@ import lombok.Data;
 
 @Entity
 @Data
-@Table(name="ims_audit_auditor")
-public class Auditor {
-
+@Table(name = "ims_audit_team_members")
+public class AuditTeamMembers {
+	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "TeamMemberId")
+	private Long teamMemberId;
+	@Column(name = "TeamId")
+	private Long teamId;
 	@Column(name = "AuditorId")
-	private long auditorId;
-	@Column(name = "EmpId")
-	private long empId;
+	private Long auditorId;
+	@Column(name = "IqaId")
+	private Long iqaId;
+	@Column(name = "IsLead")
+	private Long iIsLead;
 	@Column(name = "CreatedBy")
 	private String createdBy;
 	@Column(name = "CreatedDate")
