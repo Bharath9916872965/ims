@@ -27,7 +27,9 @@ public class SecurityConfiguration {
 						.requestMatchers(HttpMethod.GET, "/api/admin/**").hasRole(ADMIN)
 						.requestMatchers(HttpMethod.GET, "/api/user/**").hasRole(USER)
 						.requestMatchers(HttpMethod.GET, "/api/admin-and-user/**").hasAnyRole(ADMIN,USER)
-						.anyRequest().authenticated());
+						.anyRequest().permitAll());
+//						.anyRequest().authenticated());
+					
 
 		http.sessionManagement(sess -> sess.sessionCreationPolicy(
 				SessionCreationPolicy.STATELESS));

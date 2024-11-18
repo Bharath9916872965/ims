@@ -35,6 +35,8 @@ public interface QmsService {
 //	public Long addQmMappingOfClasses(List<String[]> mocList, String username) throws Exception;
 	public Long addQmDocSummary(QmsQmDocumentSummaryDto qmsQmDocumentSummaryDto, String username) throws Exception;
 	public QmsQmDocumentSummaryDto getQmDocSummarybyId(long documentSummaryId) throws Exception;
+	public long deleteQmChapterById(long chapterId , String username) throws Exception;
+	public QmsQmChaptersDto getQmChapterById(long chapterId) throws Exception;
 	
 	
 }
