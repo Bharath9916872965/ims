@@ -1,0 +1,203 @@
+package com.vts.ims.master.service;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import com.vts.ims.login.Login;
+import com.vts.ims.login.LoginRepository;
+import com.vts.ims.master.dao.MasterClient;
+import com.vts.ims.master.dto.DocTemplateAttributesDto;
+import com.vts.ims.master.dto.EmployeeDto;
+import com.vts.ims.master.dto.LabMasterDto;
+import com.vts.ims.master.dto.LoginDetailsDto;
+import com.vts.ims.master.entity.DocTemplateAttributes;
+import com.vts.ims.master.repository.DocTemplateAttributesRepo;
+import com.vts.ims.qms.dto.QmsQmChaptersDto;
+import com.vts.ims.qms.model.QmsQmChapters;
+
+
+
+@Service
+public class MasterServiceImpl implements MasterService {
+
+	private static final Logger logger = LoggerFactory.getLogger(MasterService.class);
+	                                                                
+	@Value("${appStorage}")
+	private String storageDrive;
+	
+	@Value("${x_api_key}")
+	private String xApiKey;
+	
+	@Autowired
+	private MasterClient masterClient;
+	
+	@Autowired
+	LoginRepository loginRepo;
+	
+//	@Autowired
+//	QmsFormRoleRepo qmsFormRoleRepo;
+	
+	@Autowired
+	DocTemplateAttributesRepo docTemplateAttributesRepo;
+	
+	@Override
+	public LabMasterDto labDetailsList(String username) throws Exception {
+		 logger.info(new Date() + " MasterServiceImpl Inside method labDetailsList");
+		 try {
+		List<LoginDetailsDto> loginDtoList = loginDetailsList(username);
+			String labCode = loginDtoList.stream()
+					    .filter(dto -> dto.getUsername().equals(username)) 
+					    .map(LoginDetailsDto::getLabCode)                   
+					    .findFirst()                                        
+					    .orElse(null); 
+	        List<LabMasterDto> allLabMasterData = masterClient.getAllLabMaster(xApiKey);
+	        return allLabMasterData.stream()
+	            .filter(labMasterDto -> labMasterDto.getLabCode().equals(labCode))
+	            .findFirst()
+	            .orElse(null); 
+		 } catch (Exception e) {
+			 logger.info(new Date() + " MasterServiceImpl Inside method labDetailsList"+ e.getMessage());
+	        return null;
+	    }
+	}
+	
+	
+	
+	public List<LoginDetailsDto> loginDetailsList(String username) {
+		 logger.info(new Date() + " MasterServiceImpl Inside method loginDetailsList");
+		try {
+			
+	        Login loginData = loginRepo.findByUsername(username);
+	        if (loginData == null) {
+	            throw new Exception("User not found!");
+	        }
+
+
+
+//	        QmsFormRole formRoleData = qmsFormRoleRepo.findByQmsFormRoleId(loginData.getQmsFormRoleId());
+
+	        List<EmployeeDto> empData = masterClient.getEmployee(xApiKey, loginData.getEmpId());
+
+	        if (!empData.isEmpty()) {
+	            EmployeeDto eDto = empData.get(0); 
+
+//	            String memberType = qmsMembersRepo.findMemberTypeOfCurrUser(eDto.getEmpId())
+//                       .orElse(null);
+	           
+	
+	            
+	            return List.of(
+	                    LoginDetailsDto.builder()
+	                            .loginId(loginData.getLoginId())
+	                            .username(loginData.getUsername())
+	                            .empId(loginData.getEmpId())
+	                            .empNo(eDto.getEmpNo())
+	                            .empName(eDto.getEmpName())
+	                            .empDesigCode(eDto.getEmpDesigCode()) 
+	                            .qmsFormRoleId(loginData.getQmsFormRoleId())
+	                            .photo(eDto.getPhoto())
+	                            .divisionId(loginData.getDivisionId())
+	                            .loginType(loginData.getLoginType())
+//	                            .formRoleName(formRoleData.getFormRoleName()) 
+	                            .labCode(eDto.getLabCode())
+//	                            .memberType(memberType)
+	                            .build()
+	            );
+	        } else {
+	            throw new Exception("Employee data not found for the given employee ID");
+	        }
+	    } catch (Exception e) {
+	    	 logger.info(new Date() + " MasterServiceImpl Inside method loginDetailsList"+ e.getMessage());
+	        return new ArrayList<>(); 
+	    }
+	}
+	
+	@Override
+	public String LogoImage()throws Exception {
+		String logoimage=null;
+		try {
+			
+			Path filePath=null;
+			
+				  filePath = Paths.get(storageDrive,"Logo","lablogo.png");
+			File f = filePath.toFile();
+			if(f.exists() && !f.isDirectory()) { 
+			logoimage=encodeFileToBase64Binary(f);
+			}
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+		return logoimage;
+	}
+	
+	
+	private static String encodeFileToBase64Binary(File file) {
+        String encodedfile = null;
+        try {
+            FileInputStream fileInputStreamReader = new FileInputStream(file);
+            byte[] bytes = new byte[(int)file.length()];
+            fileInputStreamReader.read(bytes);
+           encodedfile = Base64.getEncoder().encodeToString(FileUtils.readFileToByteArray(file));
+           fileInputStreamReader.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return encodedfile;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return encodedfile;
+        }
+
+        return encodedfile;
+    }
+	
+	
+	@Override
+	public DocTemplateAttributesDto getDocTemplateAttributesDto() throws Exception {
+		logger.info(new Date() + " Inside getDocTemplateAttributesDto() " );
+		try {
+			DocTemplateAttributesDto qmsQmChaptersDto = DocTemplateAttributesDto.builder().build();
+			Optional<DocTemplateAttributes> optionalChapters = docTemplateAttributesRepo.findById(1l);
+			if(optionalChapters.isPresent()) {
+				DocTemplateAttributes chapter = optionalChapters.get();
+						qmsQmChaptersDto = DocTemplateAttributesDto.builder()
+						.AttributeId(chapter.getAttributeId())
+						.HeaderFontSize(chapter.getHeaderFontSize())
+						.SubHeaderFontsize(chapter.getSubHeaderFontsize())
+						.SuperHeaderFontsize(chapter.getSuperHeaderFontsize())
+						.ParaFontSize(chapter.getParaFontSize())
+						.FontFamily(chapter.getFontFamily())
+						.CreatedBy(chapter.getCreatedBy())
+						.CreatedDate(chapter.getCreatedDate())
+						.ModifiedBy(chapter.getModifiedBy())
+						.ModifiedDate(chapter.getModifiedDate())
+						.IsActive(chapter.getIsActive())
+						.build();
+				
+			}
+			return qmsQmChaptersDto;
+		} catch (Exception e) {
+			logger.error(new Date() + " Inside getDocTemplateAttributesDto() "+ e );
+			e.printStackTrace();
+			return DocTemplateAttributesDto.builder().build();
+		}
+	}
+	
+	
+	
+}
