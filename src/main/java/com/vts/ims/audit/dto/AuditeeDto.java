@@ -12,9 +12,14 @@ public class AuditeeDto {
 	private Long groupId;
 	private Long divisionId;
 	private Long projectId;
+	private String headType;
 	private String createdBy;
 	private LocalDateTime createdDate;
 	private String modifiedBy;
 	private LocalDateTime modifiedDate;
 	private int isActive;
+	private String auditee;
+	private String divisionName;
+	private String groupName;
+	private String projectName;
 }

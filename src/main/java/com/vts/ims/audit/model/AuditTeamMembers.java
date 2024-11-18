@@ -23,8 +23,6 @@ public class AuditTeamMembers {
 	private Long teamId;
 	@Column(name = "AuditorId")
 	private Long auditorId;
-	@Column(name = "IqaId")
-	private Long iqaId;
 	@Column(name = "IsLead")
 	private Long iIsLead;
 	@Column(name = "CreatedBy")

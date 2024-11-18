@@ -1,6 +1,5 @@
 package com.vts.ims.audit.controller;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -19,11 +18,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-
+import com.vts.ims.audit.dto.AuditeeDto;
 import com.vts.ims.audit.dto.AuditorDto;
 import com.vts.ims.audit.dto.IqaDto;
+import com.vts.ims.audit.model.AuditTeam;
 import com.vts.ims.audit.service.AuditService;
+import com.vts.ims.master.dto.DivisionGroupDto;
+import com.vts.ims.master.dto.DivisionMasterDto;
 import com.vts.ims.master.dto.EmployeeDto;
+import com.vts.ims.master.dto.ProjectMasterDto;
 
 
 
@@ -84,10 +87,10 @@ public class AuditController {
 	}
 	
 	
-	@RequestMapping (value="/auditor-delete", method=RequestMethod.POST,produces="application/json")
-    public ResponseEntity<String> auditordelete(@RequestBody AuditorDto auditordto, @RequestHeader  String username) throws Exception{
+	@RequestMapping (value="/auditor-inactive", method=RequestMethod.POST,produces="application/json")
+    public ResponseEntity<String> auditorInactive(@RequestBody AuditorDto auditordto, @RequestHeader  String username) throws Exception{
    		 try {
-   			logger.info("{} Inside auditor-delete");
+   			logger.info("{} Inside auditor-inactive");
    			long result=auditService.updateAuditor(auditordto,username);
 		    if(result > 0) {
 		    	return new ResponseEntity<String>("200" , HttpStatus.OK);
@@ -95,7 +98,7 @@ public class AuditController {
 		    	return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
 		    }
    		 } catch (Exception e) {
-  			  logger.error(new Date() +" error in auditor-delete");
+  			  logger.error(new Date() +" error in auditor-inactive");
   		         e.printStackTrace();
   		       return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
   		}
@@ -133,20 +136,109 @@ public class AuditController {
 	}
 	
 	
+	@PostMapping(value = "/auditee-list", produces = "application/json")
+	public ResponseEntity<List<AuditeeDto>> auditeelist(@RequestHeader String username) throws Exception {
+		try {
+			logger.info(new Date() + " Inside auditeelist" );
+			List<AuditeeDto> dto=auditService.getAuditeeList();
+			return new ResponseEntity<List<AuditeeDto>>( dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching auditeelist: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
+	}
 	
-	@PostMapping(value = "/iqa-edit-data", produces = "application/json")
-    public ResponseEntity<IqaDto> iqaEditData(@RequestBody Map<String, String> requestBody, @RequestHeader  String username) throws Exception{
-		String iqaId = requestBody.get("iqaDataId");
+	@PostMapping(value = "/get-division-list", produces = "application/json")
+	public ResponseEntity<List<DivisionMasterDto>> getDivisionlist(@RequestHeader String username) throws Exception {
+		try {
+			logger.info(new Date() + " Inside getDivisionlist" );
+			List<DivisionMasterDto> dto=auditService.getDivisionMaster();
+			return new ResponseEntity<List<DivisionMasterDto>>( dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching getDivisionlist: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	@PostMapping(value = "/get-division-group-list", produces = "application/json")
+	public ResponseEntity<List<DivisionGroupDto>> getDivisionGrouplist(@RequestHeader String username) throws Exception {
+		try {
+			logger.info(new Date() + " Inside getDivisionGrouplist" );
+			List<DivisionGroupDto> dto=auditService.getDivisionGroupList();
+			return new ResponseEntity<List<DivisionGroupDto>>( dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching getDivisionGrouplist: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	@PostMapping(value = "/get-project-list", produces = "application/json")
+	public ResponseEntity<List<ProjectMasterDto>> getProjectlist(@RequestHeader String username) throws Exception {
+		try {
+			logger.info(new Date() + " Inside getProjectlist" );
+			List<ProjectMasterDto> dto=auditService.getProjectMasterList();
+			return new ResponseEntity<List<ProjectMasterDto>>( dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching getProjectlist: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	
+	
+	@PostMapping(value = "/auditee-insert", produces = "application/json")
+	public ResponseEntity<String> auditeeinsert(@RequestHeader String username, @RequestBody AuditeeDto auditeedto) throws Exception {
+		try {
+			logger.info(new Date() + " Inside auditeeinsert" );
+			System.out.println("auditeedto:"+auditeedto);
+			long insertAuditee=auditService.insertAuditee(auditeedto,username);
+			 if(insertAuditee > 0) {
+				 return new ResponseEntity<String>("200" , HttpStatus.OK);
+			 }else {
+				 return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
+			 }
+		} catch (Exception e) {
+			 logger.error(new Date() +"error in auditeeinsert"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+		}
+	}
+	
+	
+	@RequestMapping (value="/auditee-inactive", method=RequestMethod.POST,produces="application/json")
+    public ResponseEntity<String> auditeeinactive(@RequestBody String auditeeId, @RequestHeader  String username) throws Exception{
    		 try {
-   			logger.info("{} Inside iqaEditData");
-   			IqaDto iqaData = auditService.getIqaById(Long.parseLong(iqaId));
-   			if (iqaData == null) {
-   	            return ResponseEntity.status(404).body(null); 
-   	        }
-   	        return ResponseEntity.ok(iqaData);
+   			logger.info("{} Inside auditee-inactive");
+   			long result=auditService.updateAuditee(auditeeId,username);
+		    if(result > 0) {
+		    	return new ResponseEntity<String>("200" , HttpStatus.OK);
+		    }else {
+		    	return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
+		    }
    		 } catch (Exception e) {
-   			logger.error(new Date() + " error in iqaEditData", e);
-   	        return ResponseEntity.status(500).body(null);
+  			  logger.error(new Date() +" error in auditee-inactive");
+  		         e.printStackTrace();
+  		       return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
   		}
 	}
+	
+	
+	@PostMapping(value = "/get-team-list", produces = "application/json")
+	public ResponseEntity<List<AuditTeam>> getTeamList(@RequestHeader String username) throws Exception {
+		try {
+			logger.info(new Date() + " Inside getTeamList" );
+			List<AuditTeam> dto=auditService.getTeamList();
+			return new ResponseEntity<List<AuditTeam>>(dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching getTeamList: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	
 }
