@@ -1,5 +1,6 @@
-package com.vts.ims.audit.model;
+package com.vts.ims.admin.entity;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
@@ -9,30 +10,35 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
-
 @Entity
+@Table(name="ims_form_role_access")
 @Data
-@Table(name = "ims_audit_team_members")
-public class AuditTeamMembers {
+public class FormRoleAccess implements Serializable {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "TeamMemberId")
-	private Long teamMemberId;
-	@Column(name = "TeamId")
-	private Long teamId;
-	@Column(name = "AuditorId")
-	private Long auditorId;
-	@Column(name = "IsLead")
-	private Long iIsLead;
+	@Column(name = "FormRoleAccessId")
+	private Long formRoleAccessId ;
+
+	@Column(name = "ImsFormRoleId")
+	private Long imsFormRoleId ;
+
+	@Column(name = "FormDetailId")
+	private Long formDetailId ;
+
+	@Column(name = "isActive")
+	private int isActive ;
+
 	@Column(name = "CreatedBy")
 	private String createdBy;
+
 	@Column(name = "CreatedDate")
 	private LocalDateTime createdDate;
+
 	@Column(name = "ModifiedBy")
 	private String modifiedBy;
+
 	@Column(name = "ModifiedDate")
 	private LocalDateTime modifiedDate;
-	@Column(name = "IsActive")
-	private int isActive;
+
 }

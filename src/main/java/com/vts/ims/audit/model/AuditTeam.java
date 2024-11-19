@@ -19,6 +19,8 @@ public class AuditTeam {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "TeamId")
 	private Long teamId;
+	@Column(name = "IqaId")
+	private Long iqaId;
 	@Column(name = "TeamCode")
 	private String teamCode;
 	@Column(name = "CreatedBy")

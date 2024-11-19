@@ -171,5 +171,20 @@ public class QmsController {
 		return service.getQmDocSummarybyId(DocumentSummaryId);
 	}
 	
+	@PostMapping(value = "/delete-qm-chapteId", produces = "application/json")
+	public long deleteQmChapterById(@RequestBody long chapterId, @RequestHeader String username) throws Exception {
+		logger.info(new Date() + " Inside delete-qm-chapteId " + username);
+		
+		return service.deleteQmChapterById(chapterId, username);
+	}
+	
+	
+	@PostMapping(value = "/get-qm-chapter", produces = "application/json")
+	public QmsQmChaptersDto getQmChapterById(@RequestBody long chapterId, @RequestHeader String username) throws Exception {
+		logger.info(new Date() + " Inside get-qm-chapteId " + username);
+		
+		return service.getQmChapterById(chapterId);
+	}
+	
 	
 }
