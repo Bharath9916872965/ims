@@ -1,6 +1,5 @@
 package com.vts.ims.audit.controller;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -19,9 +18,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-
+import com.vts.ims.audit.dto.AuditScheduleDto;
+import com.vts.ims.audit.dto.AuditScheduleListDto;
 import com.vts.ims.audit.dto.AuditorDto;
 import com.vts.ims.audit.dto.IqaDto;
+import com.vts.ims.audit.model.AuditTeam;
 import com.vts.ims.audit.service.AuditService;
 import com.vts.ims.master.dto.EmployeeDto;
 
@@ -148,5 +149,69 @@ public class AuditController {
    			logger.error(new Date() + " error in iqaEditData", e);
    	        return ResponseEntity.status(500).body(null);
   		}
+	}
+	
+	@PostMapping(value = "/insert-audit-schedule", produces = "application/json")
+	public ResponseEntity<String> insertAuditSchedule(@RequestHeader String username, @RequestBody AuditScheduleDto auditScheduleDto) throws Exception {
+		try {
+			logger.info(new Date() + " Inside insert-audit-schedule" );
+			 long insertAuditor=auditService.insertAuditSchedule(auditScheduleDto,username);
+			 if(insertAuditor > 0) {
+				 return new ResponseEntity<String>("audit schedule Added Successfully" , HttpStatus.OK);
+			 }else {
+				 return new ResponseEntity<String>("audit schedule Added Unsuccessful" , HttpStatus.BAD_REQUEST);
+			 }
+		} catch (Exception e) {
+			 logger.error(new Date() +"error in insert-audit-schedule"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+		}
+	}
+	
+	@PostMapping(value = "/edit-audit-schedule", produces = "application/json")
+	public ResponseEntity<String> editAuditSchedule(@RequestHeader String username, @RequestBody AuditScheduleDto auditScheduleDto) throws Exception {
+		try {
+			logger.info(new Date() + " Inside edit-audit-schedule" );
+			 long insertAuditor=auditService.editAuditSchedule(auditScheduleDto,username);
+			 if(insertAuditor > 0) {
+				 return new ResponseEntity<String>("audit schedule Edited Successfully" , HttpStatus.OK);
+			 }else {
+				 return new ResponseEntity<String>("audit schedule Edited Unsuccessful" , HttpStatus.BAD_REQUEST);
+			 }
+		} catch (Exception e) {
+			 logger.error(new Date() +"error in edit-audit-schedule"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+		}
+	}
+	
+	@PostMapping(value = "/insert-audit-reschedule", produces = "application/json")
+	public ResponseEntity<String> insertAuditReSchedule(@RequestHeader String username, @RequestBody AuditScheduleDto auditScheduleDto) throws Exception {
+		try {
+			logger.info(new Date() + " Inside insert-audit-reSchedule" );
+			 long insertAuditor=auditService.insertAuditReSchedule(auditScheduleDto,username);
+			 if(insertAuditor > 0) {
+				 return new ResponseEntity<String>("audit Rescheduled Successfully" , HttpStatus.OK);
+			 }else {
+				 return new ResponseEntity<String>("audit Rescheduled Unsuccessful" , HttpStatus.BAD_REQUEST);
+			 }
+		} catch (Exception e) {
+			 logger.error(new Date() +"error in insert-audit-reSchedule"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+		}
+	}
+	
+	@PostMapping(value = "/schedule-list", produces = "application/json")
+	public ResponseEntity<List<AuditScheduleListDto>> getScheduleList(@RequestHeader String username) throws Exception {
+		try {
+			logger.info(new Date() + " Inside scheduleList" );
+			List<AuditScheduleListDto> dto=auditService.getScheduleList();
+			return new ResponseEntity<List<AuditScheduleListDto>>(dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching scheduleList: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
 	}
 }
