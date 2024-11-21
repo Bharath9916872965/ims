@@ -21,7 +21,7 @@ public class Iqa {
 	@Column(name="IqaId")
 	private Long iqaId;
 	@Column(name="IqaNo")
-	private Long iqaNo;
+	private String iqaNo;
 	@Column(name="FromDate")
 	private Date fromDate;
 	@Column(name="ToDate")

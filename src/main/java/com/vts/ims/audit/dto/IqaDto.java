@@ -9,7 +9,7 @@ import lombok.Data;
 public class IqaDto {
 
 	private Long iqaId;
-	private Long iqaNo;
+	private String iqaNo;
 	private Date fromDate;
 	private Date toDate;
 	private String scope;
