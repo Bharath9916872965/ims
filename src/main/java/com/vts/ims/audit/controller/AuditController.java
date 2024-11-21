@@ -27,6 +27,7 @@ import com.vts.ims.audit.dto.AuditeeDto;
 import com.vts.ims.audit.dto.AuditorDto;
 import com.vts.ims.audit.dto.AuditorTeamDto;
 import com.vts.ims.audit.dto.IqaDto;
+import com.vts.ims.audit.model.AuditTeam;
 import com.vts.ims.audit.service.AuditService;
 import com.vts.ims.master.dto.DivisionGroupDto;
 import com.vts.ims.master.dto.DivisionMasterDto;
@@ -429,6 +430,19 @@ public class AuditController {
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("Error fetching getauditteammemberlist: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	@PostMapping(value = "/get-team-list", produces = "application/json")
+	public ResponseEntity<List<AuditTeam>> getTeamList(@RequestHeader String username) throws Exception {
+		try {
+			logger.info(new Date() + " Inside getTeamList" );
+			List<AuditTeam> dto=auditService.getTeamList();
+			return new ResponseEntity<List<AuditTeam>>(dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching getTeamList: ", e);
 			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
 		}
 	}
