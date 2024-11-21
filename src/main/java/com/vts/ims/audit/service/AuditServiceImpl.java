@@ -12,18 +12,25 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.vts.ims.audit.dto.AuditTeamEmployeeDto;
+import com.vts.ims.audit.dto.AuditTeamMembersDto;
 import com.vts.ims.audit.dto.AuditeeDto;
 import com.vts.ims.audit.dto.AuditorDto;
+import com.vts.ims.audit.dto.AuditorTeamDto;
 import com.vts.ims.audit.dto.IqaDto;
 import com.vts.ims.audit.model.AuditTeam;
+import com.vts.ims.audit.model.AuditTeamMembers;
 import com.vts.ims.audit.model.Auditee;
 import com.vts.ims.audit.model.Auditor;
 import com.vts.ims.audit.model.Iqa;
 import com.vts.ims.audit.repository.AuditeeRepository;
 import com.vts.ims.audit.repository.AuditorRepository;
 import com.vts.ims.audit.repository.IqaRepository;
+import com.vts.ims.audit.repository.TeamMemberRepository;
 import com.vts.ims.audit.repository.TeamRepository;
 import com.vts.ims.master.dao.MasterClient;
 import com.vts.ims.master.dto.DivisionGroupDto;
@@ -50,11 +57,14 @@ public class AuditServiceImpl implements AuditService{
 	TeamRepository teamRepository;
 	
 	@Autowired
+	TeamMemberRepository teamMemberRepository;
+	
+	@Autowired
 	private MasterClient masterClient;
 	
 	@Override
-	public List<AuditorDto> getAuditList() throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getAuditList()");
+	public List<AuditorDto> getAuditorList() throws Exception {
+		logger.info(new Date() + " AuditServiceImpl Inside method getAuditorList()");
 		try {
 			List<Auditor> auditors = auditRepository.findAll();
 			List<EmployeeDto> employeeList=masterClient.getEmployeeList("VTS");
@@ -79,7 +89,7 @@ public class AuditServiceImpl implements AuditService{
 			return finalDto;
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.error("AuditServiceImpl Inside method getAuditList()"+ e);
+			logger.error("AuditServiceImpl Inside method getAuditorList()"+ e);
 			return Collections.emptyList();
 		}
 	}
@@ -90,16 +100,19 @@ public class AuditServiceImpl implements AuditService{
 		logger.info(new Date() + " AuditServiceImpl Inside method getEmployelist()");
 		try {
 			List<EmployeeDto> empdto=masterClient.getEmployeeList("VTS");
-			Comparator<EmployeeDto> comparator = Comparator
-		            .comparingLong((EmployeeDto dto) -> dto.getSrNo() == 0 ? 1 : 0) 
-		            .thenComparingLong(EmployeeDto::getSrNo);
-			return empdto.stream().sorted(comparator).collect(Collectors.toList());
+			 Comparator<EmployeeDto> comparator = Comparator
+				        .comparingLong((EmployeeDto dto) -> dto.getSrNo() == 0 ? 1 : 0) 
+				        .thenComparingLong(EmployeeDto::getSrNo);
+
+				    return empdto.stream()
+				                 .filter(dto -> dto.getIsActive() == 1) // Filter for isActive == 1
+				                 .sorted(comparator) // Sort after filtering
+				                 .collect(Collectors.toList());
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("AuditServiceImpl Inside method getEmployelist()"+ e);
 			return Collections.emptyList();
 		}
-		
 	}
 	
 	
@@ -123,7 +136,6 @@ public class AuditServiceImpl implements AuditService{
 	                        data.setModifiedBy(username);
 	                        data.setModifiedDate(LocalDateTime.now());
 	                        result = auditRepository.save(data).getAuditorId();
-	                        logger.info("Reactivated Auditor: " + auditorId);
 	                    }
 	                } else {
 	                    Auditor model = new Auditor();
@@ -132,7 +144,6 @@ public class AuditServiceImpl implements AuditService{
 	                    model.setCreatedDate(LocalDateTime.now());
 	                    model.setIsActive(1);
 	                    result = auditRepository.save(model).getAuditorId();
-	                    logger.info("Created new Auditor for EmpId: " + empId);
 	                }
 	            }
 	        }
@@ -151,7 +162,6 @@ public class AuditServiceImpl implements AuditService{
 		long result=0;
 		try {
 			Optional<Auditor> model =auditRepository.findById(auditordto.getAuditorId());
-			System.out.println("model.isPresent():"+model.isPresent());
 			if(model.isPresent()) {
 				Auditor data = model.get();
 				data.setIsActive(auditordto.getIsActive());
@@ -264,7 +274,7 @@ public class AuditServiceImpl implements AuditService{
 					    DivisionMasterDto division = (obj.getDivisionId()!=null && !obj.getDivisionId().toString().equalsIgnoreCase("0"))?divisionMap.get(obj.getDivisionId()):null;
 					    DivisionGroupDto group = (obj.getGroupId()!=null && !obj.getGroupId().toString().equalsIgnoreCase("0"))?groupMap.get(obj.getGroupId()):null;
 					    ProjectMasterDto project = (obj.getProjectId()!=null && !obj.getProjectId().toString().equalsIgnoreCase("0"))?projectMap.get(obj.getProjectId()):null;
-					    
+				    
 				    	AuditeeDto dto = new AuditeeDto();
 				    	dto.setAuditeeId(obj.getAuditeeId());
 				    	dto.setEmpId(obj.getEmpId());
@@ -280,6 +290,7 @@ public class AuditServiceImpl implements AuditService{
 				    	dto.setDivisionName(division !=null?division.getDivisionCode():"");
 				    	dto.setGroupName(group !=null?group.getGroupCode():"");
 				    	dto.setProjectName(project !=null?project.getProjectName():"");
+				    	dto.setProjectCode(project !=null?project.getProjectCode():"");
 				        return dto;
 				    })
 				    .sorted(Comparator.comparingLong(AuditeeDto::getAuditeeId).reversed()) 
@@ -298,7 +309,6 @@ public class AuditServiceImpl implements AuditService{
 		logger.info(new Date() + " AuditServiceImpl Inside method getDivisionMaster()");
 		try {
 			List<DivisionMasterDto> divisiondto=masterClient.getDivisionMaster("VTS");
-			System.out.println("divisiondto:"+divisiondto);
 			 return divisiondto.stream()
                      .filter(dto -> dto.getIsActive() == 1)
                      .collect(Collectors.toList());
@@ -417,7 +427,6 @@ public class AuditServiceImpl implements AuditService{
 		long result=0;
 		try {
 			Optional<Auditee> model =auditeeRepository.findById(Long.parseLong(auditeeId));
-			System.out.println("model.isPresent():"+model.isPresent());
 			if(model.isPresent()) {
 				Auditee data = model.get();
 				data.setIsActive(0);
@@ -430,6 +439,193 @@ public class AuditServiceImpl implements AuditService{
 			e.printStackTrace();
 			logger.error("AuditServiceImpl Inside method updateAuditee()"+ e);
 			return 0;
+		}
+	}
+	
+	@Override
+	public List<AuditorTeamDto> getAuditTeamMainList() throws Exception {
+		logger.info(new Date() + " AuditServiceImpl Inside method getAuditTeamList()");
+		try {
+			List<AuditTeam> auditTeamList=teamRepository.findAllByIsActive(1);
+			List<AuditorTeamDto> finalAuditTeamList  = auditTeamList.stream()
+				    .map(obj -> {
+				    	AuditorTeamDto dto = new AuditorTeamDto();
+				        dto.setIqaId(obj.getIqaId());
+				        dto.setTeamId(obj.getTeamId());
+				        dto.setTeamCode(obj.getTeamCode());
+				        dto.setIsActive(obj.getIsActive());
+				        return dto;
+				    })
+				    .collect(Collectors.toList());
+			return finalAuditTeamList;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method getAuditTeamList()"+ e);
+			return Collections.emptyList();
+		}
+	}
+	
+	
+	@Override
+	public List<AuditorDto> getAuditorIsActiveList() throws Exception {
+		logger.info(new Date() + " AuditServiceImpl Inside method getAuditorList()");
+		try {
+			List<Auditor> auditors = auditRepository.findAllByIsActive(1);
+			List<EmployeeDto> employeeList=masterClient.getEmployeeList("VTS");
+		    Map<Long, EmployeeDto> employeeMap = employeeList.stream()
+		            .filter(employee -> employee.getEmpId() != null)
+		            .collect(Collectors.toMap(EmployeeDto::getEmpId, employee -> employee));
+			List<AuditorDto> finalDto = auditors.stream()
+				    .map(obj -> {
+				        AuditorDto auditorDto = new AuditorDto();
+				       // EmployeeDto employeeDto = masterClient.getEmployee("VTS", obj.getEmpId()).get(0);
+				        EmployeeDto employeeDto =  employeeMap.get(obj.getEmpId());
+				        auditorDto.setEmpId(obj.getEmpId());
+				        auditorDto.setEmpName(employeeDto.getEmpName());
+				        auditorDto.setDesignation(employeeDto.getEmpDesigName());
+				        auditorDto.setDivisionName(employeeDto.getEmpDivCode());
+				        auditorDto.setAuditorId(obj.getAuditorId());
+				        return auditorDto;
+				    })
+				    .collect(Collectors.toList());
+			return finalDto;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method getAuditorList()"+ e);
+			return Collections.emptyList();
+		}
+	}
+	
+	@Override
+	public List<AuditTeamMembersDto> getTeamMmberIsActiveList() throws Exception {
+		logger.info(new Date() + " AuditServiceImpl Inside method getTeamMmberIsActiveList()");
+		try {
+			List<AuditTeamMembers> teamMembers = teamMemberRepository.findAllByIsActive(1);
+			List<AuditTeam> auditTeamList=teamRepository.findAllByIsActive(1);
+			Map<Long, AuditTeam> auditTeamMap = auditTeamList.stream()
+		            .filter(auditteam -> auditteam.getTeamId() != null)
+		            .collect(Collectors.toMap(AuditTeam::getTeamId, auditteam -> auditteam));
+			List<AuditTeamMembersDto> finalDto = teamMembers.stream()
+				    .map(obj -> {
+				    	AuditTeam team= auditTeamMap.get(obj.getTeamId());
+				    	AuditTeamMembersDto teamMemberDto= new AuditTeamMembersDto();
+				    	teamMemberDto.setTeamMemberId(obj.getTeamMemberId());
+				    	teamMemberDto.setAuditorId(obj.getAuditorId());
+				    	teamMemberDto.setTeamId(obj.getTeamId());
+				    	teamMemberDto.setIIsLead(obj.getIIsLead());	
+				    	teamMemberDto.setIqaId(team.getIqaId());
+				    	return teamMemberDto;
+				    })
+				    .collect(Collectors.toList());
+			return finalDto;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method getTeamMmberIsActiveList()"+ e);
+			return Collections.emptyList();
+		}
+		
+	}
+	
+	
+	@Modifying
+    @Transactional
+	@Override
+	public long insertAuditTeam(AuditorTeamDto auditormemberteamdto, String username) throws Exception {
+		logger.info(new Date() + " AuditServiceImpl Inside method insertAuditTeam()");
+		long result=0;
+		try {
+			if(auditormemberteamdto!=null && auditormemberteamdto.getTeamId()!=null) {
+				int delete =teamMemberRepository.deleteByTeamId(auditormemberteamdto.getTeamId());
+				if(delete>0) {
+					AuditTeamMembers teamleadmodel=new AuditTeamMembers();
+					teamleadmodel.setTeamId(auditormemberteamdto.getTeamId());
+					teamleadmodel.setAuditorId(auditormemberteamdto.getTeamLeadEmpId());
+					teamleadmodel.setIIsLead(1L);
+					teamleadmodel.setCreatedBy(username);
+					teamleadmodel.setCreatedDate(LocalDateTime.now());
+					teamleadmodel.setIsActive(1);
+					teamleadmodel.setIsActive(1);
+					result=teamMemberRepository.save(teamleadmodel).getTeamMemberId();
+					if(auditormemberteamdto.getTeamMemberEmpId()!=null && auditormemberteamdto.getTeamMemberEmpId().length>0) {
+						for(int i=0;i<auditormemberteamdto.getTeamMemberEmpId().length;i++) {
+							AuditTeamMembers teammembermodel=new AuditTeamMembers();
+							teammembermodel.setTeamId(auditormemberteamdto.getTeamId());
+							teammembermodel.setAuditorId(auditormemberteamdto.getTeamMemberEmpId()[i]);
+							teammembermodel.setIIsLead(0L);
+							teammembermodel.setCreatedBy(username);
+							teammembermodel.setCreatedDate(LocalDateTime.now());
+							teammembermodel.setIsActive(1);
+							teamMemberRepository.save(teammembermodel);
+						}
+					}
+				}
+			}else {
+				AuditTeam model=new AuditTeam();
+				model.setTeamCode(auditormemberteamdto.getTeamCode());
+				model.setIqaId(auditormemberteamdto.getIqaId());
+				model.setCreatedBy(username);
+				model.setCreatedDate(LocalDateTime.now());
+				model.setIsActive(1);
+				result=teamRepository.save(model).getTeamId();
+				if(result>0) {
+				AuditTeamMembers teamleadmodel=new AuditTeamMembers();
+				teamleadmodel.setTeamId(result);
+				teamleadmodel.setAuditorId(auditormemberteamdto.getTeamLeadEmpId());
+				teamleadmodel.setIIsLead(1L);
+				teamleadmodel.setCreatedBy(username);
+				teamleadmodel.setCreatedDate(LocalDateTime.now());
+				teamleadmodel.setIsActive(1);
+				teamleadmodel.setIsActive(1);
+				teamMemberRepository.save(teamleadmodel);
+				if(auditormemberteamdto.getTeamMemberEmpId()!=null && auditormemberteamdto.getTeamMemberEmpId().length>0) {
+					for(int i=0;i<auditormemberteamdto.getTeamMemberEmpId().length;i++) {
+						AuditTeamMembers teammembermodel=new AuditTeamMembers();
+						teammembermodel.setTeamId(result);
+						teammembermodel.setAuditorId(auditormemberteamdto.getTeamMemberEmpId()[i]);
+						teammembermodel.setIIsLead(0L);
+						teammembermodel.setCreatedBy(username);
+						teammembermodel.setCreatedDate(LocalDateTime.now());
+						teammembermodel.setIsActive(1);
+						teamMemberRepository.save(teammembermodel);
+					}
+				}
+			  }
+			}
+			return result;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method insertAuditTeam()"+ e);
+			return result;
+		}
+	}
+	
+	
+	@Override
+	public List<AuditTeamEmployeeDto> getauditteammemberlist() throws Exception {
+		logger.info(new Date() + " AuditServiceImpl Inside method getauditteammemberlist()");
+		try {
+			List<Object[]> getAuditTeamMemberList=teamRepository.getAuditTeamMemberList();
+			List<EmployeeDto> totalEmployee = masterClient.getEmployeeMasterList("VTS");
+		    Map<Long, EmployeeDto> employeeMap = totalEmployee.stream()
+		            .filter(employee -> employee.getEmpId() != null)
+		            .collect(Collectors.toMap(EmployeeDto::getEmpId, employee -> employee));
+			List<AuditTeamEmployeeDto> finalAuditTeamMemberList  = getAuditTeamMemberList.stream()
+					.map(obj -> {
+					    EmployeeDto employee =	obj[0] != null?employeeMap.get(obj[0]):null;
+					    AuditTeamEmployeeDto dto = new AuditTeamEmployeeDto();
+					    dto.setTeamMemberIds(Long.parseLong(obj[6].toString()));
+					    dto.setTeamId(Long.parseLong(obj[5].toString()));
+					    dto.setTeamMembers(employee != null?employee.getEmpName()+", "+employee.getEmpDesigName():"");
+					    dto.setIsLead(Long.parseLong(obj[3].toString()));
+					    dto.setAuditorId(Long.parseLong(obj[4].toString()));
+				        return dto;
+				    })
+				    .collect(Collectors.toList());
+			return finalAuditTeamMemberList;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method getauditteammemberlist()"+ e);
+			return Collections.emptyList();
 		}
 	}
 }

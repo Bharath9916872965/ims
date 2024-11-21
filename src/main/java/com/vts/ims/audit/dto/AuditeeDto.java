@@ -22,4 +22,5 @@ public class AuditeeDto {
 	private String divisionName;
 	private String groupName;
 	private String projectName;
+	private String projectCode;
 }

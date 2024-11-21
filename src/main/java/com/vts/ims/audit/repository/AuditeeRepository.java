@@ -8,6 +8,6 @@ import com.vts.ims.audit.model.Auditee;
 
 public interface AuditeeRepository extends JpaRepository<Auditee, Long>{
 
-	List<Auditee> findAllByIsActive(int i) throws Exception;
+	List<Auditee> findAllByIsActive(int isActive) throws Exception;
 
 }
