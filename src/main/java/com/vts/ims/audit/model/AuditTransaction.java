@@ -1,7 +1,7 @@
 package com.vts.ims.audit.model;
 
 
-import java.sql.Date;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -28,7 +28,7 @@ public class AuditTransaction {
 	private Long empId;
 	
 	@Column(name = "TransactionDate")
-	private Date transactionDate;
+	private LocalDateTime transactionDate;
 	
 	@Column(name = "AuditStatus")
 	private String auditStatus;

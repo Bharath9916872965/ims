@@ -11,6 +11,8 @@ public class AuditScheduleListDto {
 	private String scheduleDate;
 	private Long auditeeId;
 	private Long teamId;
+	private Long iqaId;
+	private String iqaNo;
 	private String remarks;
 	private String teamCode;
 	private Long auditeeEmpId;
@@ -22,4 +24,6 @@ public class AuditScheduleListDto {
 	private String divisionName;
 	private String groupName;  
 	private String projectName;  
+	private String scheduleStatus;  
+	private String statusName;  
 }

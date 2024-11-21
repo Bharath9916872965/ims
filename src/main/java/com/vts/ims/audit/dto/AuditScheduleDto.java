@@ -13,6 +13,7 @@ public class AuditScheduleDto {
 	private LocalDateTime scheduleDate;
 	private Long auditeeId;
 	private Long teamId;
+	private Long iqaId;
 	private String remarks;
 	private Integer revision;
 }
