@@ -2,8 +2,11 @@ package com.vts.ims.audit.service;
 
 import java.util.List;
 
+import com.vts.ims.audit.dto.AuditTeamEmployeeDto;
+import com.vts.ims.audit.dto.AuditTeamMembersDto;
 import com.vts.ims.audit.dto.AuditeeDto;
 import com.vts.ims.audit.dto.AuditorDto;
+import com.vts.ims.audit.dto.AuditorTeamDto;
 import com.vts.ims.audit.dto.IqaDto;
 import com.vts.ims.audit.model.AuditTeam;
 import com.vts.ims.master.dto.DivisionGroupDto;
@@ -13,7 +16,7 @@ import com.vts.ims.master.dto.ProjectMasterDto;
 
 public interface AuditService {
 
-	public List<AuditorDto> getAuditList() throws Exception;
+	public List<AuditorDto> getAuditorList() throws Exception;
 
 	public List<EmployeeDto> getEmployelist() throws Exception;
 
@@ -38,5 +41,15 @@ public interface AuditService {
 	public List<AuditTeam> getTeamList()throws Exception;
 
 	public long updateAuditee(String auditeeId, String username) throws Exception;
+
+	public List<AuditorTeamDto> getAuditTeamMainList() throws Exception;
+
+	public List<AuditorDto> getAuditorIsActiveList() throws Exception;
+
+	public List<AuditTeamMembersDto> getTeamMmberIsActiveList() throws Exception;
+
+	public long insertAuditTeam(AuditorTeamDto auditormemberteamdto, String username) throws Exception;
+
+	public List<AuditTeamEmployeeDto> getauditteammemberlist() throws Exception;
 
 }
