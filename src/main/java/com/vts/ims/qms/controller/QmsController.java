@@ -31,6 +31,8 @@ import com.vts.ims.qms.dto.QmsQmChaptersDto;
 import com.vts.ims.qms.dto.QmsQmDocumentSummaryDto;
 import com.vts.ims.qms.dto.QmsQmRevisionRecordDto;
 import com.vts.ims.qms.dto.QmsQmSectionsDto;
+import com.vts.ims.qms.model.QmsAbbreviations;
+import com.vts.ims.qms.model.QmsQmRevisionRecord;
 import com.vts.ims.qms.service.QmsService;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -138,8 +140,8 @@ public class QmsController {
 	}
 	
 	@GetMapping("/get-qm-moc-excel")
-    public ResponseEntity<FileSystemResource> downloadExcel(@RequestHeader String username) throws Exception {
-		logger.info(new Date() + " Inside get-qm-moc-excel " + username);
+    public ResponseEntity<FileSystemResource> downloadExcel() throws Exception {
+		logger.info(new Date() + " Inside get-qm-moc-excel " );
 		String fileName = "QMS"+File.separator+"QM_Defaults"+File.separator+"Mapping_of_Clauses.xlsx";
         String filePath = storageDrive+fileName;
         
@@ -171,6 +173,12 @@ public class QmsController {
 		return service.getQmDocSummarybyId(DocumentSummaryId);
 	}
 	
+	@PostMapping(value = "/get-docsummary-by-revisionRecordId", produces = "application/json")
+	public QmsQmDocumentSummaryDto getQmDocSummarybyRevisionRecordId(@RequestBody long revisionRecordId, @RequestHeader  String username) throws Exception {
+		logger.info(new Date() + " Inside get-docsummary " + username);
+		return service.getQmDocSummarybyRevisionRecordId(revisionRecordId);
+	}
+	
 	@PostMapping(value = "/delete-qm-chapteId", produces = "application/json")
 	public long deleteQmChapterById(@RequestBody long chapterId, @RequestHeader String username) throws Exception {
 		logger.info(new Date() + " Inside delete-qm-chapteId " + username);
@@ -184,6 +192,45 @@ public class QmsController {
 		logger.info(new Date() + " Inside get-qm-chapteId " + username);
 		
 		return service.getQmChapterById(chapterId);
+	}
+	
+	@PostMapping(value = "/updatechapter-pagebreak-landscape", produces = "application/json")
+	public Long updatechapterPagebreakAndLandscape(@RequestBody String[] chaperContent, @RequestHeader String username) throws Exception {
+		logger.info(new Date() + " Inside updatechapterPagebreakAndLandscape " + username);
+		return service.updatechapterPagebreakAndLandscape(chaperContent, username);
+	}
+	
+	
+	@PostMapping(value = "/get-abbreviationlist", produces = "application/json")
+	public List<QmsAbbreviations> getAbbreviationList(@RequestBody String abbreviationIdNotReq, @RequestHeader String username) throws Exception {
+		logger.info(new Date() + " Inside get-abbreviationlist " + username);
+		return service.getAbbreviationList(abbreviationIdNotReq);
+	}
+	
+	
+	@PostMapping(value = "/get-qm-revision-record", produces = "application/json")
+	public QmsQmRevisionRecord getQmVersionRecordById(@RequestBody Long revisionRecordId, @RequestHeader String username) throws Exception {
+		logger.info(new Date() + " Inside get-qm-revision-record " + username);
+		return service.getQmsQmRevisionRecord(revisionRecordId);
+	}
+	
+	@PostMapping(value = "update-qm-notreq-abbreviation/{revisionRecordId}")
+	public long updateNotReqQmAbbreviationIds(@PathVariable("revisionRecordId") Long revisionRecordId, @RequestBody String abbreviationIds, @RequestHeader String username ) throws Exception {
+		logger.info(new Date() + " Inside update-qm-notreq-abbreviation " + username);
+		return service.updateNotReqQmAbbreviationIds(revisionRecordId, abbreviationIds, username);
+	}
+	
+	@PostMapping(value = "/add-moc/{revisionRecordId}", produces = "application/json")
+	public  Long addMappingOfClasses(@PathVariable("revisionRecordId") Long revisionRecordId,@RequestBody List<String[]> mocList, @RequestHeader  String username) throws Exception {
+		logger.info(new Date() + " Inside add-moc " + username);
+		return service.addMappingOfClasses(revisionRecordId, mocList, username);
+	}
+	
+	
+	@PostMapping(value = "/get-moclist", produces = "application/json")
+	public  List<Object[]> getMocList(@RequestBody Long revisionRecordId, @RequestHeader  String username) throws Exception {
+		logger.info(new Date() + " Inside add-moc " + username);
+		return service.getMocList(revisionRecordId);
 	}
 	
 	

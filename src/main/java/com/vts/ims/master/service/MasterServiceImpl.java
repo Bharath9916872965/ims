@@ -168,6 +168,25 @@ public class MasterServiceImpl implements MasterService {
 	
 	
 	@Override
+	public String getDrdoLogo()throws Exception {
+		String logoimage=null;
+		try {
+
+			Path filePath=null;
+
+			filePath = Paths.get(storageDrive,"Logo","drdo.png");
+			File f = filePath.toFile();
+			if(f.exists() && !f.isDirectory()) { 
+				logoimage=encodeFileToBase64Binary(f);
+			}
+		}	catch (Exception e) {
+			e.printStackTrace();
+		}
+		return logoimage;
+	}
+	
+	
+	@Override
 	public DocTemplateAttributesDto getDocTemplateAttributesDto() throws Exception {
 		logger.info(new Date() + " Inside getDocTemplateAttributesDto() " );
 		try {
@@ -182,6 +201,7 @@ public class MasterServiceImpl implements MasterService {
 						.SuperHeaderFontsize(chapter.getSuperHeaderFontsize())
 						.ParaFontSize(chapter.getParaFontSize())
 						.FontFamily(chapter.getFontFamily())
+						.RestrictionOnUse(chapter.getRestrictionOnUse())
 						.CreatedBy(chapter.getCreatedBy())
 						.CreatedDate(chapter.getCreatedDate())
 						.ModifiedBy(chapter.getModifiedBy())

@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vts.ims.master.dto.DocTemplateAttributesDto;
@@ -58,6 +60,17 @@ public class MasterController {
 			return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
 		}
 	}
+	
+    @RequestMapping(value = "/drdo-logo" , method = RequestMethod.POST , produces ="application/json")
+    public ResponseEntity<String> getDrdoImage(@RequestHeader  String username)throws Exception {
+    	logger.info(new Date()+" Inside drdo-logo " +username);
+    	String result = service.getDrdoLogo();
+    	if (result != null) {
+    		return new ResponseEntity<>(result, HttpStatus.OK);
+    	} else {
+    		return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+    	}
+    }
 	
 	
 	@PostMapping(value = "/get-DocTemplateAttributes" , produces ="application/json")

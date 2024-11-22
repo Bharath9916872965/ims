@@ -23,6 +23,7 @@ public class DocTemplateAttributesDto {
 	private int SuperHeaderFontsize;
 	private int ParaFontSize;
 	private String FontFamily;
+	private String RestrictionOnUse;
 	private String CreatedBy;
 	private LocalDateTime CreatedDate;
 	private String ModifiedBy;
