@@ -2,8 +2,12 @@ package com.vts.ims.audit.service;
 
 import java.util.List;
 
+import com.vts.ims.audit.dto.AuditRescheduleDto;
+import com.vts.ims.audit.dto.AuditScheduleDto;
+import com.vts.ims.audit.dto.AuditScheduleListDto;
 import com.vts.ims.audit.dto.AuditTeamEmployeeDto;
 import com.vts.ims.audit.dto.AuditTeamMembersDto;
+import com.vts.ims.audit.dto.AuditTotalTeamMembersDto;
 import com.vts.ims.audit.dto.AuditeeDto;
 import com.vts.ims.audit.dto.AuditorDto;
 import com.vts.ims.audit.dto.AuditorTeamDto;
@@ -41,6 +45,20 @@ public interface AuditService {
 	public List<AuditTeam> getTeamList()throws Exception;
 
 	public long updateAuditee(String auditeeId, String username) throws Exception;
+
+	public long insertAuditSchedule(AuditScheduleDto auditScheduleDto, String username)throws Exception;
+	public long editAuditSchedule(AuditScheduleDto auditScheduleDto, String username)throws Exception;
+	public long insertAuditReSchedule(AuditRescheduleDto auditRescheduleDto, String username)throws Exception;
+
+	public List<AuditScheduleListDto> getScheduleList()throws Exception;
+
+	public long forwardSchedule(List<Long> auditScheduleIds, String username)throws Exception;
+
+	public long scheduleMailSend(List<AuditScheduleListDto> auditScheduleListDto, String username)throws Exception;
+
+	public List<AuditTotalTeamMembersDto> getTotalTeamMembersList()throws Exception;
+	
+	public long rescheduleMailSend(AuditRescheduleDto auditRescheduleDto, String username)throws Exception;
 
 	public List<AuditorTeamDto> getAuditTeamMainList() throws Exception;
 
