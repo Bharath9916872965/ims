@@ -5,6 +5,7 @@ import java.util.List;
 import com.vts.ims.audit.dto.AuditRescheduleDto;
 import com.vts.ims.audit.dto.AuditScheduleDto;
 import com.vts.ims.audit.dto.AuditScheduleListDto;
+import com.vts.ims.audit.dto.AuditScheduleRemarksDto;
 import com.vts.ims.audit.dto.AuditTeamEmployeeDto;
 import com.vts.ims.audit.dto.AuditTeamMembersDto;
 import com.vts.ims.audit.dto.AuditTotalTeamMembersDto;
@@ -51,8 +52,11 @@ public interface AuditService {
 	public long insertAuditReSchedule(AuditRescheduleDto auditRescheduleDto, String username)throws Exception;
 
 	public List<AuditScheduleListDto> getScheduleList()throws Exception;
+	public List<AuditScheduleListDto> getScheduleApprovalList(String username)throws Exception;
 
 	public long forwardSchedule(List<Long> auditScheduleIds, String username)throws Exception;
+	public long approveSchedule(AuditScheduleListDto auditScheduleListDto, String username)throws Exception;
+	public long returnSchedule(AuditScheduleListDto auditScheduleListDto, String username)throws Exception;
 
 	public long scheduleMailSend(List<AuditScheduleListDto> auditScheduleListDto, String username)throws Exception;
 
@@ -69,5 +73,7 @@ public interface AuditService {
 	public long insertAuditTeam(AuditorTeamDto auditormemberteamdto, String username) throws Exception;
 
 	public List<AuditTeamEmployeeDto> getauditteammemberlist() throws Exception;
+
+	public List<AuditScheduleRemarksDto> getScheduleRemarks() throws Exception;
 
 }

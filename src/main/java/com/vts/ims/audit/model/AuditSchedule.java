@@ -33,6 +33,9 @@ public class AuditSchedule {
 	@Column(name = "IqaId")
 	private Long iqaId;
 	
+	@Column(name = "ActEmpId")
+	private Long actEmpId;
+	
 	@Column(name = "ScheduleStatus")
 	private String scheduleStatus;
 	

@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.vts.ims.audit.dto.AuditRescheduleDto;
 import com.vts.ims.audit.dto.AuditScheduleDto;
 import com.vts.ims.audit.dto.AuditScheduleListDto;
+import com.vts.ims.audit.dto.AuditScheduleRemarksDto;
 import com.vts.ims.audit.dto.AuditTeamEmployeeDto;
 import com.vts.ims.audit.dto.AuditTeamMembersDto;
 import com.vts.ims.audit.dto.AuditTotalTeamMembersDto;
@@ -501,6 +502,7 @@ public class AuditServiceImpl implements AuditService{
 	    	schedule.setScheduleDate(auditScheduleDto.getScheduleDate());
 	    	schedule.setTeamId(auditScheduleDto.getTeamId());
 	    	schedule.setIqaId(auditScheduleDto.getIqaId());
+	    	schedule.setActEmpId(login.getEmpId());
 	    	schedule.setScheduleStatus("INI");
 	    	schedule.setCreatedBy(username);
 	    	schedule.setCreatedDate(LocalDateTime.now());
@@ -522,6 +524,7 @@ public class AuditServiceImpl implements AuditService{
 	    	scheduleRev.setScheduleDate(auditScheduleDto.getScheduleDate());
 	    	scheduleRev.setTeamId(auditScheduleDto.getTeamId());
 	    	scheduleRev.setIqaId(auditScheduleDto.getIqaId());
+	    	scheduleRev.setActEmpId(login.getEmpId());
 	    	scheduleRev.setRemarks(auditScheduleDto.getRemarks());
 	    	scheduleRev.setCreatedBy(username);
 	    	scheduleRev.setCreatedDate(LocalDateTime.now());
@@ -575,13 +578,15 @@ public class AuditServiceImpl implements AuditService{
 	    try {
 	    	Login login = loginRepo.findByUsername(username);
 	    	AuditScheduleDto auditScheduleDto = auditRescheduleDto.getAuditScheduleDto();
+	    	AuditScheduleListDto auditScheduleListDto = auditRescheduleDto.getAuditScheduleListDto();
 		
 	    	auditScheduleDto.setScheduleDate(DLocalConvertion.converLocalTime(auditScheduleDto.getScheduleDate()));
 	    	AuditSchedule schedule = auditScheduleRepository.findById(auditScheduleDto.getScheduleId()).get();
 	    	schedule.setAuditeeId(auditScheduleDto.getAuditeeId());
 	    	schedule.setScheduleDate(auditScheduleDto.getScheduleDate());
 	    	schedule.setTeamId(auditScheduleDto.getTeamId());
-	    	schedule.setIqaId(auditScheduleDto.getIqaId());
+	    	schedule.setIqaId(auditScheduleListDto.getIqaId());
+	    	schedule.setActEmpId(login.getEmpId());
 	    	schedule.setScheduleStatus("ARF");
 	    	schedule.setModifiedBy(username);
 	    	schedule.setModifiedDate(LocalDateTime.now());
@@ -602,7 +607,8 @@ public class AuditServiceImpl implements AuditService{
 	    	scheduleRev.setRemarks(auditScheduleDto.getRemarks());
 	    	scheduleRev.setScheduleDate(auditScheduleDto.getScheduleDate());
 	    	scheduleRev.setTeamId(auditScheduleDto.getTeamId());
-	    	scheduleRev.setIqaId(auditScheduleDto.getIqaId());
+	    	scheduleRev.setIqaId(auditScheduleListDto.getIqaId());
+	    	scheduleRev.setActEmpId(login.getEmpId());
 	    	scheduleRev.setCreatedBy(username);
 	    	scheduleRev.setCreatedDate(LocalDateTime.now());
 	    	scheduleRev.setIsActive(1);
@@ -666,6 +672,7 @@ public class AuditServiceImpl implements AuditService{
 				    			.statusName(obj[12]!=null?obj[12].toString():"")
 				    			.iqaNo(obj[13]!=null?obj[13].toString():"")
 				    			.remarks(obj[14]!=null?obj[14].toString():"NA")
+				    			.actEmpId(obj[15]!=null?Long.parseLong(obj[15].toString()):0L)
 				    			.auditeeEmpName(employee != null?employee.getEmpName()+", "+employee.getEmpDesigName():"")
 				    			.divisionName(division !=null?division.getDivisionName():"")
 				    			.groupName(group !=null?group.getGroupName():"")
@@ -712,9 +719,86 @@ public class AuditServiceImpl implements AuditService{
 	    }
 	    return result;
 	}
-
-
+	
 	@Override
+	public long approveSchedule(AuditScheduleListDto auditScheduleListDto, String username) throws Exception {
+	    logger.info( " AuditServiceImpl Inside method approveSchedule()");
+	    long result = 0;
+	    try {
+	    	Login login = loginRepo.findByUsername(username);
+		    	AuditSchedule schedule = auditScheduleRepository.findById(auditScheduleListDto.getScheduleId()).get();
+		    	AuditTransaction trans = new AuditTransaction();
+		    	if(auditScheduleListDto.getAuditeeEmpId().equals(login.getEmpId())){
+		    		if(schedule.getScheduleStatus().equalsIgnoreCase("AAL")) {
+				    	schedule.setScheduleStatus("AAA");
+		    		}else {
+				    	schedule.setScheduleStatus("ASA");
+		    		}
+					trans.setAuditStatus("ASA");
+		    	}else if(auditScheduleListDto.getLeadEmpId().equals(login.getEmpId())){
+		    		if(schedule.getScheduleStatus().equalsIgnoreCase("ASA")) {
+				    	schedule.setScheduleStatus("AAA");
+		    		}else {
+				    	schedule.setScheduleStatus("AAL");
+		    		}
+					trans.setAuditStatus("AAL");
+		    	}
+		    	schedule.setModifiedBy(username);
+		    	schedule.setModifiedDate(LocalDateTime.now());
+		    	result = auditScheduleRepository.save(schedule).getScheduleId();
+		    	
+				trans.setEmpId(login.getEmpId());
+				trans.setScheduleId(result);
+				trans.setTransactionDate(LocalDateTime.now());
+				trans.setRemarks("NA");
+				
+				auditTransactionRepository.save(trans);
+	    	
+	    } catch (Exception e) {
+	    	e.printStackTrace();
+	        logger.error("AuditServiceImpl Inside method approveSchedule() " + e);
+	    }
+	    return result;
+	}
+	
+	@Override
+	public long returnSchedule(AuditScheduleListDto auditScheduleListDto, String username) throws Exception {
+	    logger.info( " AuditServiceImpl Inside method returnSchedule()");
+	    long result = 0;
+	    try {
+	    	    Login login = loginRepo.findByUsername(username);
+			    EmployeeDto employeeLogIn = masterClient.getEmployee(xApiKey,login.getEmpId()).get(0);
+		    	AuditSchedule schedule = auditScheduleRepository.findById(auditScheduleListDto.getScheduleId()).get();
+		    	AuditTransaction trans = new AuditTransaction();
+		    	if(auditScheduleListDto.getAuditeeEmpId().equals(login.getEmpId())){
+			    	schedule.setScheduleStatus("ASR");
+					trans.setAuditStatus("ASR");
+		    	}else if(auditScheduleListDto.getLeadEmpId().equals(login.getEmpId())){
+			    	schedule.setScheduleStatus("ARL");
+					trans.setAuditStatus("ARL");
+		    	}
+		    	schedule.setModifiedBy(username);
+		    	schedule.setModifiedDate(LocalDateTime.now());
+		    	result = auditScheduleRepository.save(schedule).getScheduleId();
+		    	
+				trans.setEmpId(login.getEmpId());
+				trans.setScheduleId(result);
+				trans.setTransactionDate(LocalDateTime.now());
+				trans.setRemarks(auditScheduleListDto.getMessage());
+				
+				auditTransactionRepository.save(trans);
+				String url= "/schedule-list";
+				String NotiMsg = auditScheduleListDto.getIqaNo()+" Of Audit Schedule Returned by "+ employeeLogIn.getEmpName()+", "+employeeLogIn.getEmpDesigName();
+				result = insertScheduleNomination(auditScheduleListDto.getActEmpId(),login.getEmpId(),username,url,NotiMsg);
+	    	
+	    } catch (Exception e) {
+	    	e.printStackTrace();
+	        logger.error("AuditServiceImpl Inside method returnSchedule() " + e);
+	    }
+	    return result;
+	}
+
+	@Override 
 	public long scheduleMailSend(List<AuditScheduleListDto> auditScheduleListDto, String username) throws Exception {
 	    logger.info( " AuditServiceImpl Inside method scheduleMailSend()");
 	    long result = 0;
@@ -1074,6 +1158,106 @@ public class AuditServiceImpl implements AuditService{
 			e.printStackTrace();
 			logger.error("AuditServiceImpl Inside method getauditteammemberlist()"+ e);
 			return Collections.emptyList();
+		}
+	}
+	
+	@Override
+	public List<AuditScheduleListDto> getScheduleApprovalList(String username) throws Exception {
+		logger.info( " AuditServiceImpl Inside method getScheduleApprovalList()");
+		try {
+			Login login = loginRepo.findByUsername(username);
+			List<Object[]> scheduleList = auditScheduleRepository.getScheduleApprovalList(login.getEmpId());
+			List<EmployeeDto> totalEmployee = masterClient.getEmployeeMasterList(xApiKey);
+			List<DivisionMasterDto> divisionMaster = masterClient.getDivisionMaster(xApiKey);
+			List<ProjectMasterDto> totalProject = masterClient.getProjectMasterList(xApiKey);
+			List<DivisionGroupDto> groupList = masterClient.getDivisionGroupList(xApiKey);
+			
+		    Map<Long, EmployeeDto> employeeMap = totalEmployee.stream()
+		            .filter(employee -> employee.getEmpId() != null)
+		            .collect(Collectors.toMap(EmployeeDto::getEmpId, employee -> employee));
+		    
+		    Map<Long,DivisionMasterDto> divisionMap = divisionMaster.stream()
+		    		.filter(division -> division.getDivisionId() !=null)
+		    		.collect(Collectors.toMap(DivisionMasterDto::getDivisionId, division -> division));
+		    
+		    Map<Long,ProjectMasterDto> projectMap = totalProject.stream()
+		    		.filter(project -> project.getProjectId()!=null)
+		    		.collect(Collectors.toMap(ProjectMasterDto::getProjectId, project -> project));
+		    
+		    Map<Long,DivisionGroupDto> groupMap = groupList.stream()
+		    		.filter(group -> group.getGroupId() !=null)
+		    		.collect(Collectors.toMap(DivisionGroupDto::getGroupId, group -> group));
+		    
+			 List<AuditScheduleListDto> finalScheduleDtoList = Optional.ofNullable(scheduleList).orElse(Collections.emptyList()).stream()
+				    .map(obj -> {
+					    EmployeeDto employee =	obj[5] != null?employeeMap.get(Long.parseLong(obj[5].toString())):null;
+					    DivisionMasterDto division = (obj[6]!=null && !obj[6].toString().equalsIgnoreCase("0"))?divisionMap.get(Long.parseLong(obj[6].toString())):null;
+					    DivisionGroupDto group = (obj[7]!=null && !obj[7].toString().equalsIgnoreCase("0"))?groupMap.get(Long.parseLong(obj[7].toString())):null;
+					    ProjectMasterDto project = (obj[8]!=null && !obj[8].toString().equalsIgnoreCase("0"))?projectMap.get(Long.parseLong(obj[8].toString())):null;
+					    	return AuditScheduleListDto.builder()
+				    			.scheduleId(obj[0]!=null?Long.parseLong(obj[0].toString()):0L)
+				    			.scheduleDate(obj[1]!=null?obj[1].toString():"")
+				    			.auditeeId(obj[2]!=null?Long.parseLong(obj[2].toString()):0L)
+				    			.teamId(obj[3]!=null?Long.parseLong(obj[3].toString()):0L)
+				    			.teamCode(obj[4]!=null?obj[4].toString():"")
+				    			.auditeeEmpId(obj[5]!=null?Long.parseLong(obj[5].toString()):0L)
+				    			.divisionId(obj[6]!=null?Long.parseLong(obj[6].toString()):0L)
+				    			.groupId(obj[7]!=null?Long.parseLong(obj[7].toString()):0L)
+				    			.projectId(obj[8]!=null?Long.parseLong(obj[8].toString()):0L)
+				    			.revision(obj[9]!=null?Integer.parseInt(obj[9].toString()):0)
+				    			.scheduleStatus(obj[10]!=null?obj[10].toString():"")
+				    			.iqaId(obj[11]!=null?Long.parseLong(obj[11].toString()):0L)
+				    			.statusName(obj[12]!=null?obj[12].toString():"")
+				    			.iqaNo(obj[13]!=null?obj[13].toString():"")
+				    			.remarks(obj[14]!=null?obj[14].toString():"NA")
+				    			.actEmpId(obj[15]!=null?Long.parseLong(obj[15].toString()):0L)
+				    			.loginEmpId(obj[16]!=null?Long.parseLong(obj[16].toString()):0L)
+				    			.leadEmpId(obj[17]!=null?Long.parseLong(obj[17].toString()):0L)
+				    			.auditeeEmpName(employee != null?employee.getEmpName()+", "+employee.getEmpDesigName():"")
+				    			.divisionName(division !=null?division.getDivisionName():"")
+				    			.groupName(group !=null?group.getGroupName():"")
+				    			.projectName(project !=null?project.getProjectName():"")
+				    			.build();
+				    })
+				    .collect(Collectors.toList());
+			return finalScheduleDtoList;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method getScheduleApprovalList()"+ e);
+			 return Collections.emptyList();
+		}
+	}
+
+
+	@Override
+	public List<AuditScheduleRemarksDto> getScheduleRemarks() throws Exception {
+		logger.info( " AuditServiceImpl Inside method getScheduleRemarks()");
+		try {
+			List<Object[]> scheduleRemarks = auditTransactionRepository.getScheduleRemarks();
+			List<EmployeeDto> totalEmployee = masterClient.getEmployeeMasterList(xApiKey);
+			
+		    Map<Long, EmployeeDto> employeeMap = totalEmployee.stream()
+		            .filter(employee -> employee.getEmpId() != null)
+		            .collect(Collectors.toMap(EmployeeDto::getEmpId, employee -> employee));
+		    
+			 List<AuditScheduleRemarksDto> finalscheduleRemarksDto = Optional.ofNullable(scheduleRemarks).orElse(Collections.emptyList()).stream()
+				    .map(obj -> {
+					    EmployeeDto employee =	obj[0] != null?employeeMap.get(Long.parseLong(obj[0].toString())):null;
+					    	return AuditScheduleRemarksDto.builder()
+				    			.empId(obj[0]!=null?Long.parseLong(obj[0].toString()):0L)
+				    			.empName(employee != null?employee.getEmpName()+", "+employee.getEmpDesigName():"")
+				    			.transactionDate(obj[1]!=null?obj[1].toString():"")
+				    			.remarks(obj[2]!=null?obj[2].toString():"")
+				    			.StatusName(obj[3]!=null?obj[3].toString():"")
+				    			.scheduleId(obj[4]!=null?Long.parseLong(obj[4].toString()):0L)
+				    			.build();
+				    })
+				    .collect(Collectors.toList());
+			return finalscheduleRemarksDto;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method getScheduleRemarks()"+ e);
+			 return Collections.emptyList();
 		}
 	}
 }
