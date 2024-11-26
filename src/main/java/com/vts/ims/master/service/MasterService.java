@@ -8,6 +8,7 @@ public interface MasterService {
 	public LabMasterDto labDetailsList(String username) throws Exception;
 	public String LogoImage()throws Exception;
 	public DocTemplateAttributesDto getDocTemplateAttributesDto() throws Exception;
+	public String getDrdoLogo()throws Exception;
 	
 	
 }

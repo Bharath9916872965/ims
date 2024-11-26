@@ -49,7 +49,7 @@ public class AdminServiceImpl implements AdminService {
 			
 			return formModuleDtoList;
 		} catch (Exception e) {
-			logger.info(new Date() +" Inside formModuleList ", e );
+			logger.error(new Date() +" Inside formModuleList ", e );
 			e.printStackTrace();
 			return new ArrayList<FormModuleDto>();
 		}
@@ -81,7 +81,7 @@ public class AdminServiceImpl implements AdminService {
 			
 			return formDetailDtoList;
 		} catch (Exception e) {
-			logger.info(new Date() +" Inside formModuleDetailList ", e );
+			logger.error(new Date() +" Inside formModuleDetailList ", e );
 			e.printStackTrace();
 			return new ArrayList<FormDetailDto>();
 		}

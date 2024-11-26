@@ -2,6 +2,7 @@ package com.vts.ims.qms.model;
 
 import java.time.LocalDateTime;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -22,7 +23,8 @@ public class QmsQmDocumentSummary {
 	private String Abstract;
 	private String Keywords;
 	private String Distribution;
-	private long RevisionRecordId;
+	@Column(name = "RevisionRecordId")
+	private long revisionRecordId;
 	private String CreatedBy;
 	private LocalDateTime CreatedDate;
 	private String ModifiedBy;

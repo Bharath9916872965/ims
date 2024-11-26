@@ -35,6 +35,8 @@ public class QmsQmRevisionRecord {
 	private LocalDate dateOfRevision;
 	@Column(name = "StatusCode")
 	private String statusCode;
+	@Column(name = "AbbreviationIdNotReq")
+	private String abbreviationIdNotReq;
 	@Column(name = "CreatedBy")
 	private String createdBy;
 	@Column(name = "CreatedDate")

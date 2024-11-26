@@ -18,6 +18,7 @@ public class QmsQmRevisionRecordDto {
 	private int RevisionNo;
 	private LocalDate DateOfRevision;
 	private String StatusCode;
+	private String AbbreviationIdNotReq;
 	private String CreatedBy;
 	private LocalDateTime CreatedDate;
 	private String ModifiedBy;

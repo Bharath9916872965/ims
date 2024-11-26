@@ -37,6 +37,13 @@ public interface QmsService {
 	public QmsQmDocumentSummaryDto getQmDocSummarybyId(long documentSummaryId) throws Exception;
 	public long deleteQmChapterById(long chapterId , String username) throws Exception;
 	public QmsQmChaptersDto getQmChapterById(long chapterId) throws Exception;
+	public long updatechapterPagebreakAndLandscape(String[] chapterPagebreakOrLandscape, String username) throws Exception;
+	public List<QmsAbbreviations> getAbbreviationList(String abbreviationIdNotReq) throws Exception;
+	public QmsQmRevisionRecord getQmsQmRevisionRecord(Long revisionRecordId) throws Exception;
+	public long updateNotReqQmAbbreviationIds(Long revisionRecordId, String AbbreviationIds, String username) throws Exception;
+	public QmsQmDocumentSummaryDto getQmDocSummarybyRevisionRecordId(long revisionRecordId) throws Exception;
+	public Long addMappingOfClasses(Long revisionRecordId, List<String[]> mocList, String username) throws Exception;
+	public List<Object[]> getMocList(Long revisionRecordId) throws Exception;
 	
 	
 }

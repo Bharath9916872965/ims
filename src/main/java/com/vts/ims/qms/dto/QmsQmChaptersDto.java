@@ -2,7 +2,6 @@ package com.vts.ims.qms.dto;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Column;
 import lombok.Builder;
 import lombok.Data;
 
@@ -15,6 +14,8 @@ public class QmsQmChaptersDto {
 	private long SectionId;
 	private String ChapterName;
 	private String ChapterContent;
+	private char IsPagebreakAfter;
+	private char IsLandscape;
 	private String CreatedBy;
 	private LocalDateTime CreatedDate;
 	private String ModifiedBy;

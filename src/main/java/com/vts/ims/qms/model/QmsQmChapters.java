@@ -29,6 +29,10 @@ public class QmsQmChapters {
 	private String chapterName;
 	@Column(name = "ChapterContent")
 	private String chapterContent;
+	@Column(name = "IsPagebreakAfter")
+	private char isPagebreakAfter;
+	@Column(name = "IsLandscape")
+	private char isLandscape;
 	@Column(name = "CreatedBy")
 	private String createdBy;
 	@Column(name = "CreatedDate")

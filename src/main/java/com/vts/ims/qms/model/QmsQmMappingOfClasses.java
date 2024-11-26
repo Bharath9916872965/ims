@@ -2,6 +2,7 @@ package com.vts.ims.qms.model;
 
 import java.time.LocalDateTime;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -18,14 +19,20 @@ public class QmsQmMappingOfClasses {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	
-	private long MocId;
-	private String  SectionNo;
-	private String ClauseNo;
-	private String Description;
-//	private String DocumentType;
-	private long DocumentId;
-	private String CreatedBy;
-	private LocalDateTime CreatedDate;
+	@Column(name = "MocId")
+	private long mocId;
+	@Column(name = "SectionNo")
+	private String  sectionNo;
+	@Column(name = "ClauseNo")
+	private String clauseNo;
+	@Column(name = "Description")
+	private String description;
+	@Column(name = "RevisionRecordId")
+	private long revisionRecordId;
+	@Column(name = "CreatedBy")
+	private String createdBy;
+	@Column(name = "CreatedDate")
+	private LocalDateTime createdDate;
 	
 }
 

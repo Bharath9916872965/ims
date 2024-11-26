@@ -19,5 +19,6 @@ public class QmsAbbreviations {
 	private String Abbreviation;
 	private String Meaning;
 //	private String DocumentType;
-	private long RevisionRecordId;
+//	private long RevisionRecordId;
+	
 }
