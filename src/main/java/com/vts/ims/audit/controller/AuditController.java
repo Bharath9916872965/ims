@@ -20,9 +20,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.vts.ims.audit.dto.AuditRescheduleDto;
 import com.vts.ims.audit.dto.AuditScheduleDto;
 import com.vts.ims.audit.dto.AuditScheduleListDto;
-import com.vts.ims.audit.dto.AuditTotalTeamMembersDto;
+import com.vts.ims.audit.dto.AuditScheduleRemarksDto;
 import com.vts.ims.audit.dto.AuditTeamEmployeeDto;
 import com.vts.ims.audit.dto.AuditTeamMembersDto;
+import com.vts.ims.audit.dto.AuditTotalTeamMembersDto;
 import com.vts.ims.audit.dto.AuditeeDto;
 import com.vts.ims.audit.dto.AuditorDto;
 import com.vts.ims.audit.dto.AuditorTeamDto;
@@ -443,6 +444,66 @@ public class AuditController {
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("Error fetching getTeamList: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	@PostMapping(value = "/schedule-approval-list", produces = "application/json")
+	public ResponseEntity<List<AuditScheduleListDto>> getScheduleApprovalList(@RequestHeader String username) throws Exception {
+		try {
+			logger.info(" Inside getScheduleApprovalList" );
+			List<AuditScheduleListDto> dto=auditService.getScheduleApprovalList(username);
+			return new ResponseEntity<List<AuditScheduleListDto>>(dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching getScheduleApprovalList: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	@PostMapping(value = "/approve-schedule", produces = "application/json")
+	public ResponseEntity<Response> approveSchedule(@RequestHeader String username, @RequestBody AuditScheduleListDto auditScheduleListDto) throws Exception {
+		try {
+			logger.info( " Inside approve-schedule" );
+			 long result=auditService.approveSchedule(auditScheduleListDto,username);
+			 if(result > 0) {
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("audit Schedule Acknowledged Successfully","S"));
+			 }else {
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("audit Schedule Acknowledged Unsuccessful","F"));			 
+			 }
+		} catch (Exception e) {
+			 logger.error("error in approve-schedule"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
+		}
+	}
+	
+	@PostMapping(value = "/return-schedule", produces = "application/json")
+	public ResponseEntity<Response> returnSchedule(@RequestHeader String username, @RequestBody AuditScheduleListDto auditScheduleListDto) throws Exception {
+		try {
+			logger.info( " Inside return-schedule" );
+			 long result=auditService.returnSchedule(auditScheduleListDto,username);
+			 if(result > 0) {
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("audit Schedule Returned Successfully","S"));
+			 }else {
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("audit Schedule Returned Unsuccessful","F"));			 
+			 }
+		} catch (Exception e) {
+			 logger.error("error in return-schedule"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
+		}
+	}
+	
+	@PostMapping(value = "/schedule-remarks", produces = "application/json")
+	public ResponseEntity<List<AuditScheduleRemarksDto>> getScheduleRemarks(@RequestHeader String username) throws Exception {
+		try {
+			logger.info(" Inside schedule-remarks "+username );
+			List<AuditScheduleRemarksDto> dto=auditService.getScheduleRemarks();
+			return new ResponseEntity<List<AuditScheduleRemarksDto>>(dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching schedule-remarks: ", e);
 			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
 		}
 	}

@@ -2,6 +2,7 @@ package com.vts.ims.login;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
@@ -17,9 +18,9 @@ public class Login {
     private String LoginType;
     private int IsActive;
     private String CreatedBy;
-    private String CreatedDate;
+    private LocalDateTime CreatedDate;
     private String ModifiedBy;
-    private String ModifiedDate;
+    private LocalDateTime ModifiedDate;
     private Set<Role> roles;
  
     @Id
@@ -84,12 +85,7 @@ public class Login {
 		IsActive = isActive;
 	}
 	
-	public String getCreatedDate() {
-		return CreatedDate;
-	}
-	public void setCreatedDate(String createdDate) {
-		CreatedDate = createdDate;
-	}
+
 	
 	public String getCreatedBy() {
 		return CreatedBy;
@@ -103,12 +99,19 @@ public class Login {
 	public void setModifiedBy(String modifiedBy) {
 		ModifiedBy = modifiedBy;
 	}
-	public String getModifiedDate() {
+	public LocalDateTime getCreatedDate() {
+		return CreatedDate;
+	}
+	public void setCreatedDate(LocalDateTime createdDate) {
+		CreatedDate = createdDate;
+	}
+	public LocalDateTime getModifiedDate() {
 		return ModifiedDate;
 	}
-	public void setModifiedDate(String modifiedDate) {
+	public void setModifiedDate(LocalDateTime modifiedDate) {
 		ModifiedDate = modifiedDate;
 	}
+
     
 	
     
