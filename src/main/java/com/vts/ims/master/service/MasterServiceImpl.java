@@ -19,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.vts.ims.admin.entity.ImsFormRole;
+import com.vts.ims.admin.repository.ImsFormRoleRepo;
 import com.vts.ims.login.Login;
 import com.vts.ims.login.LoginRepository;
 import com.vts.ims.master.dao.MasterClient;
@@ -50,8 +52,9 @@ public class MasterServiceImpl implements MasterService {
 	@Autowired
 	LoginRepository loginRepo;
 	
-//	@Autowired
-//	QmsFormRoleRepo qmsFormRoleRepo;
+	
+	@Autowired
+	ImsFormRoleRepo imsFormRoleRepo;
 	
 	@Autowired
 	DocTemplateAttributesRepo docTemplateAttributesRepo;
@@ -78,30 +81,28 @@ public class MasterServiceImpl implements MasterService {
 	}
 	
 	
-	
+	@Override
 	public List<LoginDetailsDto> loginDetailsList(String username) {
 		 logger.info(new Date() + " MasterServiceImpl Inside method loginDetailsList");
 		try {
 			
+	        // Fetch login data using the username
 	        Login loginData = loginRepo.findByUsername(username);
 	        if (loginData == null) {
 	            throw new Exception("User not found!");
 	        }
-
-
-
-//	        QmsFormRole formRoleData = qmsFormRoleRepo.findByQmsFormRoleId(loginData.getQmsFormRoleId());
-
+	        
+	        // Fetch employee data from the master client
 	        List<EmployeeDto> empData = masterClient.getEmployee(xApiKey, loginData.getEmpId());
-
+	        
 	        if (!empData.isEmpty()) {
-	            EmployeeDto eDto = empData.get(0); 
+	            EmployeeDto eDto = empData.get(0); // Get the first element from the employee data list
 
-//	            String memberType = qmsMembersRepo.findMemberTypeOfCurrUser(eDto.getEmpId())
-//                       .orElse(null);
-	           
-	
-	            
+	         // Fetch role data using the form role ID from login data
+		        ImsFormRole formRoleData = imsFormRoleRepo.findByImsFormRoleId(loginData.getImsFormRoleId());
+
+	     
+	            // Map the data to LoginDetailsDto
 	            return List.of(
 	                    LoginDetailsDto.builder()
 	                            .loginId(loginData.getLoginId())
@@ -110,18 +111,19 @@ public class MasterServiceImpl implements MasterService {
 	                            .empNo(eDto.getEmpNo())
 	                            .empName(eDto.getEmpName())
 	                            .empDesigCode(eDto.getEmpDesigCode()) 
-	                            .qmsFormRoleId(loginData.getQmsFormRoleId())
+	                            .qmsFormRoleId(loginData.getImsFormRoleId())
 	                            .photo(eDto.getPhoto())
 	                            .divisionId(loginData.getDivisionId())
 	                            .loginType(loginData.getLoginType())
-//	                            .formRoleName(formRoleData.getFormRoleName()) 
+	                            .formRoleName(formRoleData.getFormRoleName()) 
 	                            .labCode(eDto.getLabCode())
-//	                            .memberType(memberType)
+	                            .empDesigName(eDto.getEmpDesigName())
 	                            .build()
 	            );
 	        } else {
 	            throw new Exception("Employee data not found for the given employee ID");
 	        }
+	
 	    } catch (Exception e) {
 	    	 logger.info(new Date() + " MasterServiceImpl Inside method loginDetailsList"+ e.getMessage());
 	        return new ArrayList<>(); 

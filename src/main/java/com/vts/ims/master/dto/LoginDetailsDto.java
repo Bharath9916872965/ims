@@ -20,5 +20,8 @@ public class LoginDetailsDto {
     private String loginType;
     private String formRoleName;
     private String labCode;
-    private String memberType;
+    
+    
+    //extra field
+    private String empDesigName;
 }
