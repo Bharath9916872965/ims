@@ -14,7 +14,7 @@ public class LoginDetailsDto {
     private String empNo;
     private String empDesigCode;
     private String empName;
-    private Long qmsFormRoleId;
+    private Long imsFormRoleId;
     private String photo;
     private Long divisionId;
     private String loginType;

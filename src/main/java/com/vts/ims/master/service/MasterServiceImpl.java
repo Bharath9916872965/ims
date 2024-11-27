@@ -111,7 +111,7 @@ public class MasterServiceImpl implements MasterService {
 	                            .empNo(eDto.getEmpNo())
 	                            .empName(eDto.getEmpName())
 	                            .empDesigCode(eDto.getEmpDesigCode()) 
-	                            .qmsFormRoleId(loginData.getImsFormRoleId())
+	                            .imsFormRoleId(loginData.getImsFormRoleId())
 	                            .photo(eDto.getPhoto())
 	                            .divisionId(loginData.getDivisionId())
 	                            .loginType(loginData.getLoginType())
