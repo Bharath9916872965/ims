@@ -14,7 +14,7 @@ public class Login {
     private String Password;
     private Long EmpId;
     private Long DivisionId;
-    private Long QmsFormRoleId;
+    private Long ImsFormRoleId;
     private String LoginType;
     private int IsActive;
     private String CreatedBy;
@@ -69,11 +69,11 @@ public class Login {
 	public String getLoginType() {
 		return LoginType;
 	}
-	public Long getQmsFormRoleId() {
-		return QmsFormRoleId;
+	public Long getImsFormRoleId() {
+		return ImsFormRoleId;
 	}
-	public void setQmsFormRoleId(Long qmsFormRoleId) {
-		QmsFormRoleId = qmsFormRoleId;
+	public void setImsFormRoleId(Long imsFormRoleId) {
+		ImsFormRoleId = imsFormRoleId;
 	}
 	public void setLoginType(String loginType) {
 		LoginType = loginType;

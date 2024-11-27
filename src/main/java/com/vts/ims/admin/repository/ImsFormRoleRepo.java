@@ -7,7 +7,11 @@ import org.springframework.stereotype.Repository;
 import com.vts.ims.admin.entity.ImsFormRole;
 
 
+
 @Repository
-public interface QmsFormRoleRepo extends JpaRepository<ImsFormRole, Long> {
+public interface ImsFormRoleRepo extends JpaRepository<ImsFormRole, Long> {
+	
+	
+	ImsFormRole findByImsFormRoleId(Long imsFormRoleId);
 	
 }
