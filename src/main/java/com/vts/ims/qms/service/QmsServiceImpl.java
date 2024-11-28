@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
+import com.vts.ims.qms.dto.DwpRevisionRecordDto;
 import com.vts.ims.qms.dto.QmsQmChaptersDto;
 import com.vts.ims.qms.dto.QmsQmDocumentSummaryDto;
 import com.vts.ims.qms.dto.QmsQmRevisionRecordDto;
@@ -23,6 +24,9 @@ import com.vts.ims.qms.model.QmsQmDocumentSummary;
 import com.vts.ims.qms.model.QmsQmMappingOfClasses;
 import com.vts.ims.qms.model.QmsQmRevisionRecord;
 import com.vts.ims.qms.model.QmsQmSections;
+import com.vts.ims.qms.repository.DwpChaptersRepo;
+import com.vts.ims.qms.repository.DwpRevisionRecordRepo;
+import com.vts.ims.qms.repository.DwpSectionsRepo;
 import com.vts.ims.qms.repository.QmsAbbreviationsRepo;
 import com.vts.ims.qms.repository.QmsQmChaptersRepo;
 import com.vts.ims.qms.repository.QmsQmDocumentSummaryRepo;
@@ -31,6 +35,9 @@ import com.vts.ims.qms.repository.QmsQmRevisionRecordRepo;
 import com.vts.ims.qms.repository.QmsQmRevisionTransactionRepo;
 import com.vts.ims.qms.repository.QmsQmSectionsRepo;
 import com.vts.ims.qms.model.QmsQmRevisionTransaction;
+import com.vts.ims.qms.model.DwpChapters;
+import com.vts.ims.qms.model.DwpRevisionRecord;
+import com.vts.ims.qms.model.DwpSections;
 import com.vts.ims.qms.model.QmsAbbreviations;
 import com.vts.ims.qms.model.QmsQmChapters;
 
@@ -62,6 +69,15 @@ public class QmsServiceImpl implements QmsService {
 	
 	@Autowired
 	private QmsQmMappingOfClassesRepo qmsQmMappingOfClassesRepo;
+	
+	@Autowired
+	private DwpRevisionRecordRepo dwpRevisionRecordRepo;
+	
+	@Autowired
+	private DwpSectionsRepo dwpSectionsRepo;
+	
+	@Autowired
+	private DwpChaptersRepo dwpChaptersRepo;
 	
 	 
 	
@@ -622,5 +638,272 @@ public class QmsServiceImpl implements QmsService {
 		}
 	}
 	
+	@Override
+	public List<DwpRevisionRecordDto> getDwpVersionRecordDtoList(Long divisionId) throws Exception {
+		logger.info(new Date() + " Inside getQmVersionRecordDtoList() " );
+		try {
+			
+			
+			List<DwpRevisionRecordDto> revisionRecordDtoList = new ArrayList<DwpRevisionRecordDto>();
+			List<DwpRevisionRecord> revisionRecord = dwpRevisionRecordRepo.findAllActiveDwpRecords();
+			revisionRecord.forEach(revison -> {
+				DwpRevisionRecordDto qmsQmRevisionRecordDto = DwpRevisionRecordDto.builder()
+						.RevisionRecordId(revison.getRevisionRecordId())
+						.DivisionId(revison.getDivisionId())
+						.DocFileName(revison.getDocFileName())
+						.DocFilepath(revison.getDocFilepath())
+						.Description(revison.getDescription())
+						.IssueNo(revison.getIssueNo())
+						.RevisionNo(revison.getRevisionNo())
+						.DateOfRevision(revison.getDateOfRevision())
+						.StatusCode(revison.getStatusCode())
+						.AbbreviationIdNotReq(revison.getAbbreviationIdNotReq())
+						.CreatedBy(revison.getCreatedBy())
+						.CreatedDate(revison.getCreatedDate())
+						.ModifiedBy(revison.getModifiedBy())
+						.ModifiedDate(revison.getModifiedDate())
+						.IsActive(revison.getIsActive())
+						.build();
+				
+				revisionRecordDtoList.add(qmsQmRevisionRecordDto);
+			});
+			
+			return revisionRecordDtoList;
+		} catch (Exception e) {
+			logger.info(new Date() + " Inside getDwpVersionRecordDtoList() "+ e );
+			e.printStackTrace();
+			return new ArrayList<DwpRevisionRecordDto>();
+		}
+	}
+	
+	@Override
+	public List<DwpChapters> getAllDwpChapters(Long divisionId) throws Exception {
+		logger.info(new Date() + " Inside getAllDwpChapters() " );
+		try {
+			List<DwpChapters> chapters = dwpChaptersRepo.findAllActiveDwpChapters(divisionId);
+			return chapters;
+		} catch (Exception e) {
+			logger.info(new Date() + " Inside getAllDwpChapters() "+ e );
+			e.printStackTrace();
+			return new ArrayList<DwpChapters>();
+		}
+	}
+	
+	
+	@Override
+	public Long updateDwpChapterName(Long chapterId, String chapterName, String username) throws Exception {
+		logger.info(new Date() + " Inside updateDwpChapterName() ");
+		try {
+			Long res = 0l;
+			Optional<DwpChapters> optionalChapters = dwpChaptersRepo.findById(chapterId);
+			if (optionalChapters.isPresent()) {
+				DwpChapters chapters = optionalChapters.get();
+				chapters.setChapterName(chapterName);
+				chapters.setModifiedBy(username);
+				chapters.setModifiedDate(LocalDateTime.now());
+				
+				res = dwpChaptersRepo.save(chapters).getChapterId();
+			}
+			return res;
+		} catch (Exception e) {
+			logger.error(new Date() + " Inside updateDwpChapterName() "+ e );
+			e.printStackTrace();
+			return 0l;
+		}
+	}
+	
+	@Override
+	public List<DwpChapters> getDwpSubChaptersById(Long chapterId) throws Exception {
+		logger.info(new Date() + " Inside getDwpSubChaptersById() ");
+		try {
+			List<DwpChapters> chapters = dwpChaptersRepo.findByChapterParentIdAndIsActive(chapterId, 1);
+			return chapters;
+		} catch (Exception e) {
+			logger.error(new Date() + " Inside getDwpSubChaptersById() "+ e );
+			e.printStackTrace();
+			return new ArrayList<DwpChapters>();
+		}
+	}
+	
+	
+	@Override
+	public long deleteDwpChapterById(Long chapterId , String username) throws Exception {
+		try {
+			Long res = 0l;
+			Optional<DwpChapters> optionalChapters = dwpChaptersRepo.findById(chapterId);
+			if (optionalChapters.isPresent()) {
+				DwpChapters chapters = optionalChapters.get();
+				chapters.setIsActive(0);
+				chapters.setModifiedBy(username);
+				chapters.setModifiedDate(LocalDateTime.now());
+				
+				res = dwpChaptersRepo.save(chapters).getChapterId();
+			}
+			return res;
+		} catch (Exception e) {
+			logger.error(new Date()  + "Inside DAO deleteDwpChapterById() " + e);
+			e.printStackTrace();
+			return 0;
+		}
+	}
+	
+	
+	@Override
+	public Long addDwpNewSubChapter(Long chapterId, String chapterName, String username) throws Exception {
+		logger.info(new Date() + " Inside addDwpNewSubChapter() ");
+		try {
+			Long res =0l;
+			Optional<DwpChapters> optionalChapters = dwpChaptersRepo.findById(chapterId);
+			if (optionalChapters.isPresent()) {
+				DwpChapters oldQmsQmChapters = optionalChapters.get();
+				DwpChapters chapters = new DwpChapters();
+				chapters.setChapterName(chapterName);
+				chapters.setChapterParentId(chapterId);
+				chapters.setSectionId(oldQmsQmChapters.getSectionId());
+				chapters.setIsPagebreakAfter('N');
+				chapters.setIsLandscape('N');
+				chapters.setCreatedBy(username);
+				chapters.setCreatedDate(LocalDateTime.now());
+				chapters.setIsActive(1);
+				res = dwpChaptersRepo.save(chapters).getChapterId();
+			}
+			return res;
+		} catch (Exception e) {
+			logger.error(new Date() + " Inside addDwpNewSubChapter() "+ e );
+			e.printStackTrace();
+			return 0l;
+		}
+	}
+	
+	@Override
+	public long updateDwpPagebreakAndLandscape(String[] chapterPagebreakOrLandscape, String username) throws Exception {
+		logger.info(new Date() + " Inside updateDwpPagebreakAndLandscape() " );
+		try {
+			long res=0;
+			long chapterId = Long.parseLong(chapterPagebreakOrLandscape[0]);
+			String IsPagebreakAfter = chapterPagebreakOrLandscape[1];
+			String IsLandscape = chapterPagebreakOrLandscape[2];
+
+			
+			Optional<DwpChapters> optionalChapters = dwpChaptersRepo.findById(chapterId);
+			if (optionalChapters.isPresent()) {
+				DwpChapters chapters = optionalChapters.get();
+				chapters.setIsPagebreakAfter(IsPagebreakAfter.charAt(0));
+				chapters.setIsLandscape(IsLandscape.charAt(0));
+				chapters.setModifiedBy(username);
+				chapters.setModifiedDate(LocalDateTime.now());
+				
+				res = dwpChaptersRepo.save(chapters).getChapterId();
+			}
+			
+			return res;
+		} catch (Exception e) {
+			logger.error(new Date() +" Inside updateDwpPagebreakAndLandscape() " +e);
+			return 0;
+		}
+	}
+	
+	@Override
+	public DwpChapters getDwpChapterById(long chapterId) throws Exception {
+		logger.info(new Date() + " Inside getDwpChapterById() " );
+		try {
+			Optional<DwpChapters> optionalChapters = dwpChaptersRepo.findById(chapterId);
+			if (optionalChapters.isPresent()) {
+				DwpChapters chapters = optionalChapters.get();
+				return chapters;
+			}
+			return new DwpChapters();
+		} catch (Exception e) {
+			logger.error(new Date() + " Inside getDwpChapterById() "+ e );
+			e.printStackTrace();
+			return new DwpChapters();
+		}
+	}
+	
+	
+	@Override
+	public Long updateDwpChapterContent(Long chapterId, String chapterContent, String username) throws Exception {
+		logger.info(new Date() + " Inside updateDwpChapterContent() ");
+		try {
+			Long res = 0l;
+			Optional<DwpChapters> optionalChapters = dwpChaptersRepo.findById(chapterId);
+			if (optionalChapters.isPresent()) {
+				DwpChapters chapters = optionalChapters.get();
+				chapters.setChapterContent(chapterContent);
+				chapters.setModifiedBy(username);
+				chapters.setModifiedDate(LocalDateTime.now());
+
+				res = dwpChaptersRepo.save(chapters).getChapterId();
+			}
+			return res;
+		} catch (Exception e) {
+			logger.info(new Date() + " Inside updateDwpChapterContent() "+ e );
+			e.printStackTrace();
+			return 0l;
+		}
+	}
+	
+	@Override
+	public List<DwpSections> getDwpUnAddedQmSectionList(Long divisionId) throws Exception {
+		logger.info(new Date() + " Inside qmUnAddListToAddList() " );
+		try {
+			List<DwpSections> sections = dwpSectionsRepo.findSectionsNotInChapters(divisionId);
+			
+			
+			return sections;
+		} catch (Exception e) {
+			logger.info(new Date() + " Inside getUnAddedQmSectionList() "+ e );
+			e.printStackTrace();
+			return new ArrayList<DwpSections>();
+		}
+	}
+	
+	@Override
+	public Long addNewDwpSection(long divisionId, String sectionName, String username) throws Exception {
+		logger.info(new Date() + " Inside addNewDwpSection() " );
+		try {
+			DwpSections sections = new DwpSections();
+			sections.setSectionName(sectionName);
+			sections.setDivisionId(divisionId);
+			sections.setCreatedBy(username);
+			sections.setCreatedDate(LocalDateTime.now());
+			sections.setIsActive(1);
+			return dwpSectionsRepo.save(sections).getSectionId();
+		} catch (Exception e) {
+			logger.info(new Date() + " Inside addNewDwpSection() "+ e );
+			e.printStackTrace();
+			return 0l;
+		}
+	}
+	
+	@Override
+	public Long dwpUnAddListToAddList(@RequestBody long[] selectedSections, @RequestHeader  String username) throws Exception {
+		logger.info(new Date() + " Inside dwpUnAddListToAddList() " );
+		try {
+			long res=0;
+			for(long id : selectedSections) {
+			
+				Optional<DwpSections> optionalSection = dwpSectionsRepo.findById(id);
+				if (optionalSection.isPresent()) {
+					DwpSections sections = optionalSection.get();
+					DwpChapters chapters = new DwpChapters();
+					chapters.setSectionId(sections.getSectionId());
+					chapters.setChapterParentId(0);
+					chapters.setChapterName(sections.getSectionName());
+					chapters.setCreatedBy(username);
+					chapters.setCreatedDate(LocalDateTime.now());
+					chapters.setIsActive(1);
+					res = res+ dwpChaptersRepo.save(chapters).getChapterId();
+				}
+			}
+			
+			return res;
+			
+		} catch (Exception e) {
+			logger.info(new Date() + " Inside dwpUnAddListToAddList() "+ e );
+			e.printStackTrace();
+			return 0l;
+		}
+	}
 	
 }

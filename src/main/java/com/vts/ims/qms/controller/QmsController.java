@@ -27,10 +27,13 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.vts.ims.qms.dto.DwpRevisionRecordDto;
 import com.vts.ims.qms.dto.QmsQmChaptersDto;
 import com.vts.ims.qms.dto.QmsQmDocumentSummaryDto;
 import com.vts.ims.qms.dto.QmsQmRevisionRecordDto;
 import com.vts.ims.qms.dto.QmsQmSectionsDto;
+import com.vts.ims.qms.model.DwpChapters;
+import com.vts.ims.qms.model.DwpSections;
 import com.vts.ims.qms.model.QmsAbbreviations;
 import com.vts.ims.qms.model.QmsQmRevisionRecord;
 import com.vts.ims.qms.service.QmsService;
@@ -233,5 +236,77 @@ public class QmsController {
 		return service.getMocList(revisionRecordId);
 	}
 	
+	@PostMapping(value = "/get-dwp-version-record-list", produces = "application/json")
+	public List<DwpRevisionRecordDto> getDwpVersionRecordDtoList(@RequestBody Long divisionId, @RequestHeader  String username) throws Exception {
+		logger.info(new Date() + " Inside get-dwp-version-record-list " + username);
+		return service.getDwpVersionRecordDtoList(divisionId);
+	}
+	
+	@PostMapping(value = "/get-all-dwp-chapters", produces = "application/json")
+	public List<DwpChapters> getAllDwpChapters(@RequestBody Long divisionId, @RequestHeader String username) throws Exception {
+		logger.info(new Date() + " Inside get-all-dwp-chapters " + username);
+		return service.getAllDwpChapters(divisionId);
+	}
+	
+	@PostMapping(value = "/update-dwp-chaptername/{chapterId}", produces = "application/json")
+	public Long updateDwpChapterNameById(@PathVariable("chapterId") Long chapterId, @RequestBody String chapterName, @RequestHeader String username) throws Exception {
+		logger.info(new Date() + " Inside update-dwp-chaptername " + username);
+		return service.updateDwpChapterName(chapterId, chapterName, username);
+	}
+	
+	@PostMapping(value = "/get-dwp-subchapters", produces = "application/json")
+	public List<DwpChapters> getDwpSubChaptersById(@RequestBody Long chapterId, @RequestHeader String username) throws Exception {
+		logger.info(new Date() + " Inside get-dwp-subchapters-by-id " + username);
+		return service.getDwpSubChaptersById(chapterId);
+	}
+	
+	@PostMapping(value = "/delete-dwp-chapteId", produces = "application/json")
+	public Long deleteDwpChapterById(@RequestBody long chapterId, @RequestHeader String username) throws Exception {
+		logger.info(new Date() + " Inside delete-qm-chapteId " + username);
+		
+		return service.deleteDwpChapterById(chapterId, username);
+	}
+	
+	@PostMapping(value = "/add-dwp-new-subchapter/{chapterId}", produces = "application/json")
+	public Long addDwpNewSubChapter(@PathVariable("chapterId") Long chapterId, @RequestBody String chapterName, @RequestHeader  String username) throws Exception {
+		logger.info(new Date() + " Inside add-dwp-new-subchapter " + username);
+		return service.addDwpNewSubChapter(chapterId, chapterName, username);
+	}
+	
+	@PostMapping(value = "/update-dwp-pagebreak-landscape", produces = "application/json")
+	public Long updateDwpchapterPagebreakAndLandscape(@RequestBody String[] chaperContent, @RequestHeader String username) throws Exception {
+		logger.info(new Date() + " Inside updatechapterPagebreakAndLandscape " + username);
+		return service.updateDwpPagebreakAndLandscape(chaperContent, username);
+	}
+	
+	@PostMapping(value = "/get-dwp-chapter", produces = "application/json")
+	public DwpChapters getDwpChapterById(@RequestBody long chapterId, @RequestHeader String username) throws Exception {
+		logger.info(new Date() + " Inside get-dwp-chapteId " + username);
+		return service.getDwpChapterById(chapterId);
+	}
+	
+	@PostMapping(value = "/update-dwp-chaptercontent/{chapterId}", produces = "application/json")
+	public Long updateDwpChapterContent(@PathVariable("chapterId") Long chapterId, @RequestBody String chapterContent, @RequestHeader String username) throws Exception {
+		logger.info(new Date() + " Inside update-dwp-chaptercontent " + username);
+		return service.updateDwpChapterContent(chapterId, chapterContent, username);
+	}
+	
+	@PostMapping(value = "/un-added-dwp-section-list", produces = "application/json")
+	public List<DwpSections> unDwpAddedQmSectionList(@RequestBody Long divisionId, @RequestHeader String username) throws Exception {
+		logger.info(new Date() + " Inside un-added-dwp-section-list " + username);
+		return service.getDwpUnAddedQmSectionList(divisionId);
+	}
+	
+	@PostMapping(value = "/add-new-dwp-section/{divisionId}", produces = "application/json")
+	public Long addNewQmSection(@PathVariable("divisionId") long divisionId, @RequestBody String sectionName, @RequestHeader String username) throws Exception {
+		logger.info(new Date() + " Inside add-new-qm-section " + username);
+		return service.addNewDwpSection(divisionId, sectionName, username);
+	}
+	
+	@PostMapping(value = "/dwp-unaddlist-to-addlist", produces = "application/json")
+	public Long dwpUnAddListToAddList(@RequestBody long[] selectedSections, @RequestHeader  String username) throws Exception {
+		logger.info(new Date() + " Inside qm-unaddlist-to-addlist " + username);
+		return service.dwpUnAddListToAddList(selectedSections, username);
+	}
 	
 }
