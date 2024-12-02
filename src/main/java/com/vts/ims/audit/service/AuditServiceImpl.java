@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +29,7 @@ import com.vts.ims.audit.dto.AuditScheduleRemarksDto;
 import com.vts.ims.audit.dto.AuditTeamEmployeeDto;
 import com.vts.ims.audit.dto.AuditTeamMembersDto;
 import com.vts.ims.audit.dto.AuditTotalTeamMembersDto;
+import com.vts.ims.audit.dto.AuditTranDto;
 import com.vts.ims.audit.dto.AuditeeDto;
 import com.vts.ims.audit.dto.AuditorDto;
 import com.vts.ims.audit.dto.AuditorTeamDto;
@@ -61,6 +64,8 @@ import com.vts.ims.repository.NominationRepository;
 import com.vts.ims.util.DLocalConvertion;
 import com.vts.ims.util.FormatConverter;
 import com.vts.ims.util.NFormatConvertion;
+
+import jakarta.mail.internet.MimeMessage;
 
 
 @Service
@@ -804,14 +809,18 @@ public class AuditServiceImpl implements AuditService{
 	    long result = 0;
 	    try {
 	    	Login login = loginRepo.findByUsername(username);
+	    	Long iqaId = auditScheduleListDto.get(0).getIqaId();
+	    	String iqaNo = auditScheduleListDto.get(0).getIqaNo();
 			EmployeeDto employeeLogIn = masterClient.getEmployee(xApiKey,login.getEmpId()).get(0);
 			List<EmployeeDto> totalEmployee = masterClient.getEmployeeMasterList(xApiKey);
+			List<Object[]> auditorsByIqa = teamRepository.getAuditorsByIqa(iqaId);
+										Map<Long, List<AuditScheduleListDto>> auditeeMap = auditScheduleListDto.stream().collect(Collectors.groupingBy(AuditScheduleListDto::getAuditeeEmpId));
+			Map<Long, List<AuditScheduleListDto>> teamMap = auditScheduleListDto.stream().collect(Collectors.groupingBy(AuditScheduleListDto::getTeamId));			
 			
-			String url= "/schedule-list";
+			String url= "/schedule-approval";
 			String NotiMsg = auditScheduleListDto.get(0).getIqaNo()+" Of Audit Schedule Forwarded by "+ employeeLogIn.getEmpName()+", "+employeeLogIn.getEmpDesigName();
-			for(AuditScheduleListDto dto : auditScheduleListDto) {
-				result = sendTeamMail(dto,username,login,url,NotiMsg,totalEmployee);
-			}
+			result = sendTeamMail(teamMap,username,login,url,NotiMsg,totalEmployee,auditorsByIqa,iqaNo);
+			result = sendAuditeeMail(auditeeMap,username,login,url,NotiMsg,totalEmployee,auditorsByIqa,iqaNo);
 	    	
 	    } catch (Exception e) {
 	    	e.printStackTrace();
@@ -820,39 +829,225 @@ public class AuditServiceImpl implements AuditService{
 	    return result;
 	}
 	
-	public long sendTeamMail(AuditScheduleListDto dto,String username,Login login,String url,String NotiMsg,List<EmployeeDto> totalEmployee) throws Exception {
+	public long sendAuditeeMail(Map<Long, List<AuditScheduleListDto>> auditeeMap,String username,Login login,String url,String NotiMsg,List<EmployeeDto> totalEmployee,List<Object[]> auditorsByIqa,String iqaNo) throws Exception {
+		
+		String heading   = "<span>Dear Sir/Madam,</span>"
+							+ "<br /><br /><span>Please find details of your Audit Schedul of "+iqaNo+"</span>"
+						    + "<br /><br />";
+		String  note = "<br /><br /><span>Important Note: This is an automated message. Kindly avoid responding.</span>"
+					    + "<br /><br /><span>Regards,</span> <br />"
+						+ "<span>LRDE-IMS Team</span>";
+		  try {			  
+			auditeeMap.forEach((key, value) -> {
+				    StringBuilder tableContent = new StringBuilder();
+				    tableContent.append("<table border='1' style='border-collapse: collapse; width: 100%;'>")
+					            .append("<tr><th style='width: 5%;'>SI No</th>")
+					            .append("<th style='width: 10%;'>Date & Time (Hrs)</th>")
+					            .append("<th style='width: 20%;'>Division/Group/Project</th>")
+					            .append("<th style='width: 30%;'>Auditor</th>")
+					            .append("<th style='width: 25%;'>Auditee</th>")
+					            .append("<th style='width: 10%;'>Team</th></tr>");
+
+				    AtomicInteger index = new AtomicInteger(1);
+				    value.forEach(dto -> {
+				    	try {
+							List<Object[]> teamMemberDetails = teamRepository.getTeamMemberDetails(dto.getTeamId());
+					        
+					        tableContent.append("<tr><td style='text-align: center;'>").append(index.getAndIncrement()).append("</td>")
+							            .append("<td style='text-align: center;'>").append(FormatConverter.getDateTimeFormat(dto.getScheduleDate())).append("</td>")
+							            .append("<td>").append((dto.getGroupName() != ""?dto.getGroupName():dto.getDivisionName() != ""?dto.getDivisionName():dto.getProjectName() != ""?dto.getProjectName():" - ")).append("</td>")
+							            .append("<td>");
+				            for( int i = 0;i<teamMemberDetails.size();i++){
+				         		EmployeeDto employee =	NFormatConvertion.getEmployeeDetails(Long.parseLong(teamMemberDetails.get(i)[1].toString()),totalEmployee);
+				         		if(i < (teamMemberDetails.size() - 1)) {
+				         			tableContent.append(employee != null?employee.getEmpName()+", "+employee.getEmpDesigName()+",":"").append("<br />");
+				         		}else {
+				         			tableContent.append(employee != null?employee.getEmpName()+", "+employee.getEmpDesigName():"");
+				         		}
+				             }
+							                   
+				            tableContent.append("</td>")
+							                   .append("<td>").append(dto.getAuditeeEmpName()).append("</td>")
+							                   .append("<td>").append(dto.getTeamCode()).append("</td></tr>");
+							
+						} catch (Exception e) {
+							logger.error( " Inside sendAuditeeMail Service "+e );
+							e.printStackTrace();
+						}
+				    });
+
+				    tableContent.append("</table>");
+
+					EmployeeDto employee =	NFormatConvertion.getEmployeeDetails(key,totalEmployee);
+					if(employee!=null && employee.getEmail() !=null) {	
+			            sendHtmlMessage(employee.getEmail(), "Audit Schedule of " + iqaNo, tableContent.toString(), heading, note);
+					}
+		            insertScheduleNomination(key,login.getEmpId(),username,url,NotiMsg);
+				});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error( " Inside sendAuditeeMail Service "+e );
+		}
+		return 1;
+	}
+	
+	public long sendTeamMail(Map<Long, List<AuditScheduleListDto>> teamMap,String username,Login login,String url,String NotiMsg,List<EmployeeDto> totalEmployee,List<Object[]> auditorsByIqa,String iqaNo) throws Exception {
+		
+		String heading   = "<span>Dear Sir/Madam,</span>"
+							+ "<br /><br /><span>Please find details of your Audit Schedule of "+iqaNo+"</span>"
+						    + "<br /><br />";
+		String  note = "<br /><br /><span>Important Note: This is an automated message. Kindly avoid responding.</span>"
+					    + "<br /><br /><span>Regards,</span> <br />"
+						+ "<span>LRDE-IMS Team</span>";
+		  try {			  
+			  teamMap.forEach((key, value) -> {
+				    StringBuilder tableContent = new StringBuilder();
+				    tableContent.append("<table border='1' style='border-collapse: collapse; width: 100%;'>")
+				                .append("<tr><th style='width: 5%;'>SI No</th>")
+				                .append("<th style='width: 10%;'>Date & Time (Hrs)</th>")
+				                .append("<th style='width: 20%;'>Division/Group</th>")
+				                .append("<th style='width: 30%;'>Project</th>")
+				                .append("<th style='width: 25%;'>Auditee</th>")
+				                .append("<th style='width: 10%;'>Team</th></tr>");
+
+				    AtomicInteger index = new AtomicInteger(1);
+				    value.forEach(dto -> {
+				        tableContent.append("<tr><td style='text-align: center;'>").append(index.getAndIncrement()).append("</td>")
+				                    .append("<td style='text-align: center;'>").append(FormatConverter.getDateTimeFormat(dto.getScheduleDate())).append("</td>")
+				                    .append("<td>").append(((dto.getGroupName() == "" && dto.getDivisionName() == "") ? " - " : (dto.getGroupName() != "" && dto.getDivisionName() != "") ? dto.getGroupName() +"/"+dto.getDivisionName():dto.getGroupName() != ""?dto.getGroupName():dto.getDivisionName() != ""?dto.getDivisionName():" - ")).append("</td>")
+				                    .append("<td>").append(dto.getProjectName().isEmpty() ? " - " : dto.getProjectName()).append("</td>")
+				                    .append("<td>").append(dto.getAuditeeEmpName()).append("</td>")
+				                    .append("<td>").append(dto.getTeamCode()).append("</td></tr>");
+				    });
+
+				    tableContent.append("</table>");
+
+				    for (Object[] obj : auditorsByIqa) {
+				        if (key.equals(Long.parseLong(obj[1].toString()))) {
+							EmployeeDto employee =	NFormatConvertion.getEmployeeDetails(Long.parseLong(obj[0].toString()),totalEmployee);
+							if(employee!=null && employee.getEmail() !=null) {	
+					            sendHtmlMessage(employee.getEmail(), "Audit Schedule of " + iqaNo, tableContent.toString(), heading, note);
+							}
+				            insertScheduleNomination(Long.parseLong(obj[0].toString()),login.getEmpId(),username,url,NotiMsg);
+				        }
+				    }
+				});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error( " Inside sendTeamMail Service " );
+		}
+		return 1;
+	}
+	
+	public long sendRescheduleMail(AuditScheduleListDto dto,String username,Login login,String url,String NotiMsg,List<EmployeeDto> totalEmployee) throws Exception {
 		long result = 0;
-		String message = "";
 		  try {
-	    	if(!dto.getProjectName().equalsIgnoreCase("")) {
-	    		message = "Dear Sir/Madam,\n\nThis is to inform you that you have Audit Schedule for Project - "+dto.getProjectName()+" on "+FormatConverter.getDateTimeFormat(dto.getScheduleDate())+" For this "+dto.getIqaNo()+"\n\nImportant Note: This is an automated message. Kindly avoid responding. \n\nRegards, \nLRDE-IMS Team";
-	    	}else if(!dto.getDivisionName().equalsIgnoreCase("")) {
-	    		message = "Dear Sir/Madam,\n\nThis is to inform you that you have Audit Schedule for Division - "+dto.getDivisionName()+" on "+FormatConverter.getDateTimeFormat(dto.getScheduleDate())+" For this "+dto.getIqaNo()+"\n\nImportant Note: This is an automated message. Kindly avoid responding. \n\nRegards, \nLRDE-IMS Team";
-	    	}else {
-	    		message = "Dear Sir/Madam,\n\nThis is to inform you that you have Audit Schedule for Group - "+dto.getGroupName()+" on "+FormatConverter.getDateTimeFormat(dto.getScheduleDate())+" For this "+dto.getIqaNo()+"\n\nImportant Note: This is an automated message. Kindly avoid responding. \n\nRegards, \nLRDE-IMS Team";
-	    	}
+			  
+			String heading   = "<span>Dear Sir/Madam,</span>"
+								+ "<br /><br /><span>Please find details of your Audit Schedule of "+dto.getIqaNo()+"</span>"
+							    + "<br /><br />";
+			String  note = "<br /><br /><span>Important Note: This is an automated message. Kindly avoid responding.</span>"
+						    + "<br /><br /><span>Regards,</span> <br />"
+							+ "<span>LRDE-IMS Team</span>";
+			
+			List<Object[]> teamMemberDetails = teamRepository.getTeamMemberDetails(dto.getTeamId());
+			
+		    StringBuilder tableContent = new StringBuilder();
+		    tableContent.append("<table border='1' style='border-collapse: collapse; width: 100%;'>")
+		                .append("<tr><th style='width: 5%;'>SI No</th>")
+		                .append("<th style='width: 10%;'>Date & Time (Hrs)</th>")
+		                .append("<th style='width: 20%;'>Division/Group</th>")
+		                .append("<th style='width: 30%;'>Project</th>")
+		                .append("<th style='width: 25%;'>Auditee</th>")
+		                .append("<th style='width: 10%;'>Team</th></tr>");
+
+
+	        tableContent.append("<tr><td style='text-align: center;'>").append(1).append("</td>")
+			            .append("<td style='text-align: center;'>").append(FormatConverter.getDateTimeFormat(dto.getScheduleDate())).append("</td>")
+			            .append("<td>").append(((dto.getGroupName() == "" && dto.getDivisionName() == "") ? " - " : (dto.getGroupName() != "" && dto.getDivisionName() != "") ? dto.getGroupName() +"/"+dto.getDivisionName():dto.getGroupName() != ""?dto.getGroupName():dto.getDivisionName() != ""?dto.getDivisionName():" - ")).append("</td>")
+			            .append("<td>").append(dto.getProjectName().isEmpty() ? " - " : dto.getProjectName()).append("</td>")
+			            .append("<td>").append(dto.getAuditeeEmpName()).append("</td>")
+			            .append("<td>").append(dto.getTeamCode()).append("</td></tr>");
+
+		    tableContent.append("</table>");
+		    
+		    StringBuilder AuditeetableContent = new StringBuilder();
+			
+		    AuditeetableContent.append("<table border='1' style='border-collapse: collapse; width: 100%;'>")
+            .append("<tr><th style='width: 5%;'>SI No</th>")
+            .append("<th style='width: 10%;'>Date & Time (Hrs)</th>")
+            .append("<th style='width: 30%;'>Division/Group/Project</th>")
+            .append("<th style='width: 30%;'>Auditor</th>")
+            .append("<th style='width: 25%;'>Auditee</th>");
+
+			
+		    AuditeetableContent.append("<tr><td style='text-align: center;'>").append(1).append("</td>")
+            .append("<td style='text-align: center;'>").append(FormatConverter.getDateTimeFormat(dto.getScheduleDate())).append("</td>")
+            .append("<td>").append((dto.getGroupName() != ""?dto.getGroupName():dto.getDivisionName() != ""?dto.getDivisionName():dto.getProjectName() != ""?dto.getProjectName():" - ")).append("</td>")
+            .append("<td>").append("<span style='font-weight: bolder;'>"+dto.getTeamCode()+"</span><br />");
+            for( int i = 0;i<teamMemberDetails.size();i++){
+         		EmployeeDto employee =	NFormatConvertion.getEmployeeDetails(Long.parseLong(teamMemberDetails.get(i)[1].toString()),totalEmployee);
+         		if(i < (teamMemberDetails.size() - 1)) {
+             		AuditeetableContent.append(employee != null?"<li>"+employee.getEmpName()+", "+employee.getEmpDesigName()+","+"</li>":"");
+         		}else {
+             		AuditeetableContent.append(employee != null?"<li>"+employee.getEmpName()+", "+employee.getEmpDesigName()+"</li>":"");
+         		}
+             }
+			                   
+		    AuditeetableContent.append("</td>")
+			                   .append("<td>").append(dto.getAuditeeEmpName()).append("</td></tr>");
+			
+		    AuditeetableContent.append("</table>");
+
 	    	Auditee auditee = auditeeRepository.findById(dto.getAuditeeId()).get();
 	    	result = insertScheduleNomination(auditee.getEmpId(),login.getEmpId(),username,url,NotiMsg);
 			EmployeeDto auditeeDetails =	NFormatConvertion.getEmployeeDetails(auditee.getEmpId(),totalEmployee);
 			if(auditeeDetails!=null && auditeeDetails.getEmail() !=null) {	
-				sendSimpleMessage(auditeeDetails.getEmail(),"Audit Schedule of "+dto.getIqaNo(),message);
+				sendHtmlMessage(auditeeDetails.getEmail(),"Audit Schedule of "+dto.getIqaNo(), AuditeetableContent.toString(), heading, note);
 			}
-			
-			List<Object[]> teamMemberDetails = teamRepository.getTeamMemberDetails(dto.getTeamId());
     	
 			for(Object[] obj : teamMemberDetails) {
 				result = insertScheduleNomination(Long.parseLong(obj[1].toString()),login.getEmpId(),username,url,NotiMsg);
 				EmployeeDto employee =	NFormatConvertion.getEmployeeDetails(Long.parseLong(obj[1].toString()),totalEmployee);
 				if(employee!=null && employee.getEmail() !=null) {	
-					sendSimpleMessage(employee.getEmail(),"Audit Schedule of "+dto.getIqaNo(),message);
+					sendHtmlMessage(employee.getEmail(),"Audit Schedule of "+dto.getIqaNo(), tableContent.toString(), heading, note);
 				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.error( " Inside sendTeamMail Service " );
+			logger.error( " Inside sendRescheduleMail Service " );
 		}
 		return result;
 	}
+	
+	public void sendHtmlMessage(String to, String subject, String tableContent, String heading, String note) {
+	    try {
+	        MimeMessage message = emailSender.createMimeMessage();
+	        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+	        helper.setTo(to);
+	        helper.setSubject(subject);
+
+	        String htmlMessage = "<html>"
+	                + "<body>"
+	                + heading
+	                + tableContent 
+	                + note
+	                + "</body>"
+	                + "</html>";
+
+	        helper.setText(htmlMessage, true); // Set `true` to enable HTML
+
+	        emailSender.send(message);
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        logger.error("Inside sendHtmlMessage Service", e);
+	    }
+	}
+
 	
 	public void sendSimpleMessage(String to, String subject, String text) {
 	    try {
@@ -962,10 +1157,10 @@ public class AuditServiceImpl implements AuditService{
 	    	
 	    	AuditScheduleListDto auditScheduleListDto = auditRescheduleDto.getAuditScheduleListDto();
 	    	
-			String url= "/schedule-list";
+			String url= "/schedule-approval";
 			String NotiMsg = auditScheduleListDto.getIqaNo()+" Of Audit Schedule Reforwarded by "+ employeeLogIn.getEmpName()+", "+employeeLogIn.getEmpDesigName();
 			
-			result = sendTeamMail(auditScheduleListDto,username,login,url,NotiMsg,totalEmployee);
+			result = sendRescheduleMail(auditScheduleListDto,username,login,url,NotiMsg,totalEmployee);
 
 	    	
 	    } catch (Exception e) {
@@ -1257,6 +1452,41 @@ public class AuditServiceImpl implements AuditService{
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("AuditServiceImpl Inside method getScheduleRemarks()"+ e);
+			 return Collections.emptyList();
+		}
+	}
+
+
+	@Override
+	public List<AuditTranDto> scheduleTran(String scheduleId) throws Exception {
+		logger.info( " AuditServiceImpl Inside method scheduleTran()");
+		try {
+			List<Object[]> tranList = auditScheduleRepository.getScheduleTran(scheduleId);
+			List<EmployeeDto> totalEmployee = masterClient.getEmployeeMasterList(xApiKey);
+
+			
+		    Map<Long, EmployeeDto> employeeMap = totalEmployee.stream()
+		            .filter(employee -> employee.getEmpId() != null)
+		            .collect(Collectors.toMap(EmployeeDto::getEmpId, employee -> employee));
+		    
+			 List<AuditTranDto> auditTranDtoList = Optional.ofNullable(tranList).orElse(Collections.emptyList()).stream()
+				    .map(obj -> {
+					    EmployeeDto employee =	obj[0] != null?employeeMap.get(Long.parseLong(obj[0].toString())):null;
+
+					    	return AuditTranDto.builder()
+				    			.empId(obj[0]!=null?Long.parseLong(obj[0].toString()):0L)
+				    			.auditStatus(obj[1]!=null?obj[1].toString():"")
+				    			.transactionDate(obj[2]!=null?obj[2].toString():"")
+				    			.remarks(obj[3]!=null?obj[3].toString():"")
+				    			.statusName(obj[4]!=null?obj[4].toString():"")
+				    			.empName(employee != null?employee.getEmpName()+", "+employee.getEmpDesigName():"")
+				    			.build();
+				    })
+				    .collect(Collectors.toList());
+			return auditTranDtoList;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method scheduleTran()"+ e);
 			 return Collections.emptyList();
 		}
 	}
