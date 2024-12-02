@@ -9,6 +9,7 @@ import com.vts.ims.audit.dto.AuditScheduleRemarksDto;
 import com.vts.ims.audit.dto.AuditTeamEmployeeDto;
 import com.vts.ims.audit.dto.AuditTeamMembersDto;
 import com.vts.ims.audit.dto.AuditTotalTeamMembersDto;
+import com.vts.ims.audit.dto.AuditTranDto;
 import com.vts.ims.audit.dto.AuditeeDto;
 import com.vts.ims.audit.dto.AuditorDto;
 import com.vts.ims.audit.dto.AuditorTeamDto;
@@ -75,5 +76,7 @@ public interface AuditService {
 	public List<AuditTeamEmployeeDto> getauditteammemberlist() throws Exception;
 
 	public List<AuditScheduleRemarksDto> getScheduleRemarks() throws Exception;
+
+	public List<AuditTranDto> scheduleTran(String scheduleId) throws Exception;
 
 }

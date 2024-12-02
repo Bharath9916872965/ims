@@ -24,6 +24,7 @@ import com.vts.ims.audit.dto.AuditScheduleRemarksDto;
 import com.vts.ims.audit.dto.AuditTeamEmployeeDto;
 import com.vts.ims.audit.dto.AuditTeamMembersDto;
 import com.vts.ims.audit.dto.AuditTotalTeamMembersDto;
+import com.vts.ims.audit.dto.AuditTranDto;
 import com.vts.ims.audit.dto.AuditeeDto;
 import com.vts.ims.audit.dto.AuditorDto;
 import com.vts.ims.audit.dto.AuditorTeamDto;
@@ -362,7 +363,7 @@ public class AuditController {
 	public ResponseEntity<Response> rescheduleMailSend(@RequestHeader String username, @RequestBody AuditRescheduleDto auditRescheduleDto) throws Exception {
 		try {
 			 logger.info(" Inside reschedule-mail-send" );
-			 long result=auditService.insertAuditReSchedule(auditRescheduleDto,username);
+			 long result=auditService.rescheduleMailSend(auditRescheduleDto,username);
 			 if(result > 0) {
 				 return ResponseEntity.status(HttpStatus.OK).body(new Response("audit reschedule Mail Send Successfully","S"));
 			 }else {
@@ -504,6 +505,19 @@ public class AuditController {
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("Error fetching schedule-remarks: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	@PostMapping(value = "/schedule-tran", produces = "application/json")
+	public ResponseEntity<List<AuditTranDto>> scheduleTran(@RequestHeader String username,@RequestBody String scheduleId) throws Exception {
+		try {
+			logger.info(" Inside scheduleTran"+username );
+			List<AuditTranDto> dto=auditService.scheduleTran(scheduleId);
+			return new ResponseEntity<List<AuditTranDto>>(dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching scheduleTran: ", e);
 			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
 		}
 	}
