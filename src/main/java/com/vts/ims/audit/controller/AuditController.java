@@ -28,6 +28,7 @@ import com.vts.ims.audit.dto.AuditTranDto;
 import com.vts.ims.audit.dto.AuditeeDto;
 import com.vts.ims.audit.dto.AuditorDto;
 import com.vts.ims.audit.dto.AuditorTeamDto;
+import com.vts.ims.audit.dto.IqaAuditeeDto;
 import com.vts.ims.audit.dto.IqaDto;
 import com.vts.ims.audit.model.AuditTeam;
 import com.vts.ims.audit.service.AuditService;
@@ -522,4 +523,35 @@ public class AuditController {
 		}
 	}
 	
+	
+	@PostMapping(value = "/get-iqa-auditee-list", produces = "application/json")
+	public ResponseEntity<List<IqaAuditeeDto>> iqaAuditeeList(@RequestHeader String username, @RequestBody String iqaId) throws Exception {
+		try {
+			logger.info(new Date() + " Inside iqaAuditeeList" );
+			List<IqaAuditeeDto> dto=auditService.getIqaAuditeeList(Long.parseLong(iqaId));
+			return new ResponseEntity<List<IqaAuditeeDto>>( dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching iqaAuditeeList: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST); 
+		}
+	}
+	
+	
+	@PostMapping(value = "/insert-iqa-auditee", produces = "application/json")
+	public ResponseEntity<String> insertiqaauditee(@RequestHeader String username, @RequestBody IqaAuditeeDto iqaAuditeeDto) throws Exception {
+		try {
+			logger.info(new Date() + " Inside insertiqaauditee" );
+			long insertIqaAuditee=auditService.insertIqaAuditee(iqaAuditeeDto,username);
+			 if(insertIqaAuditee > 0) {
+				 return new ResponseEntity<String>("200" , HttpStatus.OK);
+			 }else {
+				 return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
+			 }
+		} catch (Exception e) {
+			 logger.error(new Date() +"error in insertiqaauditee"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+		}
+	}
 }

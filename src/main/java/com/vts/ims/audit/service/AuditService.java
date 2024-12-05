@@ -13,6 +13,7 @@ import com.vts.ims.audit.dto.AuditTranDto;
 import com.vts.ims.audit.dto.AuditeeDto;
 import com.vts.ims.audit.dto.AuditorDto;
 import com.vts.ims.audit.dto.AuditorTeamDto;
+import com.vts.ims.audit.dto.IqaAuditeeDto;
 import com.vts.ims.audit.dto.IqaDto;
 import com.vts.ims.audit.model.AuditTeam;
 import com.vts.ims.master.dto.DivisionGroupDto;
@@ -78,5 +79,9 @@ public interface AuditService {
 	public List<AuditScheduleRemarksDto> getScheduleRemarks() throws Exception;
 
 	public List<AuditTranDto> scheduleTran(String scheduleId) throws Exception;
+
+	public List<IqaAuditeeDto> getIqaAuditeeList(Long iqaId) throws Exception;
+
+	public long insertIqaAuditee(IqaAuditeeDto iqaAuditeeDto, String username) throws Exception;
 
 }
