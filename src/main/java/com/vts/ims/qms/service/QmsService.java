@@ -13,8 +13,11 @@ import com.vts.ims.qms.dto.QmsQmMappingDto;
 import com.vts.ims.qms.dto.QmsQmRevisionRecordDto;
 import com.vts.ims.qms.dto.QmsQmSectionsDto;
 import com.vts.ims.qms.model.DwpChapters;
+import com.vts.ims.qms.model.DwpGwpDocumentSummary;
+import com.vts.ims.qms.model.DwpRevisionRecord;
 import com.vts.ims.qms.model.DwpSections;
 import com.vts.ims.qms.model.QmsAbbreviations;
+import com.vts.ims.qms.model.QmsQmDocumentSummary;
 import com.vts.ims.qms.model.QmsQmRevisionRecord;
 
 public interface QmsService {
@@ -40,7 +43,7 @@ public interface QmsService {
 	public List<QmsAbbreviations> getAbbreviationList(String abbreviationIdNotReq) throws Exception;
 	public QmsQmRevisionRecord getQmsQmRevisionRecord(Long revisionRecordId) throws Exception;
 	public long updateNotReqQmAbbreviationIds(Long revisionRecordId, String AbbreviationIds, String username) throws Exception;
-	public QmsQmDocumentSummaryDto getQmDocSummarybyRevisionRecordId(long revisionRecordId) throws Exception;
+	public QmsQmDocumentSummary getQmDocSummarybyRevisionRecordId(long revisionRecordId) throws Exception;
 	public Long addMappingOfClasses(Long revisionRecordId, List<String[]> mocList, String username) throws Exception;
 	public List<Object[]> getMocList(Long revisionRecordId) throws Exception;
 	public List<QmsQmMappingDto> getMoctotalList() throws Exception; 
@@ -62,6 +65,10 @@ public interface QmsService {
 	public Long addNewChapter(CheckListMasterDto checkListMasterDto, String username)throws Exception;
 	public int addChapterToMasters(List<String> mocIds, String username)throws Exception;
 	public Integer updateCheckListChapters(List<Long> mocIds, String username)throws Exception;
+	public DwpRevisionRecord getDwpRevisionRecord(Long revisionRecordId) throws Exception;
+	public long updateNotReqDwpAbbreviationIds(Long revisionRecordId, String abbreviationIds, String username) throws Exception;
+	public Long addDwpDocSummary(DwpGwpDocumentSummary documentSummary, String username) throws Exception;
+	public DwpGwpDocumentSummary getDwpDocSummarybyRevisionRecordId(long revisionRecordId) throws Exception;
 	
 	
 }
