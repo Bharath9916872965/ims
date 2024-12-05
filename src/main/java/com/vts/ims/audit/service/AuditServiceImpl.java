@@ -273,8 +273,15 @@ public class AuditServiceImpl implements AuditService{
 				result=iqaRepository.save(model).getIqaId();
 				}
 			}else {
+				List<Iqa> iq=iqaRepository.findAll();
+				String IqaNo="";
+				if(iq.size()==0) {
+					IqaNo="IQA-"+iqadto.getIqaNo();
+				}else{
+					IqaNo=iqadto.getIqaNo();
+				}
 				Iqa model=new Iqa();
-				model.setIqaNo(iqadto.getIqaNo());
+				model.setIqaNo(IqaNo);
 				model.setFromDate(iqadto.getFromDate());
 				model.setToDate(iqadto.getToDate());
 				model.setScope(iqadto.getScope().trim());
