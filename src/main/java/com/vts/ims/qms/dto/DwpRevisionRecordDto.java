@@ -3,6 +3,9 @@ package com.vts.ims.qms.dto;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.vts.ims.master.dto.DivisionGroupDto;
+import com.vts.ims.master.dto.DivisionMasterDto;
+
 import lombok.Builder;
 import lombok.Data;
 
@@ -11,7 +14,10 @@ import lombok.Data;
 public class DwpRevisionRecordDto {
 
 	private long RevisionRecordId;
-	private long DivisionId;
+	private String DocType;
+	private long GroupDivisionId;
+	private DivisionMasterDto divisionMasterDto;
+	private DivisionGroupDto divisionGroupDto;
 	private String DocFileName;
 	private String DocFilepath;
 	private String Description;
