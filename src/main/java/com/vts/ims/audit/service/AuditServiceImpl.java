@@ -1,6 +1,8 @@
 package com.vts.ims.audit.service;
 
+
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -33,6 +35,7 @@ import com.vts.ims.audit.dto.AuditTranDto;
 import com.vts.ims.audit.dto.AuditeeDto;
 import com.vts.ims.audit.dto.AuditorDto;
 import com.vts.ims.audit.dto.AuditorTeamDto;
+import com.vts.ims.audit.dto.IqaAuditeeDto;
 import com.vts.ims.audit.dto.IqaDto;
 import com.vts.ims.audit.model.AuditSchedule;
 import com.vts.ims.audit.model.AuditScheduleRevision;
@@ -42,11 +45,13 @@ import com.vts.ims.audit.model.AuditTransaction;
 import com.vts.ims.audit.model.Auditee;
 import com.vts.ims.audit.model.Auditor;
 import com.vts.ims.audit.model.Iqa;
+import com.vts.ims.audit.model.IqaAuditee;
 import com.vts.ims.audit.repository.AuditScheduleRepository;
 import com.vts.ims.audit.repository.AuditScheduleRevRepository;
 import com.vts.ims.audit.repository.AuditTransactionRepository;
 import com.vts.ims.audit.repository.AuditeeRepository;
 import com.vts.ims.audit.repository.AuditorRepository;
+import com.vts.ims.audit.repository.IqaAuditeeRepository;
 import com.vts.ims.audit.repository.IqaRepository;
 import com.vts.ims.audit.repository.TeamMemberRepository;
 import com.vts.ims.audit.repository.TeamRepository;
@@ -81,6 +86,9 @@ public class AuditServiceImpl implements AuditService{
 	
 	@Autowired
 	AuditeeRepository auditeeRepository;
+	
+	@Autowired
+	IqaAuditeeRepository iqaAuditeeRepository;
 	
 	@Autowired
 	TeamRepository teamRepository;
@@ -273,8 +281,15 @@ public class AuditServiceImpl implements AuditService{
 				result=iqaRepository.save(model).getIqaId();
 				}
 			}else {
+				List<Iqa> iq=iqaRepository.findAll();
+				String IqaNo="";
+				if(iq.size()==0) {
+					IqaNo="IQA-"+iqadto.getIqaNo();
+				}else{
+					IqaNo=iqadto.getIqaNo();
+				}
 				Iqa model=new Iqa();
-				model.setIqaNo(iqadto.getIqaNo());
+				model.setIqaNo(IqaNo);
 				model.setFromDate(iqadto.getFromDate());
 				model.setToDate(iqadto.getToDate());
 				model.setScope(iqadto.getScope().trim());
@@ -1488,6 +1503,90 @@ public class AuditServiceImpl implements AuditService{
 			e.printStackTrace();
 			logger.error("AuditServiceImpl Inside method scheduleTran()"+ e);
 			 return Collections.emptyList();
+		}
+	}
+	
+	
+	@Override
+	public List<IqaAuditeeDto> getIqaAuditeeList(Long iqaId) throws Exception {
+		logger.info(new Date() + " AuditServiceImpl Inside method getAuditeeList()");
+		try {
+			List<Object[]> iqaAuditeeList = iqaAuditeeRepository.iqaAuditeeList(iqaId); 
+			List<EmployeeDto> totalEmployee = masterClient.getEmployeeMasterList(xApiKey);
+			List<DivisionMasterDto> divisionMaster = masterClient.getDivisionMaster(xApiKey);
+			List<ProjectMasterDto> totalProject = masterClient.getProjectMasterList(xApiKey);
+			List<DivisionGroupDto> groupList = masterClient.getDivisionGroupList(xApiKey);
+			
+		    Map<Long, EmployeeDto> employeeMap = totalEmployee.stream()
+		            .filter(employee -> employee.getEmpId() != null)
+		            .collect(Collectors.toMap(EmployeeDto::getEmpId, employee -> employee));
+		    
+		    Map<Long,DivisionMasterDto> divisionMap = divisionMaster.stream()
+		    		.filter(division -> division.getDivisionId() !=null)
+		    		.collect(Collectors.toMap(DivisionMasterDto::getDivisionId, division -> division));
+		    
+		    Map<Long,ProjectMasterDto> projectMap = totalProject.stream()
+		    		.filter(project -> project.getProjectId()!=null)
+		    		.collect(Collectors.toMap(ProjectMasterDto::getProjectId, project -> project));
+		    
+		    Map<Long,DivisionGroupDto> groupMap = groupList.stream()
+		    		.filter(group -> group.getGroupId() !=null)
+		    		.collect(Collectors.toMap(DivisionGroupDto::getGroupId, group -> group));
+			
+			List<IqaAuditeeDto> finalAuditeeDtoList = iqaAuditeeList.stream()
+					.map(obj -> {
+					    EmployeeDto employee =	obj[0] != null?employeeMap.get(obj[0]):null;
+					    DivisionMasterDto division = (obj[3]!=null && !obj[3].toString().equalsIgnoreCase("0"))?divisionMap.get(obj[3]):null;
+					    DivisionGroupDto group = (obj[4]!=null && !obj[4].toString().equalsIgnoreCase("0"))?groupMap.get(obj[4]):null;
+					    ProjectMasterDto project = (obj[5]!=null && !obj[5].toString().equalsIgnoreCase("0"))?projectMap.get(obj[5]):null;
+				    
+					    IqaAuditeeDto dto = new IqaAuditeeDto();
+					    dto.setAuditeeId(Long.parseLong(obj[1].toString()));
+				    	dto.setAuditee(employee != null?employee.getEmpName()+", "+employee.getEmpDesigName():"");
+				    	dto.setDivisionName(division !=null?division.getDivisionCode():"");
+				    	dto.setGroupName(group !=null?group.getGroupCode():"");
+				    	dto.setProjectName(project !=null?project.getProjectName():"");
+				    	dto.setProjectCode(project !=null?project.getProjectCode():"");
+				        return dto;
+				    })
+				    .collect(Collectors.toList());
+			return finalAuditeeDtoList;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method getAuditeeList()"+ e);
+			 return Collections.emptyList();
+		}
+	}
+	
+	@Override
+	public long insertIqaAuditee(IqaAuditeeDto iqaAuditeeDto, String username) throws Exception {
+		logger.info(new Date() + " AuditServiceImpl Inside method insertIqaAuditee()");
+		long result=0;
+		try {
+			if(iqaAuditeeDto!=null) {
+			List<Object[]> iqaAuditeeList = iqaAuditeeRepository.iqaAuditeeList(iqaAuditeeDto.getIqaId()); 
+			if(iqaAuditeeList.size()>0) {
+				iqaAuditeeRepository.deleteByIqaId(iqaAuditeeDto.getIqaId());
+			}
+			 if (iqaAuditeeDto.getAuditeeIds() != null && iqaAuditeeDto.getAuditeeIds().length > 0) {
+		            List<IqaAuditee> iqaAuditeeInsertList = Arrays.stream(iqaAuditeeDto.getAuditeeIds())
+		                .map(auditeeId -> {
+		                    IqaAuditee model = new IqaAuditee();
+		                    model.setAuditeeId(Long.parseLong(auditeeId));
+		                    model.setIqaId(iqaAuditeeDto.getIqaId());
+		                    model.setCreatedBy(username);
+		                    model.setCreatedDate(LocalDateTime.now());
+		                    return model;
+		                })
+		                .collect(Collectors.toList());
+		            result = iqaAuditeeRepository.saveAll(iqaAuditeeInsertList).size();
+		        } 	
+			}
+			return result;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method insertIqaAuditee()"+ e);
+			return result;
 		}
 	}
 }
