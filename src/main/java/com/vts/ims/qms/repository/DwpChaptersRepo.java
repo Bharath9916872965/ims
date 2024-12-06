@@ -12,8 +12,8 @@ import feign.Param;
 
 public interface DwpChaptersRepo extends JpaRepository<DwpChapters, Long> {
 
-	@Query("SELECT a FROM DwpChapters a, DwpSections b WHERE a.chapterParentId=0 AND b.divisionId=:divisionId AND a.sectionId=b.sectionId AND b.isActive=1 AND a.isActive=1")
-    List<DwpChapters> findAllActiveDwpChapters(@Param("divisionId") Long divisionId);
+	@Query("SELECT a FROM DwpChapters a, DwpSections b WHERE b.groupDivisionId=:groupDivisionId AND b.docType=:docType AND a.sectionId=b.sectionId AND b.isActive=1 AND a.isActive=1")
+    List<DwpChapters> findAllActiveDwpChapters(@Param("docType") String docType, @Param("groupDivisionId") Long groupDivisionId);
 	
 	List<DwpChapters> findByChapterParentIdAndIsActive(Long chapterParentId, int isActive);
 	

@@ -21,8 +21,10 @@ public class DwpSections {
 	private Long sectionId;
 	@Column(name = "SectionName")
 	private String sectionName;
-	@Column(name = "DivisionId")
-	private Long divisionId;
+	@Column(name = "DocType")
+	private String docType;
+	@Column(name = "GroupDivisionId")
+	private Long groupDivisionId;
 	@Column(name = "CreatedBy")
 	private String createdBy;
 	@Column(name = "CreatedDate")

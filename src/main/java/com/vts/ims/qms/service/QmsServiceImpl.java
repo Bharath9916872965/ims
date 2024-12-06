@@ -3,10 +3,14 @@ package com.vts.ims.qms.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import com.vts.ims.master.dto.DivisionGroupDto;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +19,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
+import com.vts.ims.audit.repository.AuditeeRepository;
+import com.vts.ims.master.dao.MasterClient;
+import com.vts.ims.master.dto.DivisionEmployeeDto;
+import com.vts.ims.master.dto.DivisionMasterDto;
+import com.vts.ims.master.dto.EmployeeDto;
 import com.vts.ims.qms.dto.DwpRevisionRecordDto;
+import com.vts.ims.qms.dto.DwpSectionDto;
+import com.vts.ims.qms.dto.QmsDocTypeDto;
+import com.vts.ims.qms.dto.QmsIssueDto;
 import com.vts.ims.qms.dto.QmsQmChaptersDto;
 import com.vts.ims.qms.dto.QmsQmDocumentSummaryDto;
 import com.vts.ims.qms.dto.QmsQmRevisionRecordDto;
@@ -51,6 +63,12 @@ public class QmsServiceImpl implements QmsService {
 	@Value("${appStorage}")
 	private String storageDrive;
 	
+	@Value("${x_api_key}")
+	private String xApiKey;
+	
+	@Autowired
+	private MasterClient masterClient;
+	
 	@Autowired
 	private QmsQmRevisionRecordRepo qmsQmRevisionRecordRepo;
 	
@@ -84,7 +102,9 @@ public class QmsServiceImpl implements QmsService {
 	@Autowired
 	private DwpGwpDocumentSummaryRepo dwpGwpDocumentSummaryRepo;
 	
-	 
+	@Autowired
+	private AuditeeRepository auditeeRepository;
+	
 	
 	@Override
 	public List<QmsQmRevisionRecordDto> getQmVersionRecordDtoList() throws Exception {
@@ -128,7 +148,14 @@ public class QmsServiceImpl implements QmsService {
 		logger.info( " Inside qmUnAddListToAddList() " );
 		try {
 			List<QmsQmChaptersDto> qmsQmChaptersDtoList = new ArrayList<QmsQmChaptersDto>();
+//			long startTime = System.currentTimeMillis();
 			List<QmsQmChapters> qmChapters = qmsQmChaptersRepo.findAllActiveQmChapters();
+//	        long endTime = System.currentTimeMillis();
+//	        System.out.println("Execution time: " + (endTime - startTime) + " ms");
+//	        long startTime1 = System.currentTimeMillis();
+//	        qmsQmChaptersRepo.findAllActiveQmChaptersss();
+//	        long endTime1 = System.currentTimeMillis();
+//	        System.out.println("Execution time: 1 " + (endTime1 - startTime1) + " ms");
 			qmChapters.forEach(chapter -> {
 				QmsQmChaptersDto qmsQmChaptersDto = QmsQmChaptersDto.builder()
 						.ChapterId(chapter.getChapterId())
@@ -295,6 +322,7 @@ public class QmsServiceImpl implements QmsService {
 		logger.info( " Inside updateQmChapterContent() ");
 		try {
 			Long res = 0l;
+			chapterContent = chapterContent.replace("\"", "");
 			Optional<QmsQmChapters> optionalChapters = qmsQmChaptersRepo.findById(chapterId);
 			if (optionalChapters.isPresent()) {
 				QmsQmChapters qmsQmChapters = optionalChapters.get();
@@ -629,17 +657,42 @@ public class QmsServiceImpl implements QmsService {
 	}
 	
 	@Override
-	public List<DwpRevisionRecordDto> getDwpVersionRecordDtoList(Long divisionId) throws Exception {
+	public List<DwpRevisionRecordDto> getDwpVersionRecordDtoList(QmsDocTypeDto qmsDocTypeDto) throws Exception {
 		logger.info( " Inside getQmVersionRecordDtoList() " );
 		try {
 			
+			List<DivisionMasterDto> divisionDtoList = masterClient.getDivisionMaster(xApiKey);
+			List<DivisionGroupDto> divisiongroupDtoList = masterClient.getDivisionGroupList(xApiKey);
+			
 			
 			List<DwpRevisionRecordDto> revisionRecordDtoList = new ArrayList<DwpRevisionRecordDto>();
-			List<DwpRevisionRecord> revisionRecord = dwpRevisionRecordRepo.findAllActiveDwpRecords();
+			List<DwpRevisionRecord> revisionRecord = dwpRevisionRecordRepo.findAllActiveDwpRecordsByDocType(qmsDocTypeDto.getDocType(), qmsDocTypeDto.getGroupDivisionId());
 			revisionRecord.forEach(revison -> {
+				
+				DivisionMasterDto divisionDto = null;
+				DivisionGroupDto divisiongroupDto = null;
+				
+				if(revison.getDocType().equalsIgnoreCase("dwp")) {
+					
+					divisionDto = divisionDtoList.stream()
+			    	        .filter(division -> division.getDivisionId().equals(revison.getGroupDivisionId()))
+			    	        .findFirst()
+			    	        .orElse(null);
+					
+				} else if(revison.getDocType().equalsIgnoreCase("gwp")) {
+					
+					divisiongroupDto = divisiongroupDtoList.stream()
+			    	        .filter(obj -> obj.getGroupId().equals(revison.getGroupDivisionId()))
+			    	        .findFirst()
+			    	        .orElse(null);
+				}
+				
 				DwpRevisionRecordDto qmsQmRevisionRecordDto = DwpRevisionRecordDto.builder()
 						.RevisionRecordId(revison.getRevisionRecordId())
-						.DivisionId(revison.getDivisionId())
+						.DocType(revison.getDocType())
+						.GroupDivisionId(revison.getGroupDivisionId())
+						.divisionMasterDto(divisionDto)
+						.divisionGroupDto(divisiongroupDto)
 						.DocFileName(revison.getDocFileName())
 						.DocFilepath(revison.getDocFilepath())
 						.Description(revison.getDescription())
@@ -660,20 +713,20 @@ public class QmsServiceImpl implements QmsService {
 			
 			return revisionRecordDtoList;
 		} catch (Exception e) {
-			logger.info( " Inside getDwpVersionRecordDtoList() "+ e );
+			logger.error( " Inside getDwpVersionRecordDtoList() "+ e );
 			e.printStackTrace();
 			return new ArrayList<DwpRevisionRecordDto>();
 		}
 	}
 	
 	@Override
-	public List<DwpChapters> getAllDwpChapters(Long divisionId) throws Exception {
+	public List<DwpChapters> getAllDwpChapters(QmsDocTypeDto qmsDocTypeDto) throws Exception {
 		logger.info( " Inside getAllDwpChapters() " );
 		try {
-			List<DwpChapters> chapters = dwpChaptersRepo.findAllActiveDwpChapters(divisionId);
+			List<DwpChapters> chapters = dwpChaptersRepo.findAllActiveDwpChapters(qmsDocTypeDto.getDocType(), qmsDocTypeDto.getGroupDivisionId());
 			return chapters;
 		} catch (Exception e) {
-			logger.info( " Inside getAllDwpChapters() "+ e );
+			logger.error( " Inside getAllDwpChapters() "+ e );
 			e.printStackTrace();
 			return new ArrayList<DwpChapters>();
 		}
@@ -816,6 +869,7 @@ public class QmsServiceImpl implements QmsService {
 		logger.info( " Inside updateDwpChapterContent() ");
 		try {
 			Long res = 0l;
+			chapterContent = chapterContent.replace("\"", "");
 			Optional<DwpChapters> optionalChapters = dwpChaptersRepo.findById(chapterId);
 			if (optionalChapters.isPresent()) {
 				DwpChapters chapters = optionalChapters.get();
@@ -827,40 +881,41 @@ public class QmsServiceImpl implements QmsService {
 			}
 			return res;
 		} catch (Exception e) {
-			logger.info( " Inside updateDwpChapterContent() "+ e );
+			logger.error( " Inside updateDwpChapterContent() "+ e );
 			e.printStackTrace();
 			return 0l;
 		}
 	}
 	
 	@Override
-	public List<DwpSections> getDwpUnAddedQmSectionList(Long divisionId) throws Exception {
+	public List<DwpSections> getDwpUnAddedQmSectionList(QmsDocTypeDto qmsDocTypeDto) throws Exception {
 		logger.info( " Inside qmUnAddListToAddList() " );
 		try {
-			List<DwpSections> sections = dwpSectionsRepo.findSectionsNotInChapters(divisionId);
+			List<DwpSections> sections = dwpSectionsRepo.findSectionsNotInChapters(qmsDocTypeDto.getDocType(), qmsDocTypeDto.getGroupDivisionId());
 			
 			
 			return sections;
 		} catch (Exception e) {
-			logger.info( " Inside getUnAddedQmSectionList() "+ e );
+			logger.error( " Inside getUnAddedQmSectionList() "+ e );
 			e.printStackTrace();
 			return new ArrayList<DwpSections>();
 		}
 	}
 	
 	@Override
-	public Long addNewDwpSection(long divisionId, String sectionName, String username) throws Exception {
+	public Long addNewDwpSection(DwpSectionDto dwpSectionDto, String username) throws Exception {
 		logger.info( " Inside addNewDwpSection() " );
 		try {
 			DwpSections sections = new DwpSections();
-			sections.setSectionName(sectionName);
-			sections.setDivisionId(divisionId);
+			sections.setSectionName(dwpSectionDto.getSectionName());
+			sections.setGroupDivisionId(dwpSectionDto.getGroupDivisionId());
+			sections.setDocType(dwpSectionDto.getDocType());
 			sections.setCreatedBy(username);
 			sections.setCreatedDate(LocalDateTime.now());
 			sections.setIsActive(1);
 			return dwpSectionsRepo.save(sections).getSectionId();
 		} catch (Exception e) {
-			logger.info( " Inside addNewDwpSection() "+ e );
+			logger.error( " Inside addNewDwpSection() "+ e );
 			e.printStackTrace();
 			return 0l;
 		}
@@ -890,7 +945,7 @@ public class QmsServiceImpl implements QmsService {
 			return res;
 			
 		} catch (Exception e) {
-			logger.info( " Inside dwpUnAddListToAddList() "+ e );
+			logger.error( " Inside dwpUnAddListToAddList() "+ e );
 			e.printStackTrace();
 			return 0l;
 		}
@@ -979,6 +1034,136 @@ public class QmsServiceImpl implements QmsService {
 			return null;
 		}
 	}
+
 	
+	@Override
+	public List<DivisionMasterDto> getDwpDivisionMaster(Integer imsFormRoleId, Long empId) throws Exception {
+	    logger.info("Inside getDwpDivisionMaster()");
+	    try {
+
+	        List<Integer> isAllList = Arrays.asList(2, 7);
+	        List<DivisionMasterDto> divisionDto = masterClient.getDivisionMaster(xApiKey);
+
+	        List<DivisionMasterDto> activeAllDivisionDto = divisionDto.stream()
+	            .filter(dto -> dto.getIsActive() == 1)
+	            .collect(Collectors.toList());
+
+	        if (isAllList.contains(imsFormRoleId)) {
+	            return activeAllDivisionDto;
+	        }
+
+			List<EmployeeDto> emp = masterClient.getEmployee(xApiKey, empId);
+
+			EmployeeDto empDto = emp.size() > 0 ? emp.get(0) : EmployeeDto.builder().build();
+
+	        List<DivisionEmployeeDto> divisionEmployeeDtoList = masterClient.getDivisionEmpDetailsById(xApiKey);
+	        List<DivisionEmployeeDto> divisionEmployeeDtoListByEmpId = divisionEmployeeDtoList.stream().filter(dto -> dto.getEmpId().equals(empId)).collect(Collectors.toList());
+	        List<Long> auditeeDivisionIds = auditeeRepository.findDivisionIdsByEmpId(empId);
+	        
+
+	        List<DivisionMasterDto> returnDivisionList = activeAllDivisionDto.stream()
+	            .filter(obj -> divisionEmployeeDtoListByEmpId.stream()
+	            		.anyMatch(dto -> dto.getDivisionId().equals(obj.getDivisionId()))
+	                    || empDto.getDivisionId().equals(obj.getDivisionId()) || (auditeeDivisionIds.contains(obj.getDivisionId())))
+	            .collect(Collectors.toList());
+
+	        return returnDivisionList;
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        logger.error("Error in getDwpDivisionMaster() ", e);
+	        return Collections.emptyList();
+	    }
+	}
+
+	@Override
+	public List<DivisionGroupDto> getDwpDivisionGroupList(Integer imsFormRoleId, Long empId) throws Exception {
+		logger.info("Inside getDwpDivisionGroupList()");
+		try {
+
+			List<Integer> isAllList = Arrays.asList(2, 7);
+
+			List<DivisionGroupDto> divisiongroupdto = masterClient.getDivisionGroupList(xApiKey);
+			List<DivisionGroupDto> activeDivisiongroupdto = divisiongroupdto.stream()
+					.filter(dto -> dto.getIsActive()== 1)
+					.collect(Collectors.toList());
+
+
+			if (isAllList.contains(imsFormRoleId)) {
+				return activeDivisiongroupdto;
+			}
+
+			List<DivisionMasterDto> divisionDto = masterClient.getDivisionMaster(xApiKey);
+			List<EmployeeDto> emp = masterClient.getEmployee(xApiKey, empId);
+
+			EmployeeDto empDto = emp.size() > 0 ? emp.get(0) : EmployeeDto.builder().build();
+
+			List<DivisionMasterDto> activeAllDivisionDto = divisionDto.stream()
+					.filter(dto -> dto.getIsActive() == 1)
+					.collect(Collectors.toList());
+
+			List<DivisionEmployeeDto> divisionEmployeeDtoList = masterClient.getDivisionEmpDetailsById(xApiKey);
+			List<DivisionEmployeeDto> divisionEmployeeDtoListByEmpId = divisionEmployeeDtoList.stream().filter(dto -> dto.getEmpId().equals(empId)).collect(Collectors.toList());
+			List<Long> auditeeDivisionIds = auditeeRepository.findDivisionIdsByEmpId(empId);
+			List<Long> auditeeDivisionGroupIds = auditeeRepository.findDivisionGroupIdsByEmpId(empId);
+
+
+			List<DivisionMasterDto> divisionValidList = activeAllDivisionDto.stream()
+					.filter(obj -> divisionEmployeeDtoListByEmpId.stream()
+							.anyMatch(dto -> dto.getDivisionId().equals(obj.getDivisionId()))
+							|| empDto.getDivisionId().equals(obj.getDivisionId()) || (auditeeDivisionIds.contains(obj.getDivisionId())))
+					.collect(Collectors.toList());
+
+
+			List<DivisionGroupDto> rturnDivisiongroupdto =  activeDivisiongroupdto.stream().filter(obj -> divisionValidList.stream()
+					.anyMatch(dto -> dto.getGroupId().equals(obj.getGroupId())) || (auditeeDivisionGroupIds.contains(obj.getGroupId()))).collect(Collectors.toList());
+
+
+
+			return rturnDivisiongroupdto;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error in getDwpDivisionGroupList() ", e);
+			return Collections.emptyList();
+		}
+	}
+	
+	@Override
+	public DwpRevisionRecord addNewDwpRevisionRecord(QmsIssueDto qmsIssueDto, String username) throws Exception {
+		logger.info("Inside addNewDwpRevisionRecord() ");
+
+		try {
+			
+	
+			DwpRevisionRecord dwpRevisionRecord = new DwpRevisionRecord();
+	
+//			Login login = loginRepo.findByUsername(username);
+//			EmployeeDto emp = masterClient.getEmployee(xApiKey, login.getEmpId()).get(0);
+			
+			String version = qmsIssueDto.getNewAmendVersion();
+			String issueVersion = version.split("-")[0];
+			String releaseVersion = version.split("-")[1];
+			
+			dwpRevisionRecord.setGroupDivisionId(qmsIssueDto.getGroupDivisionId());
+			dwpRevisionRecord.setDescription(qmsIssueDto.getAmendParticulars());
+			dwpRevisionRecord.setIssueNo(Integer.parseInt(issueVersion.substring(1)));
+			dwpRevisionRecord.setRevisionNo(Integer.parseInt(releaseVersion.substring(1)));
+			dwpRevisionRecord.setStatusCode("INI");
+			dwpRevisionRecord.setDateOfRevision((LocalDate.now()));
+			dwpRevisionRecord.setDocType(qmsIssueDto.getDocType());
+			dwpRevisionRecord.setCreatedDate(LocalDateTime.now());
+			dwpRevisionRecord.setCreatedBy(username);
+			dwpRevisionRecord.setIsActive(1);
+
+//			res = dwpRevisionRecordRepo.save(dwpRevisionRecord).getRevisionRecordId();
+			
+			return dwpRevisionRecordRepo.save(dwpRevisionRecord);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error in addNewDwpRevisionRecord() ", e);
+			return null;
+		}
+		
+	}
 	
 }

@@ -20,8 +20,10 @@ public class DwpRevisionRecord {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "RevisionRecordId")
 	private Long revisionRecordId;
-	@Column(name = "DivisionId")
-	private Long divisionId;
+	@Column(name = "DocType")
+	private String docType;
+	@Column(name = "GroupDivisionId")
+	private Long groupDivisionId;
 	@Column(name = "DocFileName")
 	private String docFileName;
 	@Column(name = "DocFilepath")

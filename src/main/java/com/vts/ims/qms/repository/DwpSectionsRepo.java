@@ -11,7 +11,7 @@ import feign.Param;
 
 public interface DwpSectionsRepo extends JpaRepository<DwpSections, Long> {
 
-	@Query("SELECT s FROM DwpSections s WHERE s.isActive=1 AND s.divisionId=:divisionId AND s.sectionId NOT IN (SELECT c.sectionId FROM DwpSections b, DwpChapters c where c.isActive=1 AND b.isActive=1 AND c.sectionId=b.sectionId AND b.divisionId=:divisionId)")
-    List<DwpSections> findSectionsNotInChapters(@Param("divisionId") Long divisionId);
+	@Query("SELECT s FROM DwpSections s WHERE s.isActive=1 AND s.docType=:docType AND s.groupDivisionId=:groupDivisionId AND s.sectionId NOT IN (SELECT c.sectionId FROM DwpSections b, DwpChapters c where c.isActive=1 AND b.isActive=1 AND c.sectionId=b.sectionId AND b.docType=:docType AND b.groupDivisionId=:groupDivisionId)")
+    List<DwpSections> findSectionsNotInChapters(@Param("docType") String docType, @Param("groupDivisionId") Long groupDivisionId);
 	
 }
