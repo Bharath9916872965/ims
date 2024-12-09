@@ -36,6 +36,9 @@ public class AuditCheckList {
 	@Column(name = "AuditorRemarks")
 	private String auditorRemarks;
 	
+	@Column(name = "Attachment")
+	private String attachment;
+	
 	@Column(name = "CreatedBy")
 	private String createdBy;
 	
