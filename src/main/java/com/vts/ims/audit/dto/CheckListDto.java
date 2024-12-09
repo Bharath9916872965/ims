@@ -1,0 +1,23 @@
+package com.vts.ims.audit.dto;
+
+import lombok.Builder;
+import lombok.Data;
+
+@Data
+@Builder
+public class CheckListDto {
+	                          
+    private Long auditCheckListId;
+    private Long scheduleId;
+    private Long iqaId;
+    private Long mocId;
+    private Long auditObsId;
+    private String auditorRemarks;
+    private String clauseNo;
+    private String sectionNo;
+    private Long mocParentId;
+    private String isForCheckList;
+    private String mocDescription;
+
+}
+

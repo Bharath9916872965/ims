@@ -1,23 +1,19 @@
 package com.vts.ims.audit.dto;
 
-import java.time.LocalDateTime;
-
+import lombok.Builder;
 import lombok.Data;
 
 @Data
-public class AuditeeDto {
+@Builder
+public class IqaAuditeeListDto {
 
 	private Long auditeeId;
 	private Long empId;
+	private Long iqaAuditeeId;
+	private Long iqaId;
 	private Long groupId;
 	private Long divisionId;
 	private Long projectId;
-	private String headType;
-	private String createdBy;
-	private LocalDateTime createdDate;
-	private String modifiedBy;
-	private LocalDateTime modifiedDate;
-	private int isActive;
 	private String auditee;
 	private String divisionName;
 	private String groupName;

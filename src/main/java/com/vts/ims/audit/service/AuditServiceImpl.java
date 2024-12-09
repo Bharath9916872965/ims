@@ -24,6 +24,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.vts.ims.audit.dto.AuditCheckListDTO;
 import com.vts.ims.audit.dto.AuditRescheduleDto;
 import com.vts.ims.audit.dto.AuditScheduleDto;
 import com.vts.ims.audit.dto.AuditScheduleListDto;
@@ -35,8 +36,13 @@ import com.vts.ims.audit.dto.AuditTranDto;
 import com.vts.ims.audit.dto.AuditeeDto;
 import com.vts.ims.audit.dto.AuditorDto;
 import com.vts.ims.audit.dto.AuditorTeamDto;
+import com.vts.ims.audit.dto.CheckListDto;
+import com.vts.ims.audit.dto.CheckListItem;
 import com.vts.ims.audit.dto.IqaAuditeeDto;
+import com.vts.ims.audit.dto.IqaAuditeeListDto;
 import com.vts.ims.audit.dto.IqaDto;
+import com.vts.ims.audit.model.AuditCheckList;
+import com.vts.ims.audit.model.AuditObservation;
 import com.vts.ims.audit.model.AuditSchedule;
 import com.vts.ims.audit.model.AuditScheduleRevision;
 import com.vts.ims.audit.model.AuditTeam;
@@ -46,6 +52,8 @@ import com.vts.ims.audit.model.Auditee;
 import com.vts.ims.audit.model.Auditor;
 import com.vts.ims.audit.model.Iqa;
 import com.vts.ims.audit.model.IqaAuditee;
+import com.vts.ims.audit.repository.AuditCheckListRepository;
+import com.vts.ims.audit.repository.AuditObservationRepository;
 import com.vts.ims.audit.repository.AuditScheduleRepository;
 import com.vts.ims.audit.repository.AuditScheduleRevRepository;
 import com.vts.ims.audit.repository.AuditTransactionRepository;
@@ -119,6 +127,12 @@ public class AuditServiceImpl implements AuditService{
 	
 	@Value("${x_api_key}")
 	private String xApiKey;
+	
+	@Autowired
+	private AuditObservationRepository auditObservationRepository;
+	
+	@Autowired
+	private AuditCheckListRepository auditCheckListRepository;
 	
 	@Override
 	public List<AuditorDto> getAuditorList() throws Exception {
@@ -356,6 +370,7 @@ public class AuditServiceImpl implements AuditService{
 				    	dto.setDivisionName(division !=null?division.getDivisionCode():"");
 				    	dto.setGroupName(group !=null?group.getGroupCode():"");
 				    	dto.setProjectName(project !=null?project.getProjectName():"");
+				    	dto.setProjectShortName(project !=null?project.getProjectShortName():"");
 				    	dto.setProjectCode(project !=null?project.getProjectCode():"");
 				        return dto;
 				    })
@@ -1589,4 +1604,164 @@ public class AuditServiceImpl implements AuditService{
 			return result;
 		}
 	}
+
+
+	
+	@Override
+	public List<IqaAuditeeListDto> getIqaAuditeelist() throws Exception {
+		logger.info(new Date() + " AuditServiceImpl Inside method getAuditeeList()");
+		try {
+			List<Object[]> result = auditeeRepository.getIqaAuditeeList(); 
+			List<EmployeeDto> totalEmployee = masterClient.getEmployeeMasterList(xApiKey);
+			List<DivisionMasterDto> divisionMaster = masterClient.getDivisionMaster(xApiKey);
+			List<ProjectMasterDto> totalProject = masterClient.getProjectMasterList(xApiKey);
+			List<DivisionGroupDto> groupList = masterClient.getDivisionGroupList(xApiKey);
+			
+		    Map<Long, EmployeeDto> employeeMap = totalEmployee.stream()
+		            .filter(employee -> employee.getEmpId() != null)
+		            .collect(Collectors.toMap(EmployeeDto::getEmpId, employee -> employee));
+		    
+		    Map<Long,DivisionMasterDto> divisionMap = divisionMaster.stream()
+		    		.filter(division -> division.getDivisionId() !=null)
+		    		.collect(Collectors.toMap(DivisionMasterDto::getDivisionId, division -> division));
+		    
+		    Map<Long,ProjectMasterDto> projectMap = totalProject.stream()
+		    		.filter(project -> project.getProjectId()!=null)
+		    		.collect(Collectors.toMap(ProjectMasterDto::getProjectId, project -> project));
+		    
+		    Map<Long,DivisionGroupDto> groupMap = groupList.stream()
+		    		.filter(group -> group.getGroupId() !=null)
+		    		.collect(Collectors.toMap(DivisionGroupDto::getGroupId, group -> group));
+			
+			List<IqaAuditeeListDto> finalAuditeeDtoList = result.stream()
+					.map(obj -> {
+					    EmployeeDto employee       =	obj[1] != null?employeeMap.get(Long.parseLong(obj[1].toString())):null;
+					    DivisionMasterDto division =	(obj[2] != null && !obj[2].toString().equalsIgnoreCase("0"))?divisionMap.get(Long.parseLong(obj[2].toString())):null;
+					    DivisionGroupDto group     =	(obj[3] != null && !obj[3].toString().equalsIgnoreCase("0"))?groupMap.get(Long.parseLong(obj[3].toString())):null;
+					    ProjectMasterDto project   =	(obj[4] != null && !obj[4].toString().equalsIgnoreCase("0"))?projectMap.get(Long.parseLong(obj[4].toString())):null;
+
+				    
+					   return  IqaAuditeeListDto.builder()
+					    	  .auditeeId(obj[0] != null?Long.parseLong(obj[0].toString()):0L)
+					    	  .empId(obj[1] != null?Long.parseLong(obj[1].toString()):0L)
+					    	  .groupId(obj[2] != null?Long.parseLong(obj[2].toString()):0L)
+					    	  .divisionId(obj[3] != null?Long.parseLong(obj[3].toString()):0L)
+					    	  .projectId(obj[4] != null?Long.parseLong(obj[4].toString()):0L)
+					    	  .iqaId(obj[5] != null?Long.parseLong(obj[5].toString()):0L)
+					    	  .iqaAuditeeId(obj[6] != null?Long.parseLong(obj[6].toString()):0L)
+					    	  .auditee(employee != null?employee.getEmpName()+", "+employee.getEmpDesigName():"")
+					    	  .divisionName(division !=null?division.getDivisionCode():"")
+					    	  .groupName(group !=null?group.getGroupCode():"")
+					    	  .projectName(project !=null?project.getProjectName():"")
+					    	  .projectShortName(project !=null?project.getProjectShortName():"")
+					    	  .projectCode(project !=null?project.getProjectCode():"")
+					    	  .build();
+				    })
+				    .collect(Collectors.toList());
+				
+			return finalAuditeeDtoList;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method getAuditeeList()"+ e);
+			 return Collections.emptyList();
+		}
+	}
+
+
+	@Override
+	public List<AuditObservation> getObservation() throws Exception {
+		logger.info(new Date() + " AuditServiceImpl Inside method getObservation()");
+		try {
+
+			return auditObservationRepository.findByIsActive(1);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method getObservation()"+ e);
+			return List.of();
+		}
+	}
+
+
+	@Override
+	public long addAuditCheckList(AuditCheckListDTO auditCheckListDTO, String username) throws Exception {
+		long result = 1;
+		logger.info(new Date() + " AuditServiceImpl Inside method addAuditCheckList()");
+		try {
+
+			for(CheckListItem item  : auditCheckListDTO.getCheckListMap()){
+				AuditCheckList checkList = new AuditCheckList();
+				checkList.setScheduleId((long)auditCheckListDTO.getScheduleId());			
+				checkList.setIqaId((long)auditCheckListDTO.getIqaId());			
+				checkList.setMocId((long)item.getMocId());			
+				checkList.setAuditObsId((long)item.getObservation());
+				checkList.setAuditorRemarks(item.getRemark());
+				checkList.setCreatedBy(username);
+				checkList.setCreatedDate(LocalDateTime.now());
+				checkList.setIsActive(1);
+				
+				result = auditCheckListRepository.save(checkList).getAuditCheckListId();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method addAuditCheckList()"+ e);
+		}
+		return result;
+	}
+	
+	@Override
+	public long updateAuditCheckList(AuditCheckListDTO auditCheckListDTO, String username) throws Exception {
+		long result = 1;
+		logger.info(new Date() + " AuditServiceImpl Inside method updateAuditCheckList()");
+		try {
+
+			for(CheckListItem item  : auditCheckListDTO.getCheckListMap()){
+				AuditCheckList checkList = auditCheckListRepository.findById((long)item.getAuditCheckListId()).get();
+				checkList.setMocId((long)item.getMocId());			
+				checkList.setAuditObsId((long)item.getObservation());
+				checkList.setAuditorRemarks(item.getRemark());
+				checkList.setModifiedBy(username);
+				checkList.setModifiedDate(LocalDateTime.now());
+				
+				result = auditCheckListRepository.save(checkList).getAuditCheckListId();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method updateAuditCheckList()"+ e);
+		}
+		return result;
+	}
+
+
+	@Override
+	public List<CheckListDto> getAuditCheckList(String scheduleId) throws Exception {
+		logger.info(new Date() + " AuditServiceImpl Inside method getAuditCheckList()");
+		try {
+			 List<Object[]> result = auditCheckListRepository.getAuditCheckList(scheduleId);
+			 
+			return Optional.ofNullable(result).orElse(Collections.emptyList()).stream()
+					    .map(obj -> {
+
+						    	return CheckListDto.builder()
+					    			.auditCheckListId(obj[0]!=null?Long.parseLong(obj[0].toString()):0L)
+					    			.scheduleId(obj[1]!=null?Long.parseLong(obj[1].toString()):0L)
+					    			.iqaId(obj[2]!=null?Long.parseLong(obj[2].toString()):0L)
+					    			.mocId(obj[3]!=null?Long.parseLong(obj[3].toString()):0L)
+					    			.auditObsId(obj[4]!=null?Long.parseLong(obj[4].toString()):0L)
+					    			.auditorRemarks(obj[5]!=null?obj[5].toString():"")
+					    			.clauseNo(obj[6]!=null?obj[6].toString():"")
+					    			.sectionNo(obj[7]!=null?obj[7].toString():"")
+					    			.mocParentId(obj[8]!=null?Long.parseLong(obj[8].toString()):0L)
+					    			.isForCheckList(obj[9]!=null?obj[9].toString():"")
+					    			.mocDescription(obj[10]!=null?obj[10].toString():"")
+					    			.build();
+					    })
+					    .collect(Collectors.toList());
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method getAuditCheckList()"+ e);
+			return List.of();
+		}
+	}
+	
+
 }
