@@ -2,6 +2,7 @@ package com.vts.ims.audit.service;
 
 import java.util.List;
 
+import com.vts.ims.audit.dto.AuditCheckListDTO;
 import com.vts.ims.audit.dto.AuditRescheduleDto;
 import com.vts.ims.audit.dto.AuditScheduleDto;
 import com.vts.ims.audit.dto.AuditScheduleListDto;
@@ -13,8 +14,11 @@ import com.vts.ims.audit.dto.AuditTranDto;
 import com.vts.ims.audit.dto.AuditeeDto;
 import com.vts.ims.audit.dto.AuditorDto;
 import com.vts.ims.audit.dto.AuditorTeamDto;
+import com.vts.ims.audit.dto.CheckListDto;
 import com.vts.ims.audit.dto.IqaAuditeeDto;
+import com.vts.ims.audit.dto.IqaAuditeeListDto;
 import com.vts.ims.audit.dto.IqaDto;
+import com.vts.ims.audit.model.AuditObservation;
 import com.vts.ims.audit.model.AuditTeam;
 import com.vts.ims.master.dto.DivisionGroupDto;
 import com.vts.ims.master.dto.DivisionMasterDto;
@@ -83,5 +87,15 @@ public interface AuditService {
 	public List<IqaAuditeeDto> getIqaAuditeeList(Long iqaId) throws Exception;
 
 	public long insertIqaAuditee(IqaAuditeeDto iqaAuditeeDto, String username) throws Exception;
+
+	public List<IqaAuditeeListDto> getIqaAuditeelist()throws Exception;
+
+	public List<AuditObservation> getObservation()throws Exception;
+
+	public long addAuditCheckList(AuditCheckListDTO auditCheckListDTO, String username)throws Exception;
+	
+	public long updateAuditCheckList(AuditCheckListDTO auditCheckListDTO, String username)throws Exception;
+
+	public List<CheckListDto> getAuditCheckList(String scheduleId)throws Exception;
 
 }

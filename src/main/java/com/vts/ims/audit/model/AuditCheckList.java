@@ -33,6 +33,9 @@ public class AuditCheckList {
 	@Column(name = "AuditObsId")
 	private Long auditObsId;
 	
+	@Column(name = "AuditorRemarks")
+	private String auditorRemarks;
+	
 	@Column(name = "CreatedBy")
 	private String createdBy;
 	

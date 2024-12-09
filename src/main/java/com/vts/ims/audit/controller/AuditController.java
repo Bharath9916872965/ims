@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.vts.ims.audit.dto.AuditCheckListDTO;
 import com.vts.ims.audit.dto.AuditRescheduleDto;
 import com.vts.ims.audit.dto.AuditScheduleDto;
 import com.vts.ims.audit.dto.AuditScheduleListDto;
@@ -28,8 +29,11 @@ import com.vts.ims.audit.dto.AuditTranDto;
 import com.vts.ims.audit.dto.AuditeeDto;
 import com.vts.ims.audit.dto.AuditorDto;
 import com.vts.ims.audit.dto.AuditorTeamDto;
+import com.vts.ims.audit.dto.CheckListDto;
 import com.vts.ims.audit.dto.IqaAuditeeDto;
+import com.vts.ims.audit.dto.IqaAuditeeListDto;
 import com.vts.ims.audit.dto.IqaDto;
+import com.vts.ims.audit.model.AuditObservation;
 import com.vts.ims.audit.model.AuditTeam;
 import com.vts.ims.audit.service.AuditService;
 import com.vts.ims.master.dto.DivisionGroupDto;
@@ -156,6 +160,19 @@ public class AuditController {
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("Error fetching auditeelist: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	@PostMapping(value = "/iqa-auditee-list", produces = "application/json")
+	public ResponseEntity<List<IqaAuditeeListDto>> getIqaAuditeelist(@RequestHeader String username) throws Exception {
+		try {
+			logger.info(new Date() + " Inside iqaAuditeelist" );
+			List<IqaAuditeeListDto> dto=auditService.getIqaAuditeelist();
+			return new ResponseEntity<List<IqaAuditeeListDto>>( dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching iqaAuditeelist: ", e);
 			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
 		}
 	}
@@ -552,6 +569,66 @@ public class AuditController {
 			 logger.error(new Date() +"error in insertiqaauditee"+ e.getMessage());
 			 e.printStackTrace();
 			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+		}
+	}
+	
+	@PostMapping(value = "/get-observation", produces = "application/json")
+	public ResponseEntity<List<AuditObservation>> getObservation(@RequestHeader String username) throws Exception {
+		try {
+			logger.info(new Date() + " Inside getObservation" );
+			List<AuditObservation> dto=auditService.getObservation();
+			return new ResponseEntity<List<AuditObservation>>( dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching getObservation: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST); 
+		}
+	}
+	
+	@PostMapping(value = "/add-audit-check-list", produces = "application/json")
+	public ResponseEntity<Response> addAuditCheckList(@RequestHeader String username, @RequestBody AuditCheckListDTO auditCheckListDTO) throws Exception {
+		try {
+			logger.info( " Inside add-audit-check-list" );
+			 long result=auditService.addAuditCheckList(auditCheckListDTO,username);
+			 if(result > 0) {
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("audit Check List Added Successfully","S"));
+			 }else {
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("audit Check List Add Unsuccessful","F"));			 
+			 }
+		} catch (Exception e) {
+			 logger.error("error in add-audit-check-list"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
+		}
+	}
+	
+	@PostMapping(value = "/get-audit-check-list", produces = "application/json")
+	public ResponseEntity<List<CheckListDto>> getAuditCheckList(@RequestHeader String username,@RequestBody String scheduleId) throws Exception {
+		try {
+			logger.info(new Date() + " Inside getAuditCheckList" );
+			List<CheckListDto> dto=auditService.getAuditCheckList(scheduleId);
+			return new ResponseEntity<List<CheckListDto>>( dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching getAuditCheckList: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST); 
+		}
+	}
+	
+	@PostMapping(value = "/update-audit-check-list", produces = "application/json")
+	public ResponseEntity<Response> updateAuditCheckList(@RequestHeader String username, @RequestBody AuditCheckListDTO auditCheckListDTO) throws Exception {
+		try {
+			logger.info( " Inside update-audit-check-list" );
+			 long result=auditService.updateAuditCheckList(auditCheckListDTO,username);
+			 if(result > 0) {
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("audit Check List Updated Successfully","S"));
+			 }else {
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("audit Check List Update Unsuccessful","F"));			 
+			 }
+		} catch (Exception e) {
+			 logger.error("error in update-audit-check-list"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
 		}
 	}
 }
