@@ -1,6 +1,9 @@
 package com.vts.ims.audit.service;
 
 import java.util.List;
+import java.util.Map;
+
+import org.springframework.web.multipart.MultipartFile;
 
 import com.vts.ims.audit.dto.AuditCheckListDTO;
 import com.vts.ims.audit.dto.AuditRescheduleDto;
@@ -97,5 +100,7 @@ public interface AuditService {
 	public long updateAuditCheckList(AuditCheckListDTO auditCheckListDTO, String username)throws Exception;
 
 	public List<CheckListDto> getAuditCheckList(String scheduleId)throws Exception;
+
+	public long uploadCheckListImage(MultipartFile file, Map<String, Object> response, String username)throws Exception;
 
 }

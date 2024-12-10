@@ -1,7 +1,9 @@
 package com.vts.ims.audit.controller;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,8 +17,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vts.ims.audit.dto.AuditCheckListDTO;
 import com.vts.ims.audit.dto.AuditRescheduleDto;
 import com.vts.ims.audit.dto.AuditScheduleDto;
@@ -630,5 +635,29 @@ public class AuditController {
 			 e.printStackTrace();
 			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
 		}
+	}
+	
+	@PostMapping("/upload-check-list-img")
+	public ResponseEntity<Response> uploadCheckListImage(@RequestHeader  String username, @RequestParam("ad") String attachment,
+			@RequestParam("file") MultipartFile file) throws Exception {
+
+		logger.info(new Date() + " Inside upload-check-list-img " + username);
+		long result = 0;
+		String message = "attachment------------- " + attachment;
+		Map<String, Object> response = null;
+		try {
+			response = new ObjectMapper().readValue(attachment, HashMap.class);
+			result =	auditService.uploadCheckListImage(file, response, username);
+		} catch (Exception e) {
+			logger.info(new Date() + " Inside uploadCheckListImage " + e);
+		}
+		if (result > 0) {
+			message = "Image successfully uploaded: " + response.get("attachmentName");
+			return ResponseEntity.status(HttpStatus.OK).body(new Response(message));
+		} else {
+			message = "Could not Upload the Image " + response.get("attachmentName");
+			return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new Response(message));
+		}
+
 	}
 }

@@ -1,6 +1,9 @@
 package com.vts.ims.audit.service;
 
 
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -13,6 +16,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +27,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.vts.ims.audit.dto.AuditCheckListDTO;
 import com.vts.ims.audit.dto.AuditRescheduleDto;
@@ -133,6 +138,9 @@ public class AuditServiceImpl implements AuditService{
 	
 	@Autowired
 	private AuditCheckListRepository auditCheckListRepository;
+	
+	@Value("${appStorage}")
+	private String storageDrive ;
 	
 	@Override
 	public List<AuditorDto> getAuditorList() throws Exception {
@@ -1761,6 +1769,46 @@ public class AuditServiceImpl implements AuditService{
 			logger.error("AuditServiceImpl Inside method getAuditCheckList()"+ e);
 			return List.of();
 		}
+	}
+
+
+	@Override
+	public long uploadCheckListImage(MultipartFile file, Map<String, Object> response, String username)
+			throws Exception {
+		long result = 1;
+		logger.info(new Date() + " AuditServiceImpl Inside method uploadCheckListImage()");
+		try {
+			String orgNameExtension = FilenameUtils.getExtension(file.getOriginalFilename());
+			String Attachmentname = FilenameUtils.removeExtension(response.get("checkListAttachementName").toString()); 
+				AuditCheckList checkList = new AuditCheckList();
+				checkList.setScheduleId(Long.parseLong(response.get("scheduleId").toString()));			
+				checkList.setIqaId(Long.parseLong(response.get("iqaId").toString()));			
+				checkList.setMocId(Long.parseLong(response.get("mocId").toString()));			
+				checkList.setAttachment(response.get("checkListAttachementName").toString());			
+				checkList.setAuditObsId(0L);
+				checkList.setAuditorRemarks("NA");
+				checkList.setCreatedBy(username);
+				checkList.setCreatedDate(LocalDateTime.now());
+				checkList.setIsActive(1);
+				
+				result = auditCheckListRepository.save(checkList).getAuditCheckListId();
+				
+				String iqaNo= response.get("iqaNo").toString().replace("/", "_")+" - "+response.get("scheduleId").toString().replace("/", "_");
+				Path filePath = null;
+				filePath = Paths.get(storageDrive,"CheckListUploads",iqaNo);
+				
+				logger.info(" Inside uploadIrfDocument " +filePath);
+		        File theDir = filePath.toFile();
+		        if (!theDir.exists()){
+				     theDir.mkdirs();
+				 }
+		        Path fileToSave = filePath.resolve(Attachmentname + "." + orgNameExtension);
+		        file.transferTo(fileToSave.toFile());
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method uploadCheckListImage()"+ e);
+		}
+		return result;
 	}
 	
 
