@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -18,4 +19,8 @@ public interface TeamMemberRepository extends JpaRepository<AuditTeamMembers, Lo
 	@Transactional
 	@Query(value = "DELETE FROM ims_audit_team_members tm WHERE tm.TeamId =:teamId",nativeQuery = true)
 	public int deleteByTeamId(@RequestParam("teamId") Long teamId);
+	
+	@Query(value = "SELECT COUNT(TeamMemberId) FROM ims_audit_team_members WHERE AuditorId = :AuditorId", nativeQuery = true)
+	public Long countTeamMembersByAuditorId(@Param("AuditorId") String auditorId);
+
 }

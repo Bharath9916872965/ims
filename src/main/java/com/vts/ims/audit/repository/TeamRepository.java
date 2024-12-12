@@ -13,7 +13,7 @@ public interface TeamRepository extends JpaRepository<AuditTeam, Long> {
 
 	public List<AuditTeam> findAllByIsActive(int isActive);
 
-	@Query(value = "SELECT c.EmpId,a.TeamCode,d.IqaNo,b.IsLead,c.AuditorId,a.TeamId,b.TeamMemberId,d.IqaId FROM ims_audit_team a,ims_audit_team_members b,ims_audit_auditor c,ims_audit_iqa d WHERE a.TeamId=b.TeamId AND b.AuditorId=c.AuditorId AND a.IqaId=d.IqaId AND a.IsActive='1' AND b.IsActive='1' AND c.IsActive='1' AND d.IsActive='1'",nativeQuery = true)
+	@Query(value = "SELECT c.EmpId,a.TeamCode,d.IqaNo,b.IsLead,c.AuditorId,a.TeamId,b.TeamMemberId,d.IqaId FROM ims_audit_team a,ims_audit_team_members b,ims_audit_auditor c,ims_audit_iqa d WHERE a.TeamId=b.TeamId AND b.AuditorId=c.AuditorId AND a.IqaId=d.IqaId AND a.IsActive='1' AND b.IsActive='1' AND d.IsActive='1'",nativeQuery = true)
 	public List<Object[]> getAuditTeamMemberList();
 
 	@Query(value="SELECT b.TeamMemberId,c.EmpId,b.IsLead FROM ims_audit_team a,ims_audit_team_members b,ims_audit_auditor c WHERE a.IsActive=1 AND b.IsActive=1 AND c.IsActive=1 AND a.TeamId = b.TeamId AND b.AuditorId = c.AuditorId AND a.TeamId =:teamId",nativeQuery = true)

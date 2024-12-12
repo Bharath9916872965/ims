@@ -596,12 +596,46 @@ public class AuditController {
 			logger.info( " Inside add-audit-check-list" );
 			 long result=auditService.addAuditCheckList(auditCheckListDTO,username);
 			 if(result > 0) {
-				 return ResponseEntity.status(HttpStatus.OK).body(new Response("audit Check List Added Successfully","S"));
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("Auditor Remarks Added Successfully","S"));
 			 }else {
-				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("audit Check List Add Unsuccessful","F"));			 
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("Auditor Remarks Add Unsuccessful","F"));			 
 			 }
 		} catch (Exception e) {
 			 logger.error("error in add-audit-check-list"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
+		}
+	}
+	
+	@PostMapping(value = "/add-auditee-remarks", produces = "application/json")
+	public ResponseEntity<Response> addAuditeeRemarks(@RequestHeader String username, @RequestBody AuditCheckListDTO auditCheckListDTO) throws Exception {
+		try {
+			logger.info( " Inside add-auditee-remarks" );
+			 long result=auditService.addAuditeeRemarks(auditCheckListDTO,username);
+			 if(result > 0) {
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("Auditee Remarks Added Successfully","S"));
+			 }else {
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("Auditee Remarks Add Unsuccessful","F"));			 
+			 }
+		} catch (Exception e) {
+			 logger.error("error in add-auditee-remarks"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
+		}
+	}
+	
+	@PostMapping(value = "/update-auditee-remarks", produces = "application/json")
+	public ResponseEntity<Response> updateAuditeeRemarks(@RequestHeader String username, @RequestBody AuditCheckListDTO auditCheckListDTO) throws Exception {
+		try {
+			logger.info( " Inside update-auditee-remarks" );
+			 int result=auditService.updateAuditeeRemarks(auditCheckListDTO,username);
+			 if(result > 0) {
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("Auditee Remarks Updated Successfully","S"));
+			 }else {
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("Auditee Remarks Update Unsuccessful","F"));			 
+			 }
+		} catch (Exception e) {
+			 logger.error("error in update-auditee-remarks"+ e.getMessage());
 			 e.printStackTrace();
 			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
 		}
@@ -659,5 +693,44 @@ public class AuditController {
 			return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new Response(message));
 		}
 
+	}
+	
+	@PostMapping(value = "/get-check-list-img", produces = "application/json")
+	public ResponseEntity<String> getCheckListimg(@RequestHeader String username, @RequestBody AuditScheduleListDto auditScheduleListDto) throws Exception {
+		try {
+			logger.info( " Inside get-check-list-img" );
+			 String result=auditService.getCheckListimg(auditScheduleListDto);
+			 return new ResponseEntity<String>( result,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching getCheckListimg: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST); 
+		}
+	}
+	
+	@PostMapping(value = "/check-auditor-present", produces = "application/json")
+	public ResponseEntity<Long> checkAuditorPresent(@RequestHeader String username, @RequestBody String auditorId) throws Exception {
+		try {
+			logger.info( " Inside check-auditor-present" );
+			 Long result=auditService.checkAuditorPresent(auditorId);
+			 return new ResponseEntity<Long>(result,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching check-auditor-present: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST); 
+		}
+	}
+	
+	@PostMapping(value = "/delete-auditor", produces = "application/json")
+	public ResponseEntity<Integer> deleteAuditor(@RequestHeader String username, @RequestBody String auditorId) throws Exception {
+		try {
+			logger.info( " Inside delete-auditor" );
+			Integer result=auditService.deleteAuditor(auditorId);
+			 return new ResponseEntity<Integer>(result,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching delete-auditor: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST); 
+		}
 	}
 }

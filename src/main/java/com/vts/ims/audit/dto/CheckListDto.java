@@ -13,6 +13,7 @@ public class CheckListDto {
     private Long mocId;
     private Long auditObsId;
     private String auditorRemarks;
+    private String auditeeRemarks;
     private String clauseNo;
     private String sectionNo;
     private Long mocParentId;

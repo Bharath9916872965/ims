@@ -30,4 +30,5 @@ public class AuditScheduleListDto {
 	private String statusName;  
 	private Long leadEmpId;
 	private String message; 
+	private String auditeeFlag; 
 }
