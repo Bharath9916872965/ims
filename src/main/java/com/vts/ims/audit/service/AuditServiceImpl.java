@@ -2,6 +2,7 @@ package com.vts.ims.audit.service;
 
 
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -1446,6 +1447,7 @@ public class AuditServiceImpl implements AuditService{
 				    			.actEmpId(obj[15]!=null?Long.parseLong(obj[15].toString()):0L)
 				    			.loginEmpId(obj[16]!=null?Long.parseLong(obj[16].toString()):0L)
 				    			.leadEmpId(obj[17]!=null?Long.parseLong(obj[17].toString()):0L)
+				    			.auditeeFlag(obj[18]!=null?obj[18].toString():"")
 				    			.auditeeEmpName(employee != null?employee.getEmpName()+", "+employee.getEmpDesigName():"")
 				    			.divisionName(division !=null?division.getDivisionName():"")
 				    			.groupName(group !=null?group.getGroupName():"")
@@ -1689,25 +1691,24 @@ public class AuditServiceImpl implements AuditService{
 		}
 	}
 
-
 	@Override
-	public long addAuditCheckList(AuditCheckListDTO auditCheckListDTO, String username) throws Exception {
-		long result = 1;
+	public int addAuditCheckList(AuditCheckListDTO auditCheckListDTO, String username) throws Exception {
+		int result = 1;
 		logger.info(new Date() + " AuditServiceImpl Inside method addAuditCheckList()");
 		try {
 
 			for(CheckListItem item  : auditCheckListDTO.getCheckListMap()){
-				AuditCheckList checkList = new AuditCheckList();
-				checkList.setScheduleId((long)auditCheckListDTO.getScheduleId());			
-				checkList.setIqaId((long)auditCheckListDTO.getIqaId());			
-				checkList.setMocId((long)item.getMocId());			
-				checkList.setAuditObsId((long)item.getObservation());
-				checkList.setAuditorRemarks(item.getRemark());
-				checkList.setCreatedBy(username);
-				checkList.setCreatedDate(LocalDateTime.now());
-				checkList.setIsActive(1);
-				
-				result = auditCheckListRepository.save(checkList).getAuditCheckListId();
+//				AuditCheckList checkList = new AuditCheckList();
+//				checkList.setScheduleId((long)auditCheckListDTO.getScheduleId());			
+//				checkList.setIqaId((long)auditCheckListDTO.getIqaId());			
+//				checkList.setMocId((long)item.getMocId());			
+//				checkList.setAuditObsId((long)item.getObservation());
+//				checkList.setAuditorRemarks(item.getAuditorRemarks());
+//				checkList.setCreatedBy(username);
+//				checkList.setCreatedDate(LocalDateTime.now());
+//				checkList.setIsActive(1);
+				System.out.println("item.getObservation()-------- "+item.getAuditCheckListId());
+				result = auditCheckListRepository.updateAuditorRemarks(item.getObservation(),item.getAuditorRemarks(),username,LocalDateTime.now(),item.getAuditCheckListId());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1716,6 +1717,31 @@ public class AuditServiceImpl implements AuditService{
 		return result;
 	}
 	
+	@Override
+	public long addAuditeeRemarks(AuditCheckListDTO auditCheckListDTO, String username) throws Exception {
+		long result = 1;
+		logger.info(new Date() + " AuditServiceImpl Inside method addAuditeeRemarks()");
+		try {
+
+			for(CheckListItem item  : auditCheckListDTO.getCheckListMap()){
+				AuditCheckList checkList = new AuditCheckList();
+				checkList.setScheduleId((long)auditCheckListDTO.getScheduleId());			
+				checkList.setIqaId((long)auditCheckListDTO.getIqaId());			
+				checkList.setMocId((long)item.getMocId());			
+				checkList.setAuditeeRemarks(item.getAuditeeRemarks());
+				checkList.setCreatedBy(username);
+				checkList.setCreatedDate(LocalDateTime.now());
+				checkList.setIsActive(1);
+				
+				result = auditCheckListRepository.save(checkList).getAuditCheckListId();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method addAuditeeRemarks()"+ e);
+		}
+		return result;
+	}
+
 	@Override
 	public long updateAuditCheckList(AuditCheckListDTO auditCheckListDTO, String username) throws Exception {
 		long result = 1;
@@ -1726,7 +1752,7 @@ public class AuditServiceImpl implements AuditService{
 				AuditCheckList checkList = auditCheckListRepository.findById((long)item.getAuditCheckListId()).get();
 				checkList.setMocId((long)item.getMocId());			
 				checkList.setAuditObsId((long)item.getObservation());
-				checkList.setAuditorRemarks(item.getRemark());
+				checkList.setAuditorRemarks(item.getAuditorRemarks());
 				checkList.setModifiedBy(username);
 				checkList.setModifiedDate(LocalDateTime.now());
 				
@@ -1735,6 +1761,29 @@ public class AuditServiceImpl implements AuditService{
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("AuditServiceImpl Inside method updateAuditCheckList()"+ e);
+		}
+		return result;
+	}
+	
+	@Override
+	public int updateAuditeeRemarks(AuditCheckListDTO auditCheckListDTO, String username) throws Exception {
+		int result = 1;
+		logger.info(new Date() + " AuditServiceImpl Inside method updateAuditeeRemarks()");
+		try {
+
+			for(CheckListItem item  : auditCheckListDTO.getCheckListMap()){
+//				AuditCheckList checkList = auditCheckListRepository.findById((long)item.getAuditCheckListId()).get();
+//				checkList.setMocId((long)item.getMocId());			
+//				checkList.setAuditObsId((long)item.getObservation());
+//				checkList.setAuditorRemarks(item.getAuditorRemarks());
+//				checkList.setModifiedBy(username);
+//				checkList.setModifiedDate(LocalDateTime.now());
+				
+				result = auditCheckListRepository.updateAuditeeRemarks(item.getAuditeeRemarks(),username,LocalDateTime.now(),item.getAuditCheckListId());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method updateAuditeeRemarks()"+ e);
 		}
 		return result;
 	}
@@ -1761,6 +1810,7 @@ public class AuditServiceImpl implements AuditService{
 					    			.mocParentId(obj[8]!=null?Long.parseLong(obj[8].toString()):0L)
 					    			.isForCheckList(obj[9]!=null?obj[9].toString():"")
 					    			.mocDescription(obj[10]!=null?obj[10].toString():"")
+					    			.auditeeRemarks(obj[11]!=null?obj[11].toString():"")
 					    			.build();
 					    })
 					    .collect(Collectors.toList());
@@ -1779,7 +1829,17 @@ public class AuditServiceImpl implements AuditService{
 		logger.info(new Date() + " AuditServiceImpl Inside method uploadCheckListImage()");
 		try {
 			String orgNameExtension = FilenameUtils.getExtension(file.getOriginalFilename());
-			String Attachmentname = FilenameUtils.removeExtension(response.get("checkListAttachementName").toString()); 
+			String Attachmentname = FilenameUtils.removeExtension(response.get("checkListAttachementName").toString());
+			String iqaNo= response.get("iqaNo").toString().replace("/", "_")+" - "+response.get("scheduleId").toString().replace("/", "_");
+			
+			List<Object[]> checkListUpload = auditCheckListRepository.getCheckListUpload(response.get("scheduleId").toString());
+			if(checkListUpload.size() > 0) {
+				 File fileR = Paths.get(storageDrive,"CheckListUploads",iqaNo,checkListUpload.get(0)[1].toString()).toFile();
+				 if(fileR.delete()) {
+					 auditCheckListRepository.updateUpload(response.get("checkListAttachementName").toString(),username,LocalDateTime.now(),checkListUpload.get(0)[0].toString());
+				 }
+				
+			}else {
 				AuditCheckList checkList = new AuditCheckList();
 				checkList.setScheduleId(Long.parseLong(response.get("scheduleId").toString()));			
 				checkList.setIqaId(Long.parseLong(response.get("iqaId").toString()));			
@@ -1792,8 +1852,8 @@ public class AuditServiceImpl implements AuditService{
 				checkList.setIsActive(1);
 				
 				result = auditCheckListRepository.save(checkList).getAuditCheckListId();
+			}
 				
-				String iqaNo= response.get("iqaNo").toString().replace("/", "_")+" - "+response.get("scheduleId").toString().replace("/", "_");
 				Path filePath = null;
 				filePath = Paths.get(storageDrive,"CheckListUploads",iqaNo);
 				
@@ -1807,6 +1867,57 @@ public class AuditServiceImpl implements AuditService{
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("AuditServiceImpl Inside method uploadCheckListImage()"+ e);
+		}
+		return result;
+	}
+
+
+	@Override
+	public String getCheckListimg(AuditScheduleListDto auditScheduleListDto) throws Exception {
+		String result = null;
+		logger.info(new Date() + " AuditServiceImpl Inside method getCheckListimg()");
+		try {
+			List<Object[]> checkListUpload = auditCheckListRepository.getCheckListUpload(auditScheduleListDto.getScheduleId().toString());
+			if(checkListUpload.size() > 0) {
+				String iqaNo= auditScheduleListDto.getIqaNo().replace("/", "_")+" - "+auditScheduleListDto.getScheduleId();
+	            Path imagePath = Paths.get(storageDrive,"CheckListUploads",iqaNo,checkListUpload.get(0)[1].toString());
+	            byte[] imageBytes = Files.readAllBytes(imagePath);
+	            result = "data:image/jpeg;base64,"+java.util.Base64.getEncoder().encodeToString(imageBytes);
+			}else {
+				result = "";
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method getCheckListimg()"+ e);
+		}
+		return result;
+	}
+
+
+	@Override
+	public Long checkAuditorPresent(String auditorId) throws Exception {
+		Long result = null;
+		logger.info(new Date() + " AuditServiceImpl Inside method checkAuditorPresent()");
+		try {
+			result = teamMemberRepository.countTeamMembersByAuditorId(auditorId);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method checkAuditorPresent()"+ e);
+		}
+		return result;
+	}
+
+
+	@Override
+	public int deleteAuditor(String auditorId) throws Exception {
+		int result = 0;
+		logger.info(new Date() + " AuditServiceImpl Inside method deleteAuditor()");
+		try {
+			auditRepository.deleteById(Long.parseLong(auditorId));
+			result = 1;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method deleteAuditor()"+ e);
 		}
 		return result;
 	}

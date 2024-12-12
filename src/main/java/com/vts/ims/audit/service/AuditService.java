@@ -95,12 +95,22 @@ public interface AuditService {
 
 	public List<AuditObservation> getObservation()throws Exception;
 
-	public long addAuditCheckList(AuditCheckListDTO auditCheckListDTO, String username)throws Exception;
+	public int addAuditCheckList(AuditCheckListDTO auditCheckListDTO, String username)throws Exception;
+	
+	public long addAuditeeRemarks(AuditCheckListDTO auditCheckListDTO, String username)throws Exception;
 	
 	public long updateAuditCheckList(AuditCheckListDTO auditCheckListDTO, String username)throws Exception;
+	
+	public int updateAuditeeRemarks(AuditCheckListDTO auditCheckListDTO, String username)throws Exception;
 
 	public List<CheckListDto> getAuditCheckList(String scheduleId)throws Exception;
 
 	public long uploadCheckListImage(MultipartFile file, Map<String, Object> response, String username)throws Exception;
+
+	public String getCheckListimg(AuditScheduleListDto auditScheduleListDto)throws Exception;
+
+	public Long checkAuditorPresent(String auditorId)throws Exception;
+
+	public int deleteAuditor(String auditorId)throws Exception;
 
 }
