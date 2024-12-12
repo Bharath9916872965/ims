@@ -15,6 +15,12 @@ public interface UserManagerRepo extends JpaRepository<Login, Long> {
 	
     @Query(value = "SELECT l.loginId FROM login l WHERE l.EmpId = :empid LIMIT 1", nativeQuery = true)
     public Long findLoginIdByEmpId(@Param("empid") long empId);
-	
-	
+
+    @Query(value = "SELECT l.LoginId, l.Username, l.Password, l.EmpId, l.DivisionId, l.FormRoleId, l.ImsFormRoleId, l.LoginType, l.IsActive,fr.formrolename " +
+            "FROM login l " +
+            "JOIN ims_form_role fr ON l.imsformroleId = fr.imsformroleId " +
+            "WHERE l.isactive = 1 " +
+            "ORDER BY l.LoginId DESC",
+            nativeQuery = true)
+    public List<Object[]> getUserManagerMasterList();
 }

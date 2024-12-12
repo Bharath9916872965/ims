@@ -28,4 +28,7 @@ public interface FormModuleRepo extends JpaRepository<FormModule, Long> {
             """, nativeQuery = true)
     List<FormModule> findDistinctFormModulesByRoleId(@Param("imsformroleid") Long imsformroleid);
 
+    @Query(value = "SELECT formModuleId , formModuleName FROM ims_form_module  WHERE isActive=1",
+            nativeQuery = true)
+    public List<Object[]> getformModulelist();
 }
