@@ -2,9 +2,12 @@ package com.vts.ims.admin.controller;
 
 import java.net.InetAddress;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
+import com.vts.ims.admin.dto.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +23,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.vts.ims.admin.dto.FormDetailDto;
-import com.vts.ims.admin.dto.FormModuleDto;
 import com.vts.ims.admin.service.AdminService;
 import com.vts.ims.master.dto.EmployeeDto;
 import com.vts.ims.master.dto.LoginDetailsDto;
@@ -32,7 +33,6 @@ import com.vts.ims.login.LoginRepository;
 import jakarta.servlet.http.HttpServletRequest;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.vts.ims.admin.dto.AuditStampingDto;
 
 
 @RestController
@@ -175,10 +175,7 @@ public class AdminController {
 	     return String.valueOf(result);
 	 }
 
-	
-	
-	
-	
+
 	@PostMapping(value="audit-stamping-list",produces="application/json")
 	 public ResponseEntity<List<AuditStampingDto>> AuditStampingList(@RequestBody AuditStampingDto stamping, @RequestHeader  String username)throws Exception{
     	logger.info(new Date() + " Inside audit-stamping-list " );
@@ -193,8 +190,82 @@ public class AdminController {
 
 	 }
 
-	
-	
+
+	@PostMapping(value = "user-manager-list", produces="application/json")
+	public ResponseEntity <List<UserManagerListDto>> UserManagerList(@RequestHeader  String username) throws Exception {
+		logger.info(new Date() + " Inside user-manager-list " );
+
+		List<UserManagerListDto> list=null;
+		try {
+			list=service.UserManagerList(username);
+		} catch (Exception e) {
+			logger.error(new Date() +" error in user-manager-list "+ e.getMessage());
+			e.printStackTrace();
+		}
+		return new ResponseEntity<>(list, HttpStatus.OK);
+	}
+
+
+	@PostMapping(value = "roles-list", produces="application/json")
+	public ResponseEntity<List<FormRoleDto>> RoleList() throws Exception{
+		logger.info(new Date() + " Inside roles-list " );
+		List<FormRoleDto> list= null;
+		try {
+			list=service.roleList();
+		} catch (Exception e) {
+			logger.error(new Date() +" error in roles-list "+ e.getMessage());
+			e.printStackTrace();
+		}
+		return new ResponseEntity<>(list, HttpStatus.OK);
+	}
+
+	@PostMapping(value = "form-modules-list", produces="application/json")
+	public ResponseEntity<List<FormModuleDto>> formModule()throws Exception{
+		logger.info(new Date() + " Inside form-modules-list " );
+		List<FormModuleDto> list = null;
+
+		try {
+			list =  service.getformModulelist();
+		} catch (Exception e) {
+			logger.error(new Date() +"error in form-modules-list "+ e.getMessage());
+			e.printStackTrace();
+		}
+
+		return new ResponseEntity<>(list, HttpStatus.OK);
+	}
+
+
+	@PostMapping(value = "form-role-access-list", produces = "application/json")
+	public ResponseEntity<List<FormroleAccessDto>> formRoleAccessList(@RequestBody Map<String, String> request) throws Exception {
+		logger.info(new Date() + " Inside form-role-access-list");
+		List<FormroleAccessDto> list = null;
+
+		try {
+			String roleId = request.get("roleId");
+			String formModuleId = request.get("formModuleId");
+			list = service.getformRoleAccessList(roleId, formModuleId);
+		} catch (Exception e) {
+			logger.error(new Date() +"error in form-role-access-list "+ e.getMessage());
+			e.printStackTrace();
+		}
+
+		return new ResponseEntity<>(list, HttpStatus.OK);
+	}
+
+	@PostMapping(value="update-form-role-access", produces="application/json")
+	public String updateFormRoleAccess(@RequestBody FormroleAccessDto accessDto, @RequestHeader  String username) throws Exception {
+		logger.info(new Date() + " Inside Update update-form-role-access ");
+		String result=null;
+		try {
+			result = service.updateformroleaccess(accessDto, username);
+			System.out.println("FormroleAccessDto" + Arrays.asList(accessDto));
+			return result;
+		} catch (Exception e) {
+			logger.error(new Date() +"error update-form-role-access "+ e.getMessage());
+			e.printStackTrace();
+			return result;
+		}
+	}
 	
 	
 }

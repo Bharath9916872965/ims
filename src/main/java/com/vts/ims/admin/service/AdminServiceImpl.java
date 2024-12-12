@@ -1,27 +1,21 @@
 package com.vts.ims.admin.service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import com.vts.ims.admin.dto.*;
+import com.vts.ims.admin.entity.FormRoleAccess;
+import com.vts.ims.admin.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.vts.ims.admin.dto.FormDetailDto;
-import com.vts.ims.admin.dto.FormModuleDto;
 import com.vts.ims.admin.entity.FormDetail;
 import com.vts.ims.admin.entity.FormModule;
 import com.vts.ims.admin.entity.ImsFormRole;
-import com.vts.ims.admin.repository.FormDetailRepo;
-import com.vts.ims.admin.repository.FormModuleRepo;
-import com.vts.ims.admin.repository.ImsFormRoleRepo;
 import com.vts.ims.login.Login;
 import com.vts.ims.login.LoginRepository;
 import com.vts.ims.master.dao.MasterClient;
@@ -29,9 +23,6 @@ import com.vts.ims.master.dto.EmployeeDto;
 import com.vts.ims.master.dto.LoginDetailsDto;
 import com.vts.ims.master.service.MasterService;
 import com.vts.ims.model.LoginStamping;
-import com.vts.ims.admin.repository.UserManagerRepo;
-import com.vts.ims.admin.repository.AuditStampingRepo;
-import com.vts.ims.admin.dto.AuditStampingDto;
 
 
 @Service
@@ -56,6 +47,12 @@ public class AdminServiceImpl implements AdminService {
     
 	@Autowired
 	UserManagerRepo userManagerRepo;
+
+	@Autowired
+	ImsFormRoleRepo imsFormRoleRepo;
+
+    @Autowired
+	FormRoleAccessRepo formRoleAccessRepo;
 	
 	
 	@Value("${x_api_key}")
@@ -208,10 +205,8 @@ public class AdminServiceImpl implements AdminService {
 			return result;
 		}
 
-		
-		
-		 
-		@Override
+
+	@Override
 		public List<AuditStampingDto> getAuditStampinglist(AuditStampingDto stamping)throws Exception{
 			
 			 logger.info(new Date() + " AdminServiceImpl Inside method getAuditStampinglist " );
@@ -266,8 +261,198 @@ public class AdminServiceImpl implements AdminService {
 		}
 
 
-		
-	
-	
-	
+	@Override
+	public List<UserManagerListDto> UserManagerList(String username) throws Exception {
+		logger.info(new Date() + " AdminServiceImpl Inside method UserManagerList " );
+
+		try {
+			List<LoginDetailsDto> loginDtoList = masterservice.loginDetailsList(username);
+			// Fetch login details and labCode
+			String labCode = masterservice.loginDetailsList(username).stream()
+					.filter(dto -> dto.getUsername().equals(username))
+					.map(LoginDetailsDto::getLabCode)
+					.findFirst()
+					.orElse(null);
+
+
+			List<EmployeeDto> allActiveEmployees = masterClient.getEmployeeMasterList(xApiKey);
+			List<Object[]> userManagerList = userManagerRepo.getUserManagerMasterList();
+			Map<Long, EmployeeDto> employeeMap = allActiveEmployees.stream()
+					.collect(Collectors.toMap(EmployeeDto::getEmpId, emp -> emp));
+
+
+			if (userManagerList != null && !userManagerList.isEmpty()) {
+				// Filter and map user manager list
+				return userManagerList.stream()
+						.map(resultData -> {
+							Long empId = resultData[3] != null ? Long.parseLong(resultData[3].toString()) : 0L;
+							EmployeeDto employeeDto = employeeMap.get(empId);
+							String empName = employeeDto != null ? employeeDto.getEmpName() : "";
+							String empDesigCode = employeeDto != null ? employeeDto.getEmpDesigName() : "";
+							// Print empDesigCode for debugging purposes
+
+							String empLabCode = employeeDto != null ? employeeDto.getLabCode() : "";
+							String empDivCode = employeeDto != null ? employeeDto.getEmpDivCode() : "";
+
+
+
+							// Build UserManagerListDto
+							UserManagerListDto userManager = UserManagerListDto.builder()
+									.loginId(resultData[0] != null ? Long.parseLong(resultData[0].toString()) : 0L)
+									.username(resultData[1] != null ? resultData[1].toString() : "")
+									.password(resultData[2] != null ? resultData[2].toString() : "")
+									.empId(empId)
+									.divisionId(resultData[4] != null ? Long.parseLong(resultData[4].toString()) : 0L)
+									.imsFormRoleId(resultData[6] != null ? Long.parseLong(resultData[6].toString()) : 0L)
+									.loginType(resultData[7] != null ? resultData[7].toString() : "")
+									.isActive(resultData[8] != null ? Integer.parseInt(resultData[8].toString()) : 0)
+									.formRoleName(resultData[9] != null ? resultData[9].toString() : "")
+									.empName(empName)
+									.empDesig(empDesigCode)
+									.empDivCode(empDivCode)
+									.empLabCode(empLabCode)
+									.build();
+
+							return userManager;
+						})
+						.filter(userManager -> labCode == null || userManager.getEmpLabCode().equals(labCode)) // Filter based on labCode
+						.collect(Collectors.toList());
+			} else {
+				return List.of();
+			}
+
+		} catch (Exception e) {
+			logger.error(new Date() +" error in AdminServiceImpl Inside method UserManagerList "+ e.getMessage());
+			e.printStackTrace();
+			return List.of();
+		}
+
+	}
+
+	@Override
+	public List<FormRoleDto> roleList() {
+		logger.info(new Date() + " AdminServiceImpl Inside method roleList " );
+		List<Object[]> formRolesList = imsFormRoleRepo.getRoleDetails();
+
+		try {
+			if (formRolesList != null && !formRolesList.isEmpty()) {
+				// Map raw data to FormRoleDto
+				return formRolesList.stream()
+						.map((resultData) -> FormRoleDto.builder()
+								.roleId(resultData[0] != null ? Long.parseLong(resultData[0].toString()) : 0L)
+								.roleName(resultData[1] != null ? resultData[1].toString() : "")
+								.build())
+						.collect(Collectors.toList());
+			} else {
+				return List.of();
+			}
+
+		} catch (Exception e) {
+			logger.error(new Date() +" error in AdminServiceImpl Inside method roleList "+ e.getMessage());
+			e.printStackTrace();
+			return List.of();
+		}
+
+	}
+
+	@Override
+	public List<FormModuleDto> getformModulelist() throws Exception {
+		logger.info(new Date() + " AdminServiceImpl Inside method getformModulelist " );
+		List<FormModuleDto> FMlist = new ArrayList<FormModuleDto>();
+		try {
+
+			List<Object[]>  list =formModuleRepo.getformModulelist();
+			if(list!=null) {
+				for(Object[] O:list) {
+					FormModuleDto dto = new FormModuleDto();
+					dto.setFormModuleId(Long.parseLong(O[0].toString()));
+					dto.setFormModuleName(O[1].toString());
+					FMlist.add(dto);
+				}
+			}else {
+				FMlist = null;
+			}
+		} catch (Exception e) {
+			logger.error(new Date() +" error in AdminServiceImpl Inside method getformModulelist "+ e.getMessage());
+			e.printStackTrace();
+		}
+
+		return FMlist;
+	}
+
+	@Override
+	public List<FormroleAccessDto> getformRoleAccessList(String roleId, String formModuleId) {
+		logger.info(new Date() + " AdminServiceImpl Inside method getformModulelist");
+		List<FormroleAccessDto> FRAlist = new ArrayList<FormroleAccessDto>();
+		try {
+
+			List<Object[]> list = formRoleAccessRepo.getformroleAccessList( roleId, formModuleId);
+			for(Object[] O:list) {
+				FormroleAccessDto dto = new FormroleAccessDto();
+				if(O[0]!=null) {
+					dto.setFormRoleAccessId(Long.parseLong(O[0].toString()));
+				}else {
+					dto.setFormRoleAccessId(0L);
+				}
+				dto.setFormDispName(O[3].toString());
+				if(O[1]!=null) {
+					dto.setFormDetailId(Long.parseLong(O[1].toString()));
+				}else {
+					dto.setFormDetailId(0L);
+				}
+				if(O[2]!=null) {
+					dto.setModuleId(Long.parseLong(O[2].toString()));
+				}else {
+					dto.setModuleId(0L);
+				}
+				String value =O[4]+"";
+				if (value.equals("1")) {
+					dto.setIsActive(true);
+				} else {
+					dto.setIsActive(false);
+				}
+
+				FRAlist.add(dto);
+			}
+		} catch (Exception e) {
+			logger.error(new Date() +" error in AdminServiceImpl Inside method getformRoleAccessList "+ e.getMessage());
+			e.printStackTrace();
+		}
+		return FRAlist;
+	}
+
+	@Override
+	public String updateformroleaccess(FormroleAccessDto accessDto, String username) {
+		logger.info(new Date() + " AdminServiceImpl Inside method updateformroleaccess");
+		String updateResult = null;
+		try {
+			long result = formRoleAccessRepo.countByFormRoleIdAndDetailId(String.valueOf(accessDto.getRoleId()),String.valueOf(accessDto.getFormDetailId()));
+			if(result == 0) {
+				FormRoleAccess formrole = new FormRoleAccess();
+				formrole.setImsFormRoleId(accessDto.getRoleId());
+				formrole.setFormDetailId(accessDto.getFormDetailId());
+				formrole.setIsActive(1);
+				formrole.setCreatedBy(username);
+				formrole.setCreatedDate(LocalDateTime.now());
+				formRoleAccessRepo.save(formrole);
+				updateResult = String.valueOf(formrole.getFormRoleAccessId());
+			}else {
+				Optional<FormRoleAccess> formRoleAccess = formRoleAccessRepo.findById(accessDto.getFormRoleAccessId());
+				if(formRoleAccess.isPresent()){
+					FormRoleAccess roleAccess = formRoleAccess.get();
+                    roleAccess.setIsActive(String.valueOf(accessDto.isActive()).equalsIgnoreCase("true") ? 1 : 0);
+					roleAccess.setModifiedBy(username);
+					roleAccess.setModifiedDate(LocalDateTime.now());
+					formRoleAccessRepo.save(roleAccess);
+					updateResult = String.valueOf(roleAccess.getFormRoleAccessId());
+				}
+			}
+		} catch (Exception e) {
+			logger.error(new Date() +" error in AdminServiceImpl Inside method updateformroleaccess "+ e.getMessage());
+			e.printStackTrace();
+		}
+		return updateResult;
+	}
+
+
 }

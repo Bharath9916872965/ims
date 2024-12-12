@@ -26,7 +26,7 @@ public class FormRoleAccess implements Serializable {
 	@Column(name = "FormDetailId")
 	private Long formDetailId ;
 
-	@Column(name = "isActive")
+	@Column(name = "IsActive")
 	private int isActive ;
 
 	@Column(name = "CreatedBy")
