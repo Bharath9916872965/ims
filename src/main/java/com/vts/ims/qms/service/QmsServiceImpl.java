@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.vts.ims.qms.model.*;
+import com.vts.ims.qms.repository.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,28 +36,6 @@ import com.vts.ims.qms.dto.QmsQmDocumentSummaryDto;
 import com.vts.ims.qms.dto.QmsQmMappingDto;
 import com.vts.ims.qms.dto.QmsQmRevisionRecordDto;
 import com.vts.ims.qms.dto.QmsQmSectionsDto;
-import com.vts.ims.qms.model.DwpChapters;
-import com.vts.ims.qms.model.DwpGwpDocumentSummary;
-import com.vts.ims.qms.model.DwpRevisionRecord;
-import com.vts.ims.qms.model.DwpSections;
-import com.vts.ims.qms.model.QmsAbbreviations;
-import com.vts.ims.qms.model.QmsQmChapters;
-import com.vts.ims.qms.model.QmsQmDocumentSummary;
-import com.vts.ims.qms.model.QmsQmMappingOfClasses;
-import com.vts.ims.qms.model.QmsQmRevisionRecord;
-import com.vts.ims.qms.model.QmsQmRevisionTransaction;
-import com.vts.ims.qms.model.QmsQmSections;
-import com.vts.ims.qms.repository.DwpChaptersRepo;
-import com.vts.ims.qms.repository.DwpGwpDocumentSummaryRepo;
-import com.vts.ims.qms.repository.DwpRevisionRecordRepo;
-import com.vts.ims.qms.repository.DwpSectionsRepo;
-import com.vts.ims.qms.repository.QmsAbbreviationsRepo;
-import com.vts.ims.qms.repository.QmsQmChaptersRepo;
-import com.vts.ims.qms.repository.QmsQmDocumentSummaryRepo;
-import com.vts.ims.qms.repository.QmsQmMappingOfClassesRepo;
-import com.vts.ims.qms.repository.QmsQmRevisionRecordRepo;
-import com.vts.ims.qms.repository.QmsQmRevisionTransactionRepo;
-import com.vts.ims.qms.repository.QmsQmSectionsRepo;
 
 @Service
 public class QmsServiceImpl implements QmsService {
@@ -106,7 +86,9 @@ public class QmsServiceImpl implements QmsService {
 	
 	@Autowired
 	private AuditeeRepository auditeeRepository;
-	
+
+	@Autowired
+	DwpSectionsMasterRepo sectionsMasterRepo;
 	
 	@Override
 	public List<QmsQmRevisionRecordDto> getQmVersionRecordDtoList() throws Exception {
@@ -1174,7 +1156,7 @@ public class QmsServiceImpl implements QmsService {
 	    logger.info("Inside getDwpDivisionMaster()");
 	    try {
 
-	        List<Integer> isAllList = Arrays.asList(2, 7);
+	        List<Integer> isAllList = Arrays.asList(1, 2, 3, 4);
 	        List<DivisionMasterDto> divisionDto = masterClient.getDivisionMaster(xApiKey);
 
 	        List<DivisionMasterDto> activeAllDivisionDto = divisionDto.stream()
@@ -1213,7 +1195,7 @@ public class QmsServiceImpl implements QmsService {
 		logger.info("Inside getDwpDivisionGroupList()");
 		try {
 
-			List<Integer> isAllList = Arrays.asList(2, 7);
+			List<Integer> isAllList = Arrays.asList(1, 2, 3, 4);
 
 			List<DivisionGroupDto> divisiongroupdto = masterClient.getDivisionGroupList(xApiKey);
 			List<DivisionGroupDto> activeDivisiongroupdto = divisiongroupdto.stream()
@@ -1286,6 +1268,41 @@ public class QmsServiceImpl implements QmsService {
 			dwpRevisionRecord.setCreatedDate(LocalDateTime.now());
 			dwpRevisionRecord.setCreatedBy(username);
 			dwpRevisionRecord.setIsActive(1);
+
+			List<DwpSectionsMaster> dwpSectionsMaster = sectionsMasterRepo.findAll();
+			if(!dwpSectionsMaster.isEmpty()){
+				 for (DwpSectionsMaster sectionsMaster : dwpSectionsMaster) {
+					 DwpSections master = new DwpSections();
+					 if(qmsIssueDto.getDocType().equalsIgnoreCase("gwp")){
+						 master.setDocType("gwp");
+					 }else{
+						 master.setDocType("dwp");
+					 }
+					 master.setSectionName(sectionsMaster.getSectionName());
+					 master.setGroupDivisionId(qmsIssueDto.getGroupDivisionId());
+					 master.setCreatedDate(LocalDateTime.now());
+					 master.setCreatedBy(username);
+					 master.setIsActive(1);
+					 dwpSectionsRepo.save(master);
+				 }
+			}
+
+			List<DwpSections> dwpSections = dwpSectionsRepo.findAllByGroupDivisionIdAndDocTypeAndIsActive(qmsIssueDto.getGroupDivisionId(),qmsIssueDto.getDocType(),1);
+			if(!dwpSections.isEmpty()){
+				for (DwpSections sections : dwpSections) {
+                    DwpChapters chapters = new DwpChapters();
+					chapters.setSectionId(sections.getSectionId());
+					chapters.setChapterParentId(0);
+					chapters.setChapterName(sections.getSectionName());
+					chapters.setChapterContent("");
+					chapters.setIsLandscape('N');
+					chapters.setIsPagebreakAfter('N');
+					chapters.setCreatedDate(LocalDateTime.now());
+					chapters.setCreatedBy(username);
+					chapters.setIsActive(1);
+					dwpChaptersRepo.save(chapters);
+				}
+			}
 
 //			res = dwpRevisionRecordRepo.save(dwpRevisionRecord).getRevisionRecordId();
 			
