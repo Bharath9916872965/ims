@@ -22,5 +22,8 @@ public interface TeamMemberRepository extends JpaRepository<AuditTeamMembers, Lo
 	
 	@Query(value = "SELECT COUNT(TeamMemberId) FROM ims_audit_team_members WHERE AuditorId = :AuditorId", nativeQuery = true)
 	public Long countTeamMembersByAuditorId(@Param("AuditorId") String auditorId);
+	
+	@Query(value = "SELECT b.IqaNo,d.EmpId FROM ims_audit_schedule a,ims_audit_iqa b,ims_audit_team_members c,ims_audit_auditor d WHERE a.IsActive = 1 AND b.IsActive = 1 AND c.IsActive = 1 AND d.IsActive = 1 AND c.AuditorId = d.AuditorId AND c.TeamId = a.TeamId AND a.ScheduleId = :scheduleId AND a.IqaId = b.IqaId",nativeQuery = true)
+	public List<Object[]> getTeamMembersByScheduleId(@Param("scheduleId") Integer scheduleId);
 
 }

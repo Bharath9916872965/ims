@@ -765,6 +765,38 @@ public class AuditServiceImpl implements AuditService{
 	}
 	
 	@Override
+	public long auditorForward(AuditScheduleListDto auditScheduleListDto, String username) throws Exception {
+	    logger.info( " AuditServiceImpl Inside method auditorForward()");
+	    long result = 0;
+	    try {
+	    	Login login = loginRepo.findByUsername(username);
+			EmployeeDto employeeLogIn = masterClient.getEmployee(xApiKey,login.getEmpId()).get(0);
+		    	AuditSchedule schedule = auditScheduleRepository.findById(auditScheduleListDto.getScheduleId()).get();
+	
+		    	schedule.setScheduleStatus("ARS");
+		    	schedule.setModifiedBy(username);
+		    	schedule.setModifiedDate(LocalDateTime.now());
+		    	result = auditScheduleRepository.save(schedule).getScheduleId();
+		    	
+		    	AuditTransaction trans = new AuditTransaction();
+				trans.setEmpId(login.getEmpId());
+				trans.setScheduleId(result);
+				trans.setTransactionDate(LocalDateTime.now());
+				trans.setRemarks("NA");
+				trans.setAuditStatus("ARS");
+				
+				auditTransactionRepository.save(trans);
+				String NotiMsg = auditScheduleListDto.getIqaNo()+" Of Audit Schedule CheckList Forwarded by "+ employeeLogIn.getEmpName()+", "+employeeLogIn.getEmpDesigName();
+				insertScheduleNomination(auditScheduleListDto.getAuditeeEmpId(),login.getEmpId(),username,"/schedule-approval",NotiMsg);
+	    	
+	    } catch (Exception e) {
+	    	e.printStackTrace();
+	        logger.error("AuditServiceImpl Inside method auditorForward() " + e);
+	    }
+	    return result;
+	}
+	
+	@Override
 	public long approveSchedule(AuditScheduleListDto auditScheduleListDto, String username) throws Exception {
 	    logger.info( " AuditServiceImpl Inside method approveSchedule()");
 	    long result = 0;
@@ -1448,6 +1480,7 @@ public class AuditServiceImpl implements AuditService{
 				    			.loginEmpId(obj[16]!=null?Long.parseLong(obj[16].toString()):0L)
 				    			.leadEmpId(obj[17]!=null?Long.parseLong(obj[17].toString()):0L)
 				    			.auditeeFlag(obj[18]!=null?obj[18].toString():"")
+				    			.fwdFlag(obj[19]!=null?Long.parseLong(obj[19].toString()):0L)
 				    			.auditeeEmpName(employee != null?employee.getEmpName()+", "+employee.getEmpDesigName():"")
 				    			.divisionName(division !=null?division.getDivisionName():"")
 				    			.groupName(group !=null?group.getGroupName():"")
@@ -1707,7 +1740,6 @@ public class AuditServiceImpl implements AuditService{
 //				checkList.setCreatedBy(username);
 //				checkList.setCreatedDate(LocalDateTime.now());
 //				checkList.setIsActive(1);
-				System.out.println("item.getObservation()-------- "+item.getAuditCheckListId());
 				result = auditCheckListRepository.updateAuditorRemarks(item.getObservation(),item.getAuditorRemarks(),username,LocalDateTime.now(),item.getAuditCheckListId());
 			}
 		} catch (Exception e) {
@@ -1735,6 +1767,37 @@ public class AuditServiceImpl implements AuditService{
 				
 				result = auditCheckListRepository.save(checkList).getAuditCheckListId();
 			}
+			int auditeeAdd = auditCheckListRepository.checkAuditeeFinalAdd(auditCheckListDTO.getScheduleId());
+			if(auditeeAdd == 1) {
+	    	    Login login = loginRepo.findByUsername(username);
+			    EmployeeDto employeeLogIn = masterClient.getEmployee(xApiKey,login.getEmpId()).get(0);
+			    
+		    	AuditSchedule schedule = auditScheduleRepository.findById((long)auditCheckListDTO.getScheduleId()).get();
+		    	AuditTransaction trans = new AuditTransaction();
+			    	
+					
+				schedule.setScheduleStatus("AES");
+		    	schedule.setModifiedBy(username);
+		    	schedule.setModifiedDate(LocalDateTime.now());
+		    	result = auditScheduleRepository.save(schedule).getScheduleId();
+		    	
+		    	trans.setAuditStatus("AES");
+				trans.setEmpId(login.getEmpId());
+				trans.setScheduleId(result);
+				trans.setTransactionDate(LocalDateTime.now());
+				trans.setRemarks("NA");
+				
+				auditTransactionRepository.save(trans);
+				
+				List<Object[]> members = teamMemberRepository.getTeamMembersByScheduleId(auditCheckListDTO.getScheduleId());
+				String url= "/schedule-approval";
+				String NotiMsg = members.get(0)[0] +" Of Audit Schedule Submitted by "+ employeeLogIn.getEmpName()+", "+employeeLogIn.getEmpDesigName();
+				
+				for(Object[] obj: members) {
+					result = insertScheduleNomination(Long.parseLong(obj[1].toString()),login.getEmpId(),username,url,NotiMsg);
+				}
+			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("AuditServiceImpl Inside method addAuditeeRemarks()"+ e);
@@ -1809,8 +1872,9 @@ public class AuditServiceImpl implements AuditService{
 					    			.sectionNo(obj[7]!=null?obj[7].toString():"")
 					    			.mocParentId(obj[8]!=null?Long.parseLong(obj[8].toString()):0L)
 					    			.isForCheckList(obj[9]!=null?obj[9].toString():"")
-					    			.mocDescription(obj[10]!=null?obj[10].toString():"")
+					    			.description(obj[10]!=null?obj[10].toString():"")
 					    			.auditeeRemarks(obj[11]!=null?obj[11].toString():"")
+					    			.scheduleStatus(obj[12]!=null?obj[12].toString():"")
 					    			.build();
 					    })
 					    .collect(Collectors.toList());

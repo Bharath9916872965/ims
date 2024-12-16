@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.vts.ims.master.dto.DocTemplateAttributesDto;
 import com.vts.ims.master.dto.LabMasterDto;
+import com.vts.ims.master.dto.UserDetailsDto;
 import com.vts.ims.master.service.MasterService;
 
 
@@ -80,6 +81,17 @@ public class MasterController {
 		
 		return service.getDocTemplateAttributesDto();
 	}
+	
+    @PostMapping(value = "/get-emp-details" , produces = "application/json")
+    public ResponseEntity<UserDetailsDto> GetEmpDetails( @RequestHeader String username)throws Exception {			    	
+    	
+    	UserDetailsDto result=service.GetEmpDetails(username);
+	   	if (result != null) {
+			return new ResponseEntity<>(result, HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+		}
+    }
 
 
 }

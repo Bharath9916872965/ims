@@ -5,6 +5,7 @@ import java.util.List;
 import com.vts.ims.master.dto.DocTemplateAttributesDto;
 import com.vts.ims.master.dto.LabMasterDto;
 import com.vts.ims.master.dto.LoginDetailsDto;
+import com.vts.ims.master.dto.UserDetailsDto;
 
 public interface MasterService {
 
@@ -13,6 +14,6 @@ public interface MasterService {
 	public DocTemplateAttributesDto getDocTemplateAttributesDto() throws Exception;
 	public List<LoginDetailsDto> loginDetailsList(String user) throws Exception;
 	public String getDrdoLogo()throws Exception;
-	
+	public UserDetailsDto GetEmpDetails(String  username)throws Exception;
 	
 }
