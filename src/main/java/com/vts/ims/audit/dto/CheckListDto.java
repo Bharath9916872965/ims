@@ -18,7 +18,8 @@ public class CheckListDto {
     private String sectionNo;
     private Long mocParentId;
     private String isForCheckList;
-    private String mocDescription;
+    private String description;
+    private String scheduleStatus;
 
 }
 

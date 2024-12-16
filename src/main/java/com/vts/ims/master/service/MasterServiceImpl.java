@@ -28,10 +28,9 @@ import com.vts.ims.master.dto.DocTemplateAttributesDto;
 import com.vts.ims.master.dto.EmployeeDto;
 import com.vts.ims.master.dto.LabMasterDto;
 import com.vts.ims.master.dto.LoginDetailsDto;
+import com.vts.ims.master.dto.UserDetailsDto;
 import com.vts.ims.master.entity.DocTemplateAttributes;
 import com.vts.ims.master.repository.DocTemplateAttributesRepo;
-import com.vts.ims.qms.dto.QmsQmChaptersDto;
-import com.vts.ims.qms.model.QmsQmChapters;
 
 
 
@@ -220,6 +219,26 @@ public class MasterServiceImpl implements MasterService {
 		}
 	}
 	
-	
+	@Override
+	public UserDetailsDto GetEmpDetails(String  username)throws Exception
+	{
+	try {
+		 Login login=loginRepo.findByUsername(username);
+		 if(login !=null) {
+			 return UserDetailsDto.builder()
+		 			  .loginId(login.getLoginId())	  
+		 			  .username(login.getUsername())	  
+		 			  .empId(login.getEmpId())	  
+		 			  .divisionId(login.getDivisionId())	  
+		 			  .imsFormRoleId(login.getImsFormRoleId())	  
+		 			  .build();	
+		 }else {
+			 return null;
+		 }
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 	
 }

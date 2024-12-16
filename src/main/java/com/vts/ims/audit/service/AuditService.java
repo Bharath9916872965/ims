@@ -64,6 +64,9 @@ public interface AuditService {
 	public List<AuditScheduleListDto> getScheduleApprovalList(String username)throws Exception;
 
 	public long forwardSchedule(List<Long> auditScheduleIds, String username)throws Exception;
+	
+	public long auditorForward(AuditScheduleListDto auditScheduleListDto, String username)throws Exception;
+	
 	public long approveSchedule(AuditScheduleListDto auditScheduleListDto, String username)throws Exception;
 	public long returnSchedule(AuditScheduleListDto auditScheduleListDto, String username)throws Exception;
 

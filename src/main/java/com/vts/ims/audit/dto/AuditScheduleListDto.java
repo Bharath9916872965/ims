@@ -31,4 +31,5 @@ public class AuditScheduleListDto {
 	private Long leadEmpId;
 	private String message; 
 	private String auditeeFlag; 
+	private Long fwdFlag; 
 }

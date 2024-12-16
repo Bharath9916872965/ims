@@ -264,9 +264,9 @@ public class AuditController {
 			logger.info( " Inside insert-audit-schedule" );
 			 long insertAuditor=auditService.insertAuditSchedule(auditScheduleDto,username);
 			 if(insertAuditor > 0) {
-				 return new ResponseEntity<String>("audit schedule Added Successfully" , HttpStatus.OK);
+				 return new ResponseEntity<String>("Audit schedule Added Successfully" , HttpStatus.OK);
 			 }else {
-				 return new ResponseEntity<String>("audit schedule Added Unsuccessful" , HttpStatus.BAD_REQUEST);
+				 return new ResponseEntity<String>("Audit schedule Added Unsuccessful" , HttpStatus.BAD_REQUEST);
 			 }
 		} catch (Exception e) {
 			 logger.error("error in insert-audit-schedule"+ e.getMessage());
@@ -281,9 +281,9 @@ public class AuditController {
 			logger.info( " Inside edit-audit-schedule" );
 			 long result=auditService.editAuditSchedule(auditScheduleDto,username);
 			 if(result > 0) {
-				 return new ResponseEntity<String>("audit schedule Edited Successfully" , HttpStatus.OK);
+				 return new ResponseEntity<String>("Audit schedule Edited Successfully" , HttpStatus.OK);
 			 }else {
-				 return new ResponseEntity<String>("audit schedule Edited Unsuccessful" , HttpStatus.BAD_REQUEST);
+				 return new ResponseEntity<String>("Audit schedule Edited Unsuccessful" , HttpStatus.BAD_REQUEST);
 			 }
 		} catch (Exception e) {
 			 logger.error("error in edit-audit-schedule"+ e.getMessage());
@@ -298,9 +298,9 @@ public class AuditController {
 			logger.info(" Inside insert-audit-reSchedule" );
 			 long insertAuditor=auditService.insertAuditReSchedule(auditRescheduleDto,username);
 			 if(insertAuditor > 0) {
-				 return new ResponseEntity<String>("audit Rescheduled Successfully" , HttpStatus.OK);
+				 return new ResponseEntity<String>("Audit Rescheduled Successfully" , HttpStatus.OK);
 			 }else {
-				 return new ResponseEntity<String>("audit Rescheduled Unsuccessful" , HttpStatus.BAD_REQUEST);
+				 return new ResponseEntity<String>("Audit Rescheduled Unsuccessful" , HttpStatus.BAD_REQUEST);
 			 }
 		} catch (Exception e) {
 			 logger.error("error in insert-audit-reSchedule"+ e.getMessage());
@@ -341,12 +341,29 @@ public class AuditController {
 			logger.info( " Inside forward-schedule" );
 			 long result=auditService.forwardSchedule(auditScheduleIds,username);
 			 if(result > 0) {
-				 return ResponseEntity.status(HttpStatus.OK).body(new Response("audit Schedule Forwarded Successfully","S"));
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("Audit Schedule Forwarded Successfully","S"));
 			 }else {
-				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("audit Schedule Forwarded Unsuccessful","F"));			 
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("Audit Schedule Forwarded Unsuccessful","F"));			 
 			 }
 		} catch (Exception e) {
 			 logger.error("error in forward-schedule"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
+		}
+	}
+	
+	@PostMapping(value = "/auditor-forward", produces = "application/json")
+	public ResponseEntity<Response> auditorForward(@RequestHeader String username, @RequestBody AuditScheduleListDto auditScheduleListDto) throws Exception {
+		try {
+			logger.info( " Inside auditor-forward" );
+			 long result=auditService.auditorForward(auditScheduleListDto,username);
+			 if(result > 0) {
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("CheckList Forwarded Successfully","S"));
+			 }else {
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("CheckList Forwarded Unsuccessful","F"));			 
+			 }
+		} catch (Exception e) {
+			 logger.error("error in auditor-forward"+ e.getMessage());
 			 e.printStackTrace();
 			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
 		}
@@ -358,7 +375,7 @@ public class AuditController {
 			logger.info(" Inside schedule-mail-send" );
 			 long result=auditService.scheduleMailSend(auditScheduleListDto,username);
 			 if(result > 0) {
-				 return ResponseEntity.status(HttpStatus.OK).body(new Response("audit Schedule Mail Send Successfully","S"));
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("Audit Schedule Mail Send Successfully","S"));
 			 }else {
 				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("audit Schedule Mail Send Unsuccessful","F"));			 
 			 }
@@ -388,9 +405,9 @@ public class AuditController {
 			 logger.info(" Inside reschedule-mail-send" );
 			 long result=auditService.rescheduleMailSend(auditRescheduleDto,username);
 			 if(result > 0) {
-				 return ResponseEntity.status(HttpStatus.OK).body(new Response("audit reschedule Mail Send Successfully","S"));
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("Audit reschedule Mail Send Successfully","S"));
 			 }else {
-				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("audit reschedule Mail Send Unsuccessful","F"));			 
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("Audit reschedule Mail Send Unsuccessful","F"));			 
 			 }
 		} catch (Exception e) {
 			 logger.error("error in reschedule-mail-send"+ e.getMessage());
@@ -491,9 +508,9 @@ public class AuditController {
 			logger.info( " Inside approve-schedule" );
 			 long result=auditService.approveSchedule(auditScheduleListDto,username);
 			 if(result > 0) {
-				 return ResponseEntity.status(HttpStatus.OK).body(new Response("audit Schedule Acknowledged Successfully","S"));
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("Audit Schedule Acknowledged Successfully","S"));
 			 }else {
-				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("audit Schedule Acknowledged Unsuccessful","F"));			 
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("Audit Schedule Acknowledged Unsuccessful","F"));			 
 			 }
 		} catch (Exception e) {
 			 logger.error("error in approve-schedule"+ e.getMessage());
@@ -508,9 +525,9 @@ public class AuditController {
 			logger.info( " Inside return-schedule" );
 			 long result=auditService.returnSchedule(auditScheduleListDto,username);
 			 if(result > 0) {
-				 return ResponseEntity.status(HttpStatus.OK).body(new Response("audit Schedule Returned Successfully","S"));
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("Audit Schedule Returned Successfully","S"));
 			 }else {
-				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("audit Schedule Returned Unsuccessful","F"));			 
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("Audit Schedule Returned Unsuccessful","F"));			 
 			 }
 		} catch (Exception e) {
 			 logger.error("error in return-schedule"+ e.getMessage());
@@ -558,7 +575,6 @@ public class AuditController {
 			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST); 
 		}
 	}
-	
 	
 	@PostMapping(value = "/insert-iqa-auditee", produces = "application/json")
 	public ResponseEntity<String> insertiqaauditee(@RequestHeader String username, @RequestBody IqaAuditeeDto iqaAuditeeDto) throws Exception {
@@ -660,9 +676,9 @@ public class AuditController {
 			logger.info( " Inside update-audit-check-list" );
 			 long result=auditService.updateAuditCheckList(auditCheckListDTO,username);
 			 if(result > 0) {
-				 return ResponseEntity.status(HttpStatus.OK).body(new Response("audit Check List Updated Successfully","S"));
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("Audit Check List Updated Successfully","S"));
 			 }else {
-				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("audit Check List Update Unsuccessful","F"));			 
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("Audit Check List Update Unsuccessful","F"));			 
 			 }
 		} catch (Exception e) {
 			 logger.error("error in update-audit-check-list"+ e.getMessage());
