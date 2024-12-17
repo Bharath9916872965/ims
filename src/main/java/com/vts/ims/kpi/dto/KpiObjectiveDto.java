@@ -12,6 +12,7 @@ public class KpiObjectiveDto {
 	private String metrics; 
 	private String target; 
 	private Long kpiUnitId; 
+	private String revisionRecordId; 
 	private List<RatingDto> ratings; 
 
 }
