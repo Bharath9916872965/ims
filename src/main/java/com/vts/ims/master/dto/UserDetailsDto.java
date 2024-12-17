@@ -11,5 +11,7 @@ public class UserDetailsDto {
 	public Long empId;
 	public Long divisionId;
 	public Long imsFormRoleId;
+	public String roleName;
+	public String labCode;
 
 }

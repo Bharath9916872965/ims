@@ -223,14 +223,17 @@ public class MasterServiceImpl implements MasterService {
 	public UserDetailsDto GetEmpDetails(String  username)throws Exception
 	{
 	try {
-		 Login login=loginRepo.findByUsername(username);
+		 Object[] login = loginRepo.getLoginDetails(username).get(0);
 		 if(login !=null) {
+				EmployeeDto employeeLogIn = masterClient.getEmployee(xApiKey,Long.parseLong(login[2].toString())).get(0);
 			 return UserDetailsDto.builder()
-		 			  .loginId(login.getLoginId())	  
-		 			  .username(login.getUsername())	  
-		 			  .empId(login.getEmpId())	  
-		 			  .divisionId(login.getDivisionId())	  
-		 			  .imsFormRoleId(login.getImsFormRoleId())	  
+		 			  .loginId(Long.parseLong(login[0].toString()))	  
+		 			  .username(login[1].toString())	    
+		 			  .empId(Long.parseLong(login[2].toString()))	  
+		 			  .divisionId(Long.parseLong(login[3].toString()))	  
+		 			  .imsFormRoleId(Long.parseLong(login[4].toString()))	
+		 			  .roleName(login[5].toString())	
+		 			  .labCode(employeeLogIn.getLabCode())	
 		 			  .build();	
 		 }else {
 			 return null;
