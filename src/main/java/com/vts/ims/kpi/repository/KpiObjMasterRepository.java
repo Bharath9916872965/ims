@@ -10,6 +10,8 @@ import com.vts.ims.kpi.modal.ImsKpiObjectiveMaster;
 //@Transactional
 public interface KpiObjMasterRepository extends JpaRepository<ImsKpiObjectiveMaster, Long>{
 	
-	@Query(value="SELECT  a.KpiId, KpiObjectives, a.KpiMerics, a.KpiTarget,a.KpiUnitId,b.KpiUnitName FROM ims_kpi_objective_master a,ims_kpi_unit b WHERE a.IsActive = 1 AND a.KpiUnitId = b.KpiUnitId",nativeQuery = true)
+	@Query(value="SELECT a.KpiId, KpiObjectives, a.KpiMerics, a.KpiTarget,a.KpiUnitId,b.KpiUnitName,a.RevisionRecordId,'0' AS 'GroupDivisionId','LAB' AS 'DocType' FROM ims_kpi_objective_master a,ims_kpi_unit b WHERE a.IsActive = 1 AND a.KpiUnitId = b.KpiUnitId AND a.RevisionRecordId = '0'\r\n"
+			+ "UNION\r\n"
+			+ "SELECT a.KpiId, KpiObjectives, a.KpiMerics, a.KpiTarget,a.KpiUnitId,b.KpiUnitName,a.RevisionRecordId,c.GroupDivisionId,c.DocType FROM ims_kpi_objective_master a,ims_kpi_unit b,ims_qms_dwp_revision_record c WHERE a.IsActive = 1 AND a.KpiUnitId = b.KpiUnitId AND a.RevisionRecordId = c.RevisionRecordId",nativeQuery = true)
 	public List<Object[]> getKpiMasterList();
 }

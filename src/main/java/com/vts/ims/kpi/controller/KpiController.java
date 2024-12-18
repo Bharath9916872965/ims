@@ -20,6 +20,7 @@ import com.vts.ims.kpi.dto.KpiObjectiveDto;
 import com.vts.ims.kpi.dto.KpiTargetRatingrDto;
 import com.vts.ims.kpi.modal.ImsKpiUnit;
 import com.vts.ims.kpi.service.KpiService;
+import com.vts.ims.qms.dto.DwpRevisionRecordDto;
 import com.vts.ims.util.Response;
 
 
@@ -87,7 +88,7 @@ public class KpiController {
 	public ResponseEntity<List<KpiMasterDto>> getKpiMasterList(@RequestHeader String username) throws Exception {
 		try {
 			logger.info(new Date() + " Inside getKpiMasterList" );
-			List<KpiMasterDto> dto = kpiService.getKpiMasterList();
+			List<KpiMasterDto> dto = kpiService.getKpiMasterList(username);
 			return new ResponseEntity<List<KpiMasterDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -105,6 +106,19 @@ public class KpiController {
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("Error fetching getKpiRatingList: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	@PostMapping(value = "/get-dwp-revision-list", produces = "application/json")
+	public ResponseEntity<List<DwpRevisionRecordDto>> getDwpRevisonList(@RequestHeader String username) throws Exception {
+		try {
+			logger.info(new Date() + " Inside getDwpRevisonList" );
+			List<DwpRevisionRecordDto> dto = kpiService.getDwpRevisonList();
+			return new ResponseEntity<List<DwpRevisionRecordDto>>( dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching getDwpRevisonList: ", e);
 			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
 		}
 	}

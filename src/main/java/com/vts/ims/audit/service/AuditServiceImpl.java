@@ -1432,7 +1432,7 @@ public class AuditServiceImpl implements AuditService{
 		logger.info( " AuditServiceImpl Inside method getScheduleApprovalList()");
 		try {
 			Login login = loginRepo.findByUsername(username);
-			List<Object[]> scheduleList = auditScheduleRepository.getScheduleApprovalList(login.getEmpId());
+			List<Object[]> scheduleList = auditScheduleRepository.getScheduleApprovalList(login.getEmpId(),login.getImsFormRoleId());
 			List<EmployeeDto> totalEmployee = masterClient.getEmployeeMasterList(xApiKey);
 			List<DivisionMasterDto> divisionMaster = masterClient.getDivisionMaster(xApiKey);
 			List<ProjectMasterDto> totalProject = masterClient.getProjectMasterList(xApiKey);
@@ -1910,7 +1910,8 @@ public class AuditServiceImpl implements AuditService{
 				checkList.setMocId(Long.parseLong(response.get("mocId").toString()));			
 				checkList.setAttachment(response.get("checkListAttachementName").toString());			
 				checkList.setAuditObsId(0L);
-				checkList.setAuditorRemarks("NA");
+				checkList.setAuditorRemarks("NA"); 
+				checkList.setAuditeeRemarks("NA"); 
 				checkList.setCreatedBy(username);
 				checkList.setCreatedDate(LocalDateTime.now());
 				checkList.setIsActive(1);
