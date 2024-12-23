@@ -11,6 +11,6 @@ public class KpiTargetRatingrDto {
 	private Long kpiId;
 	private Long startValue; 
 	private Long endValue; 
-	private Long KpiRating; 
+	private Long kpiRating; 
 
 }
