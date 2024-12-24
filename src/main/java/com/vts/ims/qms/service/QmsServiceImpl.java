@@ -7,11 +7,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.vts.ims.qms.model.*;
-import com.vts.ims.qms.repository.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,13 +28,44 @@ import com.vts.ims.master.dto.EmployeeDto;
 import com.vts.ims.qms.dto.CheckListMasterDto;
 import com.vts.ims.qms.dto.DwpRevisionRecordDto;
 import com.vts.ims.qms.dto.DwpSectionDto;
+import com.vts.ims.qms.dto.MRMastersDto;
 import com.vts.ims.qms.dto.QmsDocTypeDto;
 import com.vts.ims.qms.dto.QmsIssueDto;
 import com.vts.ims.qms.dto.QmsQmChaptersDto;
 import com.vts.ims.qms.dto.QmsQmDocumentSummaryDto;
 import com.vts.ims.qms.dto.QmsQmMappingDto;
 import com.vts.ims.qms.dto.QmsQmRevisionRecordDto;
+import com.vts.ims.qms.dto.QmsQmRevisionTransactionDto;
 import com.vts.ims.qms.dto.QmsQmSectionsDto;
+import com.vts.ims.qms.model.DwpChapters;
+import com.vts.ims.qms.model.DwpGwpDocumentSummary;
+import com.vts.ims.qms.model.DwpRevisionRecord;
+import com.vts.ims.qms.model.DwpSections;
+import com.vts.ims.qms.model.DwpSectionsMaster;
+import com.vts.ims.qms.model.DwpTransaction;
+import com.vts.ims.qms.model.QmsAbbreviations;
+import com.vts.ims.qms.model.QmsDocStatus;
+import com.vts.ims.qms.model.QmsQmChapters;
+import com.vts.ims.qms.model.QmsQmDocumentSummary;
+import com.vts.ims.qms.model.QmsQmMappingOfClasses;
+import com.vts.ims.qms.model.QmsQmRevisionRecord;
+import com.vts.ims.qms.model.QmsQmRevisionTransaction;
+import com.vts.ims.qms.model.QmsQmSections;
+import com.vts.ims.qms.repository.DwpChaptersRepo;
+import com.vts.ims.qms.repository.DwpGwpDocumentSummaryRepo;
+import com.vts.ims.qms.repository.DwpRevisionRecordRepo;
+import com.vts.ims.qms.repository.DwpRevisionTransactionRepo;
+import com.vts.ims.qms.repository.DwpSectionsMasterRepo;
+import com.vts.ims.qms.repository.DwpSectionsRepo;
+import com.vts.ims.qms.repository.MrMastersRepo;
+import com.vts.ims.qms.repository.QmsAbbreviationsRepo;
+import com.vts.ims.qms.repository.QmsDocStatusRepo;
+import com.vts.ims.qms.repository.QmsQmChaptersRepo;
+import com.vts.ims.qms.repository.QmsQmDocumentSummaryRepo;
+import com.vts.ims.qms.repository.QmsQmMappingOfClassesRepo;
+import com.vts.ims.qms.repository.QmsQmRevisionRecordRepo;
+import com.vts.ims.qms.repository.QmsQmRevisionTransactionRepo;
+import com.vts.ims.qms.repository.QmsQmSectionsRepo;
 
 @Service
 public class QmsServiceImpl implements QmsService {
@@ -90,6 +120,15 @@ public class QmsServiceImpl implements QmsService {
 	@Autowired
 	DwpSectionsMasterRepo sectionsMasterRepo;
 	
+	@Autowired
+	QmsDocStatusRepo qmsdocstatusrepo;
+	
+	@Autowired
+	DwpRevisionTransactionRepo dwpTransactionrepo;
+	
+	@Autowired
+	MrMastersRepo mrMastersrepo;
+	
 	@Override
 	public List<QmsQmRevisionRecordDto> getQmVersionRecordDtoList() throws Exception {
 		logger.info( " Inside getQmVersionRecordDtoList() " );
@@ -98,7 +137,19 @@ public class QmsServiceImpl implements QmsService {
 			
 			List<QmsQmRevisionRecordDto> qmsQmRevisionRecordDtoList = new ArrayList<QmsQmRevisionRecordDto>();
 			List<QmsQmRevisionRecord> qmRevisionRecord = qmsQmRevisionRecordRepo.findAllActiveQmRecords();
+			List<QmsDocStatus> qmsdocStatus=qmsdocstatusrepo.findAll();
+			List<EmployeeDto> employeeList=masterClient.getEmployeeList(xApiKey);
+		    Map<Long, EmployeeDto> employeeMap = employeeList.stream()
+		            .filter(employee -> employee.getEmpId() != null)
+		            .collect(Collectors.toMap(EmployeeDto::getEmpId, employee -> employee));
+		    
+			Map<String, String> statusCodeToStatusMap = qmsdocStatus.stream()
+			        .collect(Collectors.toMap(QmsDocStatus::getStatusCode, QmsDocStatus::getStatus));
+			
 			qmRevisionRecord.forEach(revison -> {
+				EmployeeDto initiatedBy =  employeeMap.get(revison.getInitiatedBy());
+				EmployeeDto reviewed =  employeeMap.get(revison.getReviewedBy());
+				EmployeeDto approved =  employeeMap.get(revison.getApprovedBy());
 				QmsQmRevisionRecordDto qmsQmRevisionRecordDto = QmsQmRevisionRecordDto.builder()
 						.RevisionRecordId(revison.getRevisionRecordId())
 						.DocFileName(revison.getDocFileName())
@@ -109,11 +160,19 @@ public class QmsServiceImpl implements QmsService {
 						.DateOfRevision(revison.getDateOfRevision())
 						.StatusCode(revison.getStatusCode())
 						.AbbreviationIdNotReq(revison.getAbbreviationIdNotReq())
+						.InitiatedBy(revison.getInitiatedBy())
+						.ReviewedBy(revison.getReviewedBy())
+						.ApprovedBy(revison.getApprovedBy())
+						.StatusCodeNext(revison.getStatusCodeNext())
+						.InitiatedByEmployee(initiatedBy != null ? initiatedBy.getEmpName() + ", " + initiatedBy.getEmpDesigName() : null)
+						.ReviewedByEmployee(reviewed != null ? reviewed.getEmpName() + ", " + reviewed.getEmpDesigName() : null)
+						.ApprovedByEmployee(approved != null ? approved.getEmpName() + ", " + approved.getEmpDesigName() : null)
 						.CreatedBy(revison.getCreatedBy())
 						.CreatedDate(revison.getCreatedDate())
 						.ModifiedBy(revison.getModifiedBy())
 						.ModifiedDate(revison.getModifiedDate())
 						.IsActive(revison.getIsActive())
+						.Status(statusCodeToStatusMap.getOrDefault(revison.getStatusCode(), "Unknown Status"))
 						.build();
 				
 				qmsQmRevisionRecordDtoList.add(qmsQmRevisionRecordDto);
@@ -349,15 +408,17 @@ public class QmsServiceImpl implements QmsService {
 	@Override
 	public Long addNewQmRevision(QmsQmRevisionRecordDto qmsQmRevisionRecordDto, String username) throws Exception {
 		logger.info( " Inside addNewQmRevision() ");
+		long res = 0;
+		System.out.println("qmsQmRevisionRecordDto"+qmsQmRevisionRecordDto);
 		try {
-			long res = 0;
-			
 			QmsQmRevisionRecord qmsQmRevisionRecord = new QmsQmRevisionRecord();
 			
 			qmsQmRevisionRecord.setDescription(qmsQmRevisionRecordDto.getDescription());
 			qmsQmRevisionRecord.setIssueNo(qmsQmRevisionRecordDto.getIssueNo());
 			qmsQmRevisionRecord.setRevisionNo(qmsQmRevisionRecordDto.getRevisionNo());
 			qmsQmRevisionRecord.setStatusCode("INI");
+			qmsQmRevisionRecord.setStatusCodeNext("INI");
+			qmsQmRevisionRecord.setAbbreviationIdNotReq(qmsQmRevisionRecordDto.getAbbreviationIdNotReq());
 			qmsQmRevisionRecord.setDateOfRevision(LocalDate.now());
 			qmsQmRevisionRecord.setCreatedDate(LocalDateTime.now());
 			qmsQmRevisionRecord.setCreatedBy(username);
@@ -365,19 +426,19 @@ public class QmsServiceImpl implements QmsService {
 			
 			res = qmsQmRevisionRecordRepo.save(qmsQmRevisionRecord).getRevisionRecordId();
 			
-			QmsQmRevisionTransaction trans = new QmsQmRevisionTransaction();
-//			trans.setEmpId(login.getEmpId());
-			trans.setRevisionRecordId(qmsQmRevisionRecord.getRevisionRecordId());
-			trans.setStatusCode(qmsQmRevisionRecord.getStatusCode());
-			trans.setTransactionDate(LocalDateTime.now());
-			trans.setRemarks(null);
-			qmsQmRevisionTransactionRepo.save(trans);
+//			QmsQmRevisionTransaction trans = new QmsQmRevisionTransaction();
+//			trans.setEmpId(qmsQmRevisionRecordDto.getEmpId());
+//			trans.setRevisionRecordId(qmsQmRevisionRecord.getRevisionRecordId());
+//			trans.setStatusCode(qmsQmRevisionRecord.getStatusCode());
+//			trans.setTransactionDate(LocalDateTime.now());
+//			trans.setRemarks(null);
+//			qmsQmRevisionTransactionRepo.save(trans);
 			
 			return res;
 		} catch (Exception e) {
 			logger.error(  " Inside addNewQmRevision() "+ e );
 			e.printStackTrace();
-			return 0l;
+			return res;
 		}
 	}
 	
@@ -673,11 +734,21 @@ public class QmsServiceImpl implements QmsService {
 			List<DivisionMasterDto> divisionDtoList = masterClient.getDivisionMaster(xApiKey);
 			List<DivisionGroupDto> divisiongroupDtoList = masterClient.getDivisionGroupList(xApiKey);
 			
+			List<QmsDocStatus> qmsdocStatus=qmsdocstatusrepo.findAll();
+			List<EmployeeDto> employeeList=masterClient.getEmployeeList(xApiKey);
+		    Map<Long, EmployeeDto> employeeMap = employeeList.stream()
+		            .filter(employee -> employee.getEmpId() != null)
+		            .collect(Collectors.toMap(EmployeeDto::getEmpId, employee -> employee));
+		    
+			Map<String, String> statusCodeToStatusMap = qmsdocStatus.stream()
+			        .collect(Collectors.toMap(QmsDocStatus::getStatusCode, QmsDocStatus::getStatus));
 			
 			List<DwpRevisionRecordDto> revisionRecordDtoList = new ArrayList<DwpRevisionRecordDto>();
 			List<DwpRevisionRecord> revisionRecord = dwpRevisionRecordRepo.findAllActiveDwpRecordsByDocType(qmsDocTypeDto.getDocType(), qmsDocTypeDto.getGroupDivisionId());
 			revisionRecord.forEach(revison -> {
-				
+				EmployeeDto initiatedBy =  employeeMap.get(revison.getInitiatedBy());
+				EmployeeDto reviewed =  employeeMap.get(revison.getReviewedBy());
+				EmployeeDto approved =  employeeMap.get(revison.getApprovedBy());
 				DivisionMasterDto divisionDto = null;
 				DivisionGroupDto divisiongroupDto = null;
 				
@@ -697,6 +768,7 @@ public class QmsServiceImpl implements QmsService {
 				}
 				
 				DwpRevisionRecordDto qmsQmRevisionRecordDto = DwpRevisionRecordDto.builder()
+						
 						.RevisionRecordId(revison.getRevisionRecordId())
 						.DocType(revison.getDocType())
 						.GroupDivisionId(revison.getGroupDivisionId())
@@ -710,11 +782,19 @@ public class QmsServiceImpl implements QmsService {
 						.DateOfRevision(revison.getDateOfRevision())
 						.StatusCode(revison.getStatusCode())
 						.AbbreviationIdNotReq(revison.getAbbreviationIdNotReq())
+						.InitiatedBy(revison.getInitiatedBy())
+						.ReviewedBy(revison.getReviewedBy())
+						.ApprovedBy(revison.getApprovedBy())
+						.StatusCodeNext(revison.getStatusCodeNext())
+						.InitiatedByEmployee(initiatedBy != null ? initiatedBy.getEmpName() + ", " + initiatedBy.getEmpDesigName() : null)
+						.ReviewedByEmployee(reviewed != null ? reviewed.getEmpName() + ", " + reviewed.getEmpDesigName() : null)
+						.ApprovedByEmployee(approved != null ? approved.getEmpName() + ", " + approved.getEmpDesigName() : null)
 						.CreatedBy(revison.getCreatedBy())
 						.CreatedDate(revison.getCreatedDate())
 						.ModifiedBy(revison.getModifiedBy())
 						.ModifiedDate(revison.getModifiedDate())
 						.IsActive(revison.getIsActive())
+						.Status(statusCodeToStatusMap.getOrDefault(revison.getStatusCode(), "Unknown Status"))
 						.build();
 				
 				revisionRecordDtoList.add(qmsQmRevisionRecordDto);
@@ -1316,6 +1396,266 @@ public class QmsServiceImpl implements QmsService {
 		
 	}
 
+	@Override
+	public Integer forwardQm(QmsQmRevisionRecordDto qmsqmrevisionDto, String username) throws Exception {
+		logger.info("Inside forwardQm() ");
+		try {
+			Integer result=0;
+			long res=0;
+			if(qmsqmrevisionDto!=null) {
+				Long revisionRecordId = qmsqmrevisionDto.getRevisionRecordId();
+				QmsQmRevisionRecord qmsqmrevision = qmsQmRevisionRecordRepo.findByRevisionRecordId(revisionRecordId);
+				List<String> forwardstatus = Arrays.asList("INI","RTM","RTD","RVM");
+				List<String> reforwardstatus = Arrays.asList("RTM","RTD");
+				String RevisionStatusCode = qmsqmrevision.getStatusCode();
+				String RevisionStatusCodeNext = qmsqmrevision.getStatusCodeNext();
+				String Action = qmsqmrevisionDto.getAction();
+				if(Action.equalsIgnoreCase("A")) {
+					if(forwardstatus.contains(RevisionStatusCode)) {
+						if(RevisionStatusCode.equalsIgnoreCase("INI") || RevisionStatusCode.equalsIgnoreCase("RVM") ) {
+							qmsqmrevision.setInitiatedBy(qmsqmrevisionDto.getInitiatedBy());
+							qmsqmrevision.setReviewedBy(qmsqmrevisionDto.getReviewedBy());
+							qmsqmrevision.setApprovedBy(qmsqmrevisionDto.getApprovedBy());
+							qmsqmrevision.setStatusCode("FWD");
+							if(qmsqmrevision.getReviewedBy()!=null) {
+								qmsqmrevision.setStatusCodeNext("RWD");
+							}
+						}
+						if(reforwardstatus.contains(RevisionStatusCode)) {
+							qmsqmrevision.setStatusCode("RFD");
+							if(qmsqmrevision.getReviewedBy()!=null) {
+								qmsqmrevision.setStatusCodeNext("RWD");
+							}
+						}
+			}else {
+				qmsqmrevision.setStatusCode(RevisionStatusCodeNext);
+				if(RevisionStatusCodeNext.equalsIgnoreCase("RWD")) {
+					if(qmsqmrevision.getApprovedBy()!=null) {
+						qmsqmrevision.setStatusCodeNext("APD");
+					}
+
+				}
+				}
+					res=qmsQmRevisionRecordRepo.save(qmsqmrevision).getRevisionRecordId();
+			}else if(Action.equalsIgnoreCase("R")){
+				if(RevisionStatusCodeNext.equalsIgnoreCase("RWD")) 
+				{
+					qmsqmrevision.setStatusCode("RTM");	
+				}
+				else if(RevisionStatusCodeNext.equalsIgnoreCase("APD")) 
+				{
+					qmsqmrevision.setStatusCode("RTD");	
+				}
+				res=qmsQmRevisionRecordRepo.save(qmsqmrevision).getRevisionRecordId();
+			}
+				QmsQmRevisionTransaction trans = new QmsQmRevisionTransaction();
+				trans.setEmpId(qmsqmrevisionDto.getEmpId());
+				trans.setRevisionRecordId(res);
+				trans.setStatusCode(qmsqmrevision.getStatusCode());
+				trans.setTransactionDate(LocalDateTime.now());
+				trans.setRemarks(qmsqmrevisionDto.getRemarks()!=null && !qmsqmrevisionDto.getRemarks().equalsIgnoreCase("") ? qmsqmrevisionDto.getRemarks():"");
+				qmsQmRevisionTransactionRepo.save(trans);
+			}
+			System.out.println("res"+res);
+			if(res>0) {
+				result=1;
+			}
+			System.out.println("resultService"+result);
+			return result;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error in forwardQm() ", e);
+			return null;
+		}
+	}
+	
+	
+	@Override
+	public long revokeQmRevision(QmsQmRevisionRecordDto qmsqmrevisionDto, String username) {
+		logger.info("Inside revokeQmRevision() ");
+		long res=0;
+		try {
+			if(qmsqmrevisionDto!=null) {
+			Long revisionRecordId = qmsqmrevisionDto.getRevisionRecordId();
+			QmsQmRevisionRecord qmsqmrevision = qmsQmRevisionRecordRepo.findByRevisionRecordId(revisionRecordId);
+			qmsqmrevision.setStatusCode("RVM");
+			qmsqmrevision.setStatusCodeNext("RFD");
+			res=qmsQmRevisionRecordRepo.save(qmsqmrevision).getRevisionRecordId();
+			}
+			QmsQmRevisionTransaction trans = new QmsQmRevisionTransaction();
+			trans.setEmpId(qmsqmrevisionDto.getEmpId());
+			trans.setRevisionRecordId(res);
+			trans.setStatusCode("RVM");
+			trans.setTransactionDate(LocalDateTime.now());
+			trans.setRemarks(qmsqmrevisionDto.getRemarks()!=null && !qmsqmrevisionDto.getRemarks().equalsIgnoreCase("") ? qmsqmrevisionDto.getRemarks():"");
+			qmsQmRevisionTransactionRepo.save(trans);
+			return res;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error in revokeQmRevision() ", e);
+			return res;
+		}
+	}
+	
+	
+	@Override
+	public List<QmsQmRevisionTransactionDto> revisionTran(String revisionRecordId) throws Exception {
+		logger.info( " AuditServiceImpl Inside method revisionTran()");
+		try {
+			List<Object[]> tranList = qmsQmRevisionRecordRepo.getRevisionTran(revisionRecordId);
+			List<EmployeeDto> totalEmployee = masterClient.getEmployeeMasterList(xApiKey);
+
+			
+		    Map<Long, EmployeeDto> employeeMap = totalEmployee.stream()
+		            .filter(employee -> employee.getEmpId() != null)
+		            .collect(Collectors.toMap(EmployeeDto::getEmpId, employee -> employee));
+		    
+			 List<QmsQmRevisionTransactionDto> revisionTranDtoList = Optional.ofNullable(tranList).orElse(Collections.emptyList()).stream()
+				    .map(obj -> {
+					    EmployeeDto employee =	obj[0] != null?employeeMap.get(Long.parseLong(obj[0].toString())):null;
+
+					    	return QmsQmRevisionTransactionDto.builder()
+				    			.empId(obj[0]!=null?Long.parseLong(obj[0].toString()):0L)
+				    			.statusCode(obj[1]!=null?obj[1].toString():"")
+				    			.transactionDate(obj[2]!=null?obj[2].toString():"")
+				    			.remarks(obj[3]!=null?obj[3].toString():"")
+				    			.status(obj[4]!=null?obj[4].toString():"")
+				    			.empName(employee != null?employee.getEmpName()+", "+employee.getEmpDesigName():"")
+				    			.build();
+				    })
+				    .collect(Collectors.toList());
+			return revisionTranDtoList;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method revisionTran()"+ e);
+			 return Collections.emptyList();
+		}
+	}
+	
+	@Override
+	public Integer forwardDwpGwp(DwpRevisionRecordDto dwprevisionDto, String username) throws Exception {
+		logger.info("Inside forwardDwpGwp() ");
+		try {
+			Integer result=0;
+			long res=0;
+			if(dwprevisionDto!=null) {
+				Long revisionRecordId = dwprevisionDto.getRevisionRecordId();
+				DwpRevisionRecord dwpqmrevision = dwpRevisionRecordRepo.findByRevisionRecordId(revisionRecordId);
+				List<String> forwardstatus = Arrays.asList("INI","RTM","RTG","RVD");
+				List<String> reforwardstatus = Arrays.asList("RTM","RTG");
+				String RevisionStatusCode = dwpqmrevision.getStatusCode();
+				String RevisionStatusCodeNext = dwpqmrevision.getStatusCodeNext();
+				String Action = dwprevisionDto.getAction();
+				if(Action.equalsIgnoreCase("A")) {
+					if(forwardstatus.contains(RevisionStatusCode)) {
+						if(RevisionStatusCode.equalsIgnoreCase("INI") || RevisionStatusCode.equalsIgnoreCase("RVD") ) {
+							dwpqmrevision.setInitiatedBy(dwprevisionDto.getInitiatedBy());
+							dwpqmrevision.setReviewedBy(dwprevisionDto.getReviewedBy());
+							dwpqmrevision.setApprovedBy(dwprevisionDto.getApprovedBy());
+							dwpqmrevision.setStatusCode("FWD");
+							if(dwpqmrevision.getReviewedBy()!=null) {
+								dwpqmrevision.setStatusCodeNext("RWD");
+							}
+						}
+						if(reforwardstatus.contains(RevisionStatusCode)) {
+							dwpqmrevision.setStatusCode("RFD");
+							if(dwpqmrevision.getReviewedBy()!=null) {
+								dwpqmrevision.setStatusCodeNext("RWD");
+							}
+						}
+			}else {
+				dwpqmrevision.setStatusCode(RevisionStatusCodeNext);
+				if(RevisionStatusCodeNext.equalsIgnoreCase("RWD")) {
+					if(dwpqmrevision.getApprovedBy()!=null) {
+						dwpqmrevision.setStatusCodeNext("APG");
+					}
+
+				}
+				}
+					res=dwpRevisionRecordRepo.save(dwpqmrevision).getRevisionRecordId();
+			}else if(Action.equalsIgnoreCase("R")){
+				if(RevisionStatusCodeNext.equalsIgnoreCase("RWD")) 
+				{
+					dwpqmrevision.setStatusCode("RTM");	
+				}
+				else if(RevisionStatusCodeNext.equalsIgnoreCase("APG")) 
+				{
+					dwpqmrevision.setStatusCode("RTG");	
+				}
+				res=dwpRevisionRecordRepo.save(dwpqmrevision).getRevisionRecordId();
+			}
+				DwpTransaction trans = new DwpTransaction();
+				trans.setEmpId(dwprevisionDto.getEmpId());
+				trans.setRevisionRecordId(res);
+				trans.setStatusCode(dwpqmrevision.getStatusCode());
+				trans.setTransactionDate(LocalDateTime.now());
+				trans.setRemarks(dwprevisionDto.getRemarks()!=null && !dwprevisionDto.getRemarks().equalsIgnoreCase("") ? dwprevisionDto.getRemarks():"");
+				dwpTransactionrepo.save(trans);
+			}
+			if(res>0) {
+				result=1;
+			}
+			return result;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error in forwardDwpGwp() ", e);
+			return null;
+		}
+	}
+	
+	@Override
+	public List<MRMastersDto> getMrRepList() throws Exception {
+		logger.info("Inside getMrRepList() ");
+		try {
+			List<MRMastersDto> mrMastersDtoList = new ArrayList<>();
+			List<Object[]> getMRrepList=mrMastersrepo.getMRrepList("MR Rep",LocalDate.now());
+			
+			getMRrepList.forEach(mrRepList -> {
+				MRMastersDto dto = new MRMastersDto();
+				dto.setEmpId(Long.parseLong(mrRepList[0].toString()));
+				dto.setMRType(mrRepList[1].toString());
+				if (mrRepList[2] != null) {
+	                dto.setMRFrom(LocalDate.parse(mrRepList[2].toString()));
+	            }
+	            if (mrRepList[3] != null) {
+	                dto.setMRTo(LocalDate.parse(mrRepList[3].toString()));
+	            }
+	            mrMastersDtoList.add(dto);
+			});
+			return mrMastersDtoList;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error in getMrRepList() ", e);
+			return null;  
+		}
+	}
+	
+	@Override
+	public List<MRMastersDto> getMrList() throws Exception {
+		logger.info("Inside getMrList() ");
+		try {
+			List<MRMastersDto> mrMastersDtoList = new ArrayList<>();
+			List<Object[]> getMRList=mrMastersrepo.getMRrepList("MR",LocalDate.now());
+			
+			getMRList.forEach(mrRepList -> {
+				MRMastersDto dto = new MRMastersDto();
+				dto.setEmpId(Long.parseLong(mrRepList[0].toString()));
+				dto.setMRType(mrRepList[1].toString());
+				if (mrRepList[2] != null) {
+	                dto.setMRFrom(LocalDate.parse(mrRepList[2].toString()));
+	            }
+	            if (mrRepList[3] != null) {
+	                dto.setMRTo(LocalDate.parse(mrRepList[3].toString()));
+	            }
+	            mrMastersDtoList.add(dto);
+			});
+			return mrMastersDtoList;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error in getMrList() ", e);
+			return null;  
+		}
+	}
 //	@Override
 //	public List<DwpRevisionRecordDto> getDwpVersionRecordDtoList(Long divisionId) throws Exception {
 //		// TODO Auto-generated method stub
