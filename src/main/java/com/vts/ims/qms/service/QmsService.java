@@ -10,12 +10,14 @@ import com.vts.ims.master.dto.DivisionMasterDto;
 import com.vts.ims.qms.dto.CheckListMasterDto;
 import com.vts.ims.qms.dto.DwpRevisionRecordDto;
 import com.vts.ims.qms.dto.DwpSectionDto;
+import com.vts.ims.qms.dto.MRMastersDto;
 import com.vts.ims.qms.dto.QmsDocTypeDto;
 import com.vts.ims.qms.dto.QmsIssueDto;
 import com.vts.ims.qms.dto.QmsQmChaptersDto;
 import com.vts.ims.qms.dto.QmsQmDocumentSummaryDto;
 import com.vts.ims.qms.dto.QmsQmMappingDto;
 import com.vts.ims.qms.dto.QmsQmRevisionRecordDto;
+import com.vts.ims.qms.dto.QmsQmRevisionTransactionDto;
 import com.vts.ims.qms.dto.QmsQmSectionsDto;
 import com.vts.ims.qms.model.DwpChapters;
 import com.vts.ims.qms.model.DwpGwpDocumentSummary;
@@ -79,6 +81,12 @@ public interface QmsService {
 	public List<DivisionMasterDto> getDwpDivisionMaster(Integer imsFormRoleId, Long empId) throws Exception;
 	public List<DivisionGroupDto> getDwpDivisionGroupList(Integer imsFormRoleId, Long empId) throws Exception;
 	public DwpRevisionRecord addNewDwpRevisionRecord(QmsIssueDto qmsIssueDto, String username) throws Exception;
+	public Integer forwardQm(QmsQmRevisionRecordDto qmsqmrevisionDto, String username) throws Exception;
+	public long revokeQmRevision(QmsQmRevisionRecordDto qmsqmrevisionDto, String username);
+	public List<QmsQmRevisionTransactionDto> revisionTran(String revisionRecordId) throws Exception;
+	public Integer forwardDwpGwp(DwpRevisionRecordDto dwprevisionDto, String username) throws Exception;
+	public List<MRMastersDto> getMrRepList() throws Exception;
+	public List<MRMastersDto> getMrList() throws Exception;
 	
 	
 }
