@@ -32,12 +32,14 @@ import com.vts.ims.master.dto.DivisionMasterDto;
 import com.vts.ims.qms.dto.CheckListMasterDto;
 import com.vts.ims.qms.dto.DwpRevisionRecordDto;
 import com.vts.ims.qms.dto.DwpSectionDto;
+import com.vts.ims.qms.dto.MRMastersDto;
 import com.vts.ims.qms.dto.QmsDocTypeDto;
 import com.vts.ims.qms.dto.QmsIssueDto;
 import com.vts.ims.qms.dto.QmsQmChaptersDto;
 import com.vts.ims.qms.dto.QmsQmDocumentSummaryDto;
 import com.vts.ims.qms.dto.QmsQmMappingDto;
 import com.vts.ims.qms.dto.QmsQmRevisionRecordDto;
+import com.vts.ims.qms.dto.QmsQmRevisionTransactionDto;
 import com.vts.ims.qms.dto.QmsQmSectionsDto;
 import com.vts.ims.qms.model.DwpChapters;
 import com.vts.ims.qms.model.DwpGwpDocumentSummary;
@@ -479,4 +481,83 @@ public class QmsController {
 		}
 	}
 
+	
+	@PostMapping(value = "/forward-qm", produces = "application/json")	
+	public ResponseEntity<String> forwardQm(@RequestHeader String username, @RequestBody QmsQmRevisionRecordDto qmsqmrevisionDto) throws Exception {
+		try {
+			logger.info("forwardQm");
+			Integer result=service.forwardQm(qmsqmrevisionDto,username);
+			 if(result > 0) {
+				 return new ResponseEntity<String>("200" , HttpStatus.OK);
+			 }else {
+				 return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
+			 }
+		} catch (Exception e) {
+			 logger.error("forwardQm"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+		}
+	}
+	
+	@PostMapping(value = "/revoke-qm-revision", produces = "application/json")	
+	public ResponseEntity<String> revokeQmRevision(@RequestHeader String username, @RequestBody QmsQmRevisionRecordDto qmsqmrevisionDto) throws Exception {
+		try {
+			logger.info("revoke-qm-revision");
+			Long result=service.revokeQmRevision(qmsqmrevisionDto,username);
+			 if(result > 0) {
+				 return new ResponseEntity<String>("200" , HttpStatus.OK);
+			 }else {
+				 return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
+			 }
+		} catch (Exception e) {
+			 logger.error("revoke-qm-revision"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+		}
+	}
+	
+	
+	@PostMapping(value = "/revision-tran", produces = "application/json")
+	public ResponseEntity<List<QmsQmRevisionTransactionDto>> revisionTran(@RequestHeader String username,@RequestBody String revisionRecordId) throws Exception {
+		try {
+			logger.info(" Inside revisionTran"+username );
+			List<QmsQmRevisionTransactionDto> dto=service.revisionTran(revisionRecordId);
+			return new ResponseEntity<List<QmsQmRevisionTransactionDto>>(dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching revisionTran: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	
+	@PostMapping(value = "/forward-dwp-gwp", produces = "application/json")	
+	public ResponseEntity<String> forwardDwpGwp(@RequestHeader String username, @RequestBody DwpRevisionRecordDto dwprevisionDto) throws Exception {
+		try {
+			logger.info("forwardDwpGwp");
+			Integer result=service.forwardDwpGwp(dwprevisionDto,username);
+			 if(result > 0) {
+				 return new ResponseEntity<String>("200" , HttpStatus.OK);
+			 }else {
+				 return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
+			 }
+		} catch (Exception e) {
+			 logger.error("forwardDwpGwp"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+		}
+	}
+	
+	
+	@PostMapping(value = "/get-mr-rep-list", produces = "application/json")
+	public List<MRMastersDto> getMrRepList(@RequestHeader  String username) throws Exception {
+		logger.info(" Inside get-mr-rep-list" + username);
+		return service.getMrRepList();
+	}
+	
+	@PostMapping(value = "/get-mr-list", produces = "application/json")
+	public List<MRMastersDto> getMrList(@RequestHeader  String username) throws Exception {
+		logger.info(" Inside get-mr--list" + username);
+		return service.getMrList();
+	}
 }
