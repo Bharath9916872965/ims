@@ -360,7 +360,7 @@ public class AuditController {
 			 if(result > 0) {
 				 return ResponseEntity.status(HttpStatus.OK).body(new Response("CheckList Forwarded Successfully","S"));
 			 }else {
-				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("CheckList Forwarded Unsuccessful","F"));			 
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("CheckList Forward Unsuccessful","F"));			 
 			 }
 		} catch (Exception e) {
 			 logger.error("error in auditor-forward"+ e.getMessage());
@@ -527,7 +527,7 @@ public class AuditController {
 			 if(result > 0) {
 				 return ResponseEntity.status(HttpStatus.OK).body(new Response("Audit Schedule Returned Successfully","S"));
 			 }else {
-				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("Audit Schedule Returned Unsuccessful","F"));			 
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("Audit Schedule Return Unsuccessful","F"));			 
 			 }
 		} catch (Exception e) {
 			 logger.error("error in return-schedule"+ e.getMessage());

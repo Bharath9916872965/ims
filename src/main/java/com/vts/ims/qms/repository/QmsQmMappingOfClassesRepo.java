@@ -17,9 +17,7 @@ public interface QmsQmMappingOfClassesRepo extends JpaRepository<QmsQmMappingOfC
 
 	void deleteByRevisionRecordId(Long revisionRecordId);
 	
-	@Query(value = "SELECT t1.SectionNo, t1.ClauseNo, t1.Description " +
-            "FROM ims_qms_qm_mapping_classes t1 " +
-            "WHERE t1.revisionRecordId = :revisionRecordId", nativeQuery = true)
+	@Query(value = "SELECT t1.SectionNo, t1.ClauseNo, t1.MocDescription FROM ims_qms_qm_mapping_classes t1 WHERE t1.revisionRecordId = :revisionRecordId AND MocParentId = 0", nativeQuery = true)
 	List<Object[]> findAllByRevisionRecordId(@Param("revisionRecordId") Long revisionRecordId);
 	
 	@Modifying
