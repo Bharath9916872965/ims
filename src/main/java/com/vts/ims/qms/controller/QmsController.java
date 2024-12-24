@@ -7,6 +7,8 @@ import java.nio.file.Path;
 import java.util.Date;
 import java.util.List;
 
+import com.vts.ims.qms.dto.*;
+import com.vts.ims.qms.model.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,23 +31,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.vts.ims.master.dto.DivisionGroupDto;
 import com.vts.ims.master.dto.DivisionMasterDto;
-import com.vts.ims.qms.dto.CheckListMasterDto;
-import com.vts.ims.qms.dto.DwpRevisionRecordDto;
-import com.vts.ims.qms.dto.DwpSectionDto;
-import com.vts.ims.qms.dto.QmsDocTypeDto;
-import com.vts.ims.qms.dto.QmsIssueDto;
-import com.vts.ims.qms.dto.QmsQmChaptersDto;
-import com.vts.ims.qms.dto.QmsQmDocumentSummaryDto;
-import com.vts.ims.qms.dto.QmsQmMappingDto;
-import com.vts.ims.qms.dto.QmsQmRevisionRecordDto;
-import com.vts.ims.qms.dto.QmsQmSectionsDto;
-import com.vts.ims.qms.model.DwpChapters;
-import com.vts.ims.qms.model.DwpGwpDocumentSummary;
-import com.vts.ims.qms.model.DwpRevisionRecord;
-import com.vts.ims.qms.model.DwpSections;
-import com.vts.ims.qms.model.QmsAbbreviations;
-import com.vts.ims.qms.model.QmsQmDocumentSummary;
-import com.vts.ims.qms.model.QmsQmRevisionRecord;
 import com.vts.ims.qms.service.QmsService;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -477,6 +462,84 @@ public class QmsController {
 		} else {
 			return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
 		}
+	}
+
+	@PostMapping(value = "/get-qsp-version-record-list", produces = "application/json")
+	public List<QmsQspRevisionRecordDto> getQspVersionRecordDtoList(@RequestHeader  String username) throws Exception {
+		logger.info(" Inside get-qsp-version-record-list " + username);
+		return service.getQspVersionRecordDtoList();
+	}
+
+	@PostMapping(value = "/get-all-qsp-chapters", produces = "application/json")
+	public List<QmsQspChapters> getAllQsppChapters(@RequestBody QmsDocTypeDto qmsDocTypeDto, @RequestHeader String username) throws Exception {
+		logger.info(" Inside get-all-qsp-chapters " + username);
+		return service.getAllQspChapters(qmsDocTypeDto);
+	}
+
+	@PostMapping(value = "/get-qsp-subchapters", produces = "application/json")
+	public List<QmsQspChapters> getQspSubChaptersById(@RequestBody Long chapterId, @RequestHeader String username) throws Exception {
+		logger.info(" Inside get-qsp-subchapters-by-id " + username);
+		return service.getQspSubChaptersById(chapterId);
+	}
+
+	@PostMapping(value = "/get-qsp-revision-record", produces = "application/json")
+	public QmsQspRevisionRecord getQspVersionRecordById(@RequestBody Long revisionRecordId, @RequestHeader String username) throws Exception {
+		logger.info(" Inside get-qsp-revision-record " + username);
+		return service.getQspRevisionRecord(revisionRecordId);
+	}
+
+	@PostMapping(value = "/get-qsp-docsummary-byid", produces = "application/json")
+	public QmsQspDocumentSummary getQspDocSummarybyRevisionRecordId(@RequestBody long revisionRecordId, @RequestHeader  String username) throws Exception {
+		logger.info(" Inside getQspDocSummarybyRevisionRecordId " + username);
+		return service.getQspDocSummarybyRevisionRecordId(revisionRecordId);
+	}
+
+	@PostMapping(value = "/get-qsp-chapter", produces = "application/json")
+	public QmsQspChapters getQspChapterById(@RequestBody long chapterId, @RequestHeader String username) throws Exception {
+		logger.info(" Inside get-qsp-chapteId " + username);
+		return service.getQspChapterById(chapterId);
+	}
+
+	@PostMapping(value = "/update-qsp-chaptercontent/{chapterId}", produces = "application/json")
+	public Long updateQspChapterContent(@PathVariable("chapterId") Long chapterId, @RequestBody String chapterContent, @RequestHeader String username) throws Exception {
+		logger.info(" Inside update-qsp-chaptercontent " + username);
+		return service.updateQspChapterContent(chapterId, chapterContent, username);
+	}
+
+	@PostMapping(value = "/add-qsp-new-subchapter/{chapterId}", produces = "application/json")
+	public Long addQspNewSubChapter(@PathVariable("chapterId") Long chapterId, @RequestBody String chapterName, @RequestHeader  String username) throws Exception {
+		logger.info(" Inside add-qsp-new-subchapter " + username);
+		return service.addQspNewSubChapter(chapterId, chapterName, username);
+	}
+
+	@PostMapping(value = "/update-qsp-chaptername/{chapterId}", produces = "application/json")
+	public Long updateQspChapterNameById(@PathVariable("chapterId") Long chapterId, @RequestBody String chapterName, @RequestHeader String username) throws Exception {
+		logger.info(" Inside update-qsp-chaptername " + username);
+		return service.updateQspChapterName(chapterId, chapterName, username);
+	}
+
+	@PostMapping(value = "/delete-qsp-chapteId", produces = "application/json")
+	public Long deleteQspChapterById(@RequestBody long chapterId, @RequestHeader String username) throws Exception {
+		logger.info(" Inside delete-qsp-chapteId " + username);
+		return service.deleteQspChapterById(chapterId, username);
+	}
+
+	@PostMapping(value = "/update-qsp-pagebreak-landscape", produces = "application/json")
+	public Long updateQspchapterPagebreakAndLandscape(@RequestBody String[] chaperContent, @RequestHeader String username) throws Exception {
+		logger.info(" Inside updateQspchapterPagebreakAndLandscape " + username);
+		return service.updateQspPagebreakAndLandscape(chaperContent, username);
+	}
+
+	@PostMapping(value = "update-qsp-notreq-abbreviation/{revisionRecordId}")
+	public long updateQspNotReqQmAbbreviationIds(@PathVariable("revisionRecordId") Long revisionRecordId, @RequestBody String abbreviationIds, @RequestHeader String username ) throws Exception {
+		logger.info(" Inside update-qsp-notreq-abbreviation " + username);
+		return service.updateNotReqQspAbbreviationIds(revisionRecordId, abbreviationIds, username);
+	}
+
+	@PostMapping(value = "/add-qsp-docsummary", produces = "application/json")
+	public long addQspDocSummary(@RequestBody QmsQspDocumentSummary qspDocumentSummary, @RequestHeader String username) throws Exception {
+		logger.info(" Inside add-qsp-docsummary " + username);
+		return service.addQspDocSummary(qspDocumentSummary, username);
 	}
 
 }

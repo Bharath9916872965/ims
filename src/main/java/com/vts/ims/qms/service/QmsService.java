@@ -2,28 +2,13 @@ package com.vts.ims.qms.service;
 
 import java.util.List;
 
+import com.vts.ims.qms.dto.*;
+import com.vts.ims.qms.model.*;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 import com.vts.ims.master.dto.DivisionGroupDto;
 import com.vts.ims.master.dto.DivisionMasterDto;
-import com.vts.ims.qms.dto.CheckListMasterDto;
-import com.vts.ims.qms.dto.DwpRevisionRecordDto;
-import com.vts.ims.qms.dto.DwpSectionDto;
-import com.vts.ims.qms.dto.QmsDocTypeDto;
-import com.vts.ims.qms.dto.QmsIssueDto;
-import com.vts.ims.qms.dto.QmsQmChaptersDto;
-import com.vts.ims.qms.dto.QmsQmDocumentSummaryDto;
-import com.vts.ims.qms.dto.QmsQmMappingDto;
-import com.vts.ims.qms.dto.QmsQmRevisionRecordDto;
-import com.vts.ims.qms.dto.QmsQmSectionsDto;
-import com.vts.ims.qms.model.DwpChapters;
-import com.vts.ims.qms.model.DwpGwpDocumentSummary;
-import com.vts.ims.qms.model.DwpRevisionRecord;
-import com.vts.ims.qms.model.DwpSections;
-import com.vts.ims.qms.model.QmsAbbreviations;
-import com.vts.ims.qms.model.QmsQmDocumentSummary;
-import com.vts.ims.qms.model.QmsQmRevisionRecord;
 
 public interface QmsService {
 
@@ -79,6 +64,17 @@ public interface QmsService {
 	public List<DivisionMasterDto> getDwpDivisionMaster(Integer imsFormRoleId, Long empId) throws Exception;
 	public List<DivisionGroupDto> getDwpDivisionGroupList(Integer imsFormRoleId, Long empId) throws Exception;
 	public DwpRevisionRecord addNewDwpRevisionRecord(QmsIssueDto qmsIssueDto, String username) throws Exception;
-	
-	
+	public List<QmsQspRevisionRecordDto> getQspVersionRecordDtoList() throws Exception;
+	public List<QmsQspChapters> getAllQspChapters(QmsDocTypeDto qmsDocTypeDto) throws Exception;
+	public List<QmsQspChapters> getQspSubChaptersById(Long chapterId) throws Exception;
+	public QmsQspRevisionRecord getQspRevisionRecord(Long revisionRecordId) throws Exception;
+	public QmsQspDocumentSummary getQspDocSummarybyRevisionRecordId(long revisionRecordId) throws Exception;
+	public QmsQspChapters getQspChapterById(long chapterId) throws Exception;
+	public Long updateQspChapterContent(Long chapterId, String chapterContent, String username) throws Exception;
+	public Long addQspNewSubChapter(Long chapterId, String chapterName, String username) throws Exception;
+	public Long updateQspChapterName(Long chapterId, String chapterName, String username) throws Exception;
+	public Long deleteQspChapterById(long chapterId, String username) throws Exception;
+	public Long updateQspPagebreakAndLandscape(String[] chaperContent, String username) throws Exception;
+	public long updateNotReqQspAbbreviationIds(Long revisionRecordId, String abbreviationIds, String username) throws Exception;
+	public long addQspDocSummary(QmsQspDocumentSummary qspDocumentSummary, String username) throws Exception;
 }
