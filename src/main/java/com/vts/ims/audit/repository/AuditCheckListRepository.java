@@ -37,4 +37,101 @@ public interface AuditCheckListRepository extends JpaRepository<AuditCheckList, 
 	@Query(value = "SELECT CASE WHEN (SELECT COUNT(a.MocId) FROM ims_qms_qm_mapping_classes a WHERE a.IsActive = 1 AND a.IsForCheckList = 'Y') = ((SELECT COUNT(b.AuditCheckListId) FROM ims_audit_check_list b WHERE b.IsActive = 1 AND b.ScheduleId = :scheduleId) + 1) THEN 1 ELSE 0 END AS 'Result'",nativeQuery = true)
 	public Integer checkAuditeeFinalAdd(@Param("scheduleId")Integer scheduleId);
 	
+	
+	 @Query(value = """
+		      SELECT
+              a.IqaId,
+
+              COUNT(IF(a.AuditObsId = '2' AND a.IsActive = '1', 1, NULL)) AS totalNC,
+              COUNT(IF(a.AuditObsId = '3' AND a.IsActive = '1', 1, NULL)) AS totalOBS,
+              COUNT(IF(a.AuditObsId = '4' AND a.IsActive = '1', 1, NULL)) AS totalOFI
+
+              FROM ims_audit_check_list a 
+              GROUP BY a.IqaId;
+		    """, nativeQuery = true)
+		    List<Object[]> getTotalObsCountByIqa();
+		    
+		    
+			
+//			 @Query(value = """
+//				      SELECT 
+//    a.ScheduleId,
+//    a.AuditeeId,
+//    d.EmpId,
+//    d.DivisionId,
+//    d.GroupId,
+//    d.ProjectId,
+//    a.IqaId,
+//
+//    (SELECT COUNT(*)
+//     FROM ims_audit_check_list cl
+//     WHERE cl.ScheduleId = a.ScheduleId 
+//       AND cl.IqaId = a.IqaId
+//       AND cl.AuditObsId = '2' 
+//       AND cl.IsActive = '1') AS totalNC,
+//
+//    (SELECT COUNT(*)
+//     FROM ims_audit_check_list cl
+//     WHERE cl.ScheduleId = a.ScheduleId 
+//       AND cl.IqaId = a.IqaId
+//       AND cl.AuditObsId = '3' 
+//       AND cl.IsActive = '1') AS totalOBS,
+//
+//    (SELECT COUNT(*)
+//     FROM ims_audit_check_list cl
+//     WHERE cl.ScheduleId = a.ScheduleId 
+//       AND cl.IqaId = a.IqaId
+//       AND cl.AuditObsId = '4' 
+//       AND cl.IsActive = '1') AS totalOFI
+//FROM 
+//    ims_audit_schedule a
+//JOIN 
+//    ims_audit_auditee d ON d.AuditeeId = a.AuditeeId
+//JOIN 
+//    ims_audit_iqa f ON a.IqaId = f.IqaId
+//WHERE 
+//    a.IsActive = 1 
+//    AND d.IsActive = 1
+//ORDER BY 
+//    a.ScheduleId DESC;
+//				    """, nativeQuery = true)
+//				    List<Object[]> getCheckListObsByDivPrjGroup();
+				    
+				    
+					
+
+						    
+							
+@Query(value = """
+ SELECT 
+    a.IqaId,
+    a.ScheduleId,
+    a.AuditeeId,
+    d.EmpId,
+    d.DivisionId,
+    d.GroupId,
+    d.ProjectId,
+  
+
+    COUNT(CASE WHEN cl.AuditObsId = '2' AND cl.IsActive = '1' THEN 1 END) AS totalNC,
+    COUNT(CASE WHEN cl.AuditObsId = '3' AND cl.IsActive = '1' THEN 1 END) AS totalOBS,
+    COUNT(CASE WHEN cl.AuditObsId = '4' AND cl.IsActive = '1' THEN 1 END) AS totalOFI
+FROM 
+    ims_audit_schedule a
+JOIN 
+    ims_audit_auditee d ON d.AuditeeId = a.AuditeeId
+JOIN 
+    ims_audit_iqa f ON a.IqaId = f.IqaId
+LEFT JOIN
+    ims_audit_check_list cl ON cl.ScheduleId = a.ScheduleId AND cl.IqaId = a.IqaId
+WHERE 
+    a.IsActive = 1 
+    AND d.IsActive = 1
+GROUP BY 
+    a.ScheduleId, a.AuditeeId, d.EmpId, d.DivisionId, d.GroupId, d.ProjectId, a.IqaId
+ORDER BY 
+    a.ScheduleId DESC;
+ """, nativeQuery = true)
+ List<Object[]> getCheckListObsByDivPrjGroup();
+	
 }

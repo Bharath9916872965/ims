@@ -17,13 +17,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.vts.ims.kpi.dto.KpiMasterDto;
+import com.vts.ims.kpi.dto.KpiObjDto;
+import com.vts.ims.kpi.dto.KpiObjListDto;
+import com.vts.ims.kpi.dto.KpiObjRatingDto;
 import com.vts.ims.kpi.dto.KpiObjectiveDto;
 import com.vts.ims.kpi.dto.KpiTargetRatingrDto;
 import com.vts.ims.kpi.dto.RatingDto;
+import com.vts.ims.kpi.modal.ImsKpiObjective;
 import com.vts.ims.kpi.modal.ImsKpiObjectiveMaster;
 import com.vts.ims.kpi.modal.ImsKpiTargerRating;
 import com.vts.ims.kpi.modal.ImsKpiUnit;
 import com.vts.ims.kpi.repository.KpiObjMasterRepository;
+import com.vts.ims.kpi.repository.KpiObjectiveRepository;
 import com.vts.ims.kpi.repository.KpiTargetRatingRepository;
 import com.vts.ims.kpi.repository.KpiUnitRepository;
 import com.vts.ims.login.Login;
@@ -62,6 +67,9 @@ public class KpiServiceImpl implements KpiService{
 	
 	@Autowired
 	private DwpRevisionRecordRepo dwpRevisionRecordRepo;
+	
+	@Autowired
+	private KpiObjectiveRepository kpiObjectiveRepository;
 	
 	@Override
 	public List<ImsKpiUnit> getKpiUnitList() throws Exception {
@@ -230,13 +238,44 @@ public class KpiServiceImpl implements KpiService{
 						    		.kpiId(obj[1]!=null?Long.parseLong(obj[1].toString()):0L)
 						    		.startValue(obj[2]!=null?Long.parseLong(obj[2].toString()):0L)
 						    		.endValue(obj[3]!=null?Long.parseLong(obj[3].toString()):0L)
-						    		.KpiRating(obj[4]!=null?Long.parseLong(obj[4].toString()):0L)
+						    		.kpiRating(obj[4]!=null?Long.parseLong(obj[4].toString()):0L)
 					    			.build();
 					    })
 					    .collect(Collectors.toList());
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("AuditServiceImpl Inside method getKpiRatingList()"+ e);
+			return Collections.emptyList();
+		}
+	}
+	
+	@Override
+	public List<KpiObjRatingDto> getKpiObjRatingList() throws Exception {
+		logger.info(new Date() + " AuditServiceImpl Inside method getKpiObjRatingList()");
+		try {
+			List<Object[]> result = kpiObjectiveRepository.getKpiObjRatingList();
+			 return Optional.ofNullable(result).orElse(Collections.emptyList()).stream()
+					    .map(obj -> {
+						    	return KpiObjRatingDto.builder()
+						    		.kpiObjectiveId(obj[0]!=null?Long.parseLong(obj[0].toString()):0L)
+						    		.kpiId(obj[1]!=null?Long.parseLong(obj[1].toString()):0L)
+						    		.kpiValue(obj[2]!=null?obj[2].toString():"")
+						    		.kpiRating(obj[3]!=null?Long.parseLong(obj[3].toString()):0L)
+						    		.iqaId(obj[4]!=null?Long.parseLong(obj[4].toString()):0L)
+						    		.revisionRecordId(obj[5]!=null?Long.parseLong(obj[5].toString()):0L)
+						    		.actEmpId(obj[6]!=null?Long.parseLong(obj[6].toString()):0L)
+						    		.kpiObjectives(obj[7]!=null?obj[7].toString():"")
+						    		.kpiMerics(obj[8]!=null?obj[8].toString():"")
+						    		.kpiUnitId(obj[9]!=null?Long.parseLong(obj[9].toString()):0L)
+						    		.kpiUnitName(obj[10]!=null?obj[10].toString():"")
+						    		.kpiTarget(obj[11]!=null?obj[11].toString():"") 
+						    		.iqaNo(obj[12]!=null?obj[12].toString():"") 
+					    			.build();
+					    })
+					    .collect(Collectors.toList());
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method getKpiObjRatingList()"+ e);
 			return Collections.emptyList();
 		}
 	}
@@ -302,6 +341,58 @@ public class KpiServiceImpl implements KpiService{
 			logger.error("AuditServiceImpl Inside method getKpiUnitList()"+ e);
 			return Collections.emptyList();
 		}
+	}
+
+	@Override
+	public long insertKpiObjective(KpiObjListDto kpiObjListDto, String username) throws Exception {
+		logger.info(new Date() + " AuditServiceImpl Inside method insertKpiObjective()");
+		long result = 0;
+		try {
+			Login login = loginRepo.findByUsername(username);
+			
+			for(KpiObjDto dto : kpiObjListDto.getRatingList()) {
+				
+				ImsKpiObjective objective = new ImsKpiObjective();
+				
+				objective.setKpiId(dto.getKpiId());
+				objective.setKpiValue(Long.parseLong(dto.getKpiValue()));
+				objective.setKpiRating(dto.getKpiRating());
+				objective.setIqaId(kpiObjListDto.getIqaId());
+				objective.setRevisionRecordId(kpiObjListDto.getRevisionRecordId());
+				objective.setActEmpId(login.getEmpId());
+				objective.setCreatedBy(username);
+				objective.setCreatedDate(LocalDateTime.now());
+				objective.setIsActive(1);
+				
+				result = kpiObjectiveRepository.save(objective).getKpiObjectiveId();
+			}
+			
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method insertKpiObjective()"+ e);
+		}
+		return result;
+	}
+	
+	@Override
+	public int updateKpiObjective(KpiObjListDto kpiObjListDto, String username) throws Exception {
+		logger.info(new Date() + " AuditServiceImpl Inside method updateKpiObjective()");
+		int result = 0;
+		try {
+			Login login = loginRepo.findByUsername(username);
+			
+			for(KpiObjDto dto : kpiObjListDto.getRatingList()) {
+				
+				result = kpiObjectiveRepository.updateKpiObjRatings(dto.getKpiValue(),dto.getKpiRating(),username,LocalDateTime.now(),dto.getKpiObjectiveId());
+			}
+			
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method updateKpiObjective()"+ e);
+		}
+		return result;
 	}
 	
 

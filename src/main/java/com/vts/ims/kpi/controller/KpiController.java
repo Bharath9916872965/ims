@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vts.ims.kpi.dto.KpiMasterDto;
+import com.vts.ims.kpi.dto.KpiObjListDto;
+import com.vts.ims.kpi.dto.KpiObjRatingDto;
 import com.vts.ims.kpi.dto.KpiObjectiveDto;
 import com.vts.ims.kpi.dto.KpiTargetRatingrDto;
 import com.vts.ims.kpi.modal.ImsKpiUnit;
@@ -84,6 +86,40 @@ public class KpiController {
 		}
 	}
 	
+	@PostMapping(value = "/insert-kpi-objective", produces = "application/json")
+	public ResponseEntity<Response> insertKpiObjective(@RequestHeader String username, @RequestBody KpiObjListDto kpiObjListDto) throws Exception {
+		try {
+			logger.info( " Inside insert-kpi-objective" );
+			 long result=kpiService.insertKpiObjective(kpiObjListDto,username);
+			 if(result > 0) {
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("KPI Rating Added Successfully","S"));
+			 }else {
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("KPI Rating Add Unsuccessful","F"));			 
+			 }
+		} catch (Exception e) {
+			 logger.error("error in insert-kpi-objective"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
+		}
+	}
+	
+	@PostMapping(value = "/update-kpi-objective", produces = "application/json")
+	public ResponseEntity<Response> updateKpiObjective(@RequestHeader String username, @RequestBody KpiObjListDto kpiObjListDto) throws Exception {
+		try {
+			logger.info( " Inside update-kpi-objective" );
+			 int result=kpiService.updateKpiObjective(kpiObjListDto,username);
+			 if(result > 0) {
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("KPI Rating Edited Successfully","S"));
+			 }else {
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("KPI Rating Edit Unsuccessful","F"));			 
+			 }
+		} catch (Exception e) {
+			 logger.error("error in update-kpi-objective"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
+		}
+	}
+	
 	@PostMapping(value = "/get-kpi-master-list", produces = "application/json")
 	public ResponseEntity<List<KpiMasterDto>> getKpiMasterList(@RequestHeader String username) throws Exception {
 		try {
@@ -106,6 +142,19 @@ public class KpiController {
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("Error fetching getKpiRatingList: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	@PostMapping(value = "/get-kpi-obj-rating-list", produces = "application/json")
+	public ResponseEntity<List<KpiObjRatingDto>> getKpiObjRatingList(@RequestHeader String username) throws Exception {
+		try {
+			logger.info(new Date() + " Inside getKpiObjRatingList" );
+			List<KpiObjRatingDto> dto = kpiService.getKpiObjRatingList();
+			return new ResponseEntity<List<KpiObjRatingDto>>( dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching getKpiObjRatingList: ", e);
 			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
 		}
 	}

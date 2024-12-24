@@ -11,6 +11,7 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -67,7 +68,7 @@ public class MasterServiceImpl implements MasterService {
 					    .filter(dto -> dto.getUsername().equals(username)) 
 					    .map(LoginDetailsDto::getLabCode)                   
 					    .findFirst()                                        
-					    .orElse(null); 
+					    .orElse(null);
 	        List<LabMasterDto> allLabMasterData = masterClient.getAllLabMaster(xApiKey);
 	        return allLabMasterData.stream()
 	            .filter(labMasterDto -> labMasterDto.getLabCode().equals(labCode))
@@ -226,6 +227,7 @@ public class MasterServiceImpl implements MasterService {
 	{
 	try {
 		 Object[] login = loginRepo.getLoginDetails(username).get(0);
+		 
 		 if(login !=null) {
 				EmployeeDto employeeLogIn = masterClient.getEmployee(xApiKey,Long.parseLong(login[2].toString())).get(0);
 			 return UserDetailsDto.builder()
@@ -246,4 +248,16 @@ public class MasterServiceImpl implements MasterService {
 		}
 	}
 	
+	
+	@Override
+	public List<EmployeeDto> getemployeebyid(long empId) throws ExecutionException {
+		logger.info(new Date() + " MasterServiceImpl Inside method getemployeebyid");
+		 try {
+			 List<EmployeeDto> getEmployee=masterClient.getEmployee(xApiKey,empId);
+			 return getEmployee;
+		 } catch (Exception e) {
+			 logger.info(new Date() + " MasterServiceImpl Inside method getemployeebyid"+ e.getMessage());
+	        return null;
+	    }
+	}
 }

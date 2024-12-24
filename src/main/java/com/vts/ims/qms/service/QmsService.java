@@ -64,6 +64,12 @@ public interface QmsService {
 	public List<DivisionMasterDto> getDwpDivisionMaster(Integer imsFormRoleId, Long empId) throws Exception;
 	public List<DivisionGroupDto> getDwpDivisionGroupList(Integer imsFormRoleId, Long empId) throws Exception;
 	public DwpRevisionRecord addNewDwpRevisionRecord(QmsIssueDto qmsIssueDto, String username) throws Exception;
+	public Integer forwardQm(QmsQmRevisionRecordDto qmsqmrevisionDto, String username) throws Exception;
+	public long revokeQmRevision(QmsQmRevisionRecordDto qmsqmrevisionDto, String username);
+	public List<QmsQmRevisionTransactionDto> revisionTran(String revisionRecordId) throws Exception;
+	public Integer forwardDwpGwp(DwpRevisionRecordDto dwprevisionDto, String username) throws Exception;
+	public List<MRMastersDto> getMrRepList() throws Exception;
+	public List<MRMastersDto> getMrList() throws Exception;
 	public List<QmsQspRevisionRecordDto> getQspVersionRecordDtoList() throws Exception;
 	public List<QmsQspChapters> getAllQspChapters(QmsDocTypeDto qmsDocTypeDto) throws Exception;
 	public List<QmsQspChapters> getQspSubChaptersById(Long chapterId) throws Exception;
@@ -77,4 +83,6 @@ public interface QmsService {
 	public Long updateQspPagebreakAndLandscape(String[] chaperContent, String username) throws Exception;
 	public long updateNotReqQspAbbreviationIds(Long revisionRecordId, String abbreviationIds, String username) throws Exception;
 	public long addQspDocSummary(QmsQspDocumentSummary qspDocumentSummary, String username) throws Exception;
+	
+	
 }

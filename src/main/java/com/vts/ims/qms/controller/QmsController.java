@@ -31,6 +31,25 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.vts.ims.master.dto.DivisionGroupDto;
 import com.vts.ims.master.dto.DivisionMasterDto;
+import com.vts.ims.qms.dto.CheckListMasterDto;
+import com.vts.ims.qms.dto.DwpRevisionRecordDto;
+import com.vts.ims.qms.dto.DwpSectionDto;
+import com.vts.ims.qms.dto.MRMastersDto;
+import com.vts.ims.qms.dto.QmsDocTypeDto;
+import com.vts.ims.qms.dto.QmsIssueDto;
+import com.vts.ims.qms.dto.QmsQmChaptersDto;
+import com.vts.ims.qms.dto.QmsQmDocumentSummaryDto;
+import com.vts.ims.qms.dto.QmsQmMappingDto;
+import com.vts.ims.qms.dto.QmsQmRevisionRecordDto;
+import com.vts.ims.qms.dto.QmsQmRevisionTransactionDto;
+import com.vts.ims.qms.dto.QmsQmSectionsDto;
+import com.vts.ims.qms.model.DwpChapters;
+import com.vts.ims.qms.model.DwpGwpDocumentSummary;
+import com.vts.ims.qms.model.DwpRevisionRecord;
+import com.vts.ims.qms.model.DwpSections;
+import com.vts.ims.qms.model.QmsAbbreviations;
+import com.vts.ims.qms.model.QmsQmDocumentSummary;
+import com.vts.ims.qms.model.QmsQmRevisionRecord;
 import com.vts.ims.qms.service.QmsService;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -114,48 +133,48 @@ public class QmsController {
 	@GetMapping("/download-qm-document")
 	public ResponseEntity<Resource> downloadQmDocument(@RequestParam String fileName, HttpServletResponse res, @RequestHeader String username) throws Exception {
 		logger.info(" Inside download-qm-document " + username);
-	    File file = new File(storageDrive + fileName);
+		File file = new File(storageDrive + fileName);
 
-	    if (!file.exists() || !file.isFile()) {
-	        throw new FileNotFoundException("File not found: " + fileName);
-	    }
+		if (!file.exists() || !file.isFile()) {
+			throw new FileNotFoundException("File not found: " + fileName);
+		}
 
-	    HttpHeaders headers = new HttpHeaders();
-	    headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
-	    headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
-	    headers.add("Pragma", "no-cache");
-	    headers.add("Expires", "0");
+		HttpHeaders headers = new HttpHeaders();
+		headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
+		headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+		headers.add("Pragma", "no-cache");
+		headers.add("Expires", "0");
 
-	    Path path = file.toPath();
-	    ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(path));
+		Path path = file.toPath();
+		ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(path));
 
-	    return ResponseEntity.ok()
-	            .headers(headers)
-	            .contentLength(file.length())
-	            .contentType(MediaType.APPLICATION_OCTET_STREAM)
-	            .body(resource);
+		return ResponseEntity.ok()
+				.headers(headers)
+				.contentLength(file.length())
+				.contentType(MediaType.APPLICATION_OCTET_STREAM)
+				.body(resource);
 
 	}
 
 	@GetMapping("/get-qm-moc-excel")
-    public ResponseEntity<FileSystemResource> downloadExcel() throws Exception {
+	public ResponseEntity<FileSystemResource> downloadExcel() throws Exception {
 		logger.info(" Inside get-qm-moc-excel " );
 		String fileName = "QMS"+File.separator+"QM_Defaults"+File.separator+"Mapping_of_Clauses.xlsx";
-        String filePath = storageDrive+fileName;
+		String filePath = storageDrive+fileName;
 
-        File file = new File(filePath);
-        if (!file.exists()) {
-            throw new Exception("File not found: " + filePath);
-        }
+		File file = new File(filePath);
+		if (!file.exists()) {
+			throw new Exception("File not found: " + filePath);
+		}
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        headers.setContentDispositionFormData("filename", file.getName());
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+		headers.setContentDispositionFormData("filename", file.getName());
 
-        return ResponseEntity.ok()
-                .headers(headers)
-                .body(new FileSystemResource(file));
-    }
+		return ResponseEntity.ok()
+				.headers(headers)
+				.body(new FileSystemResource(file));
+	}
 
 
 	@PostMapping(value = "/add-docsummary", produces = "application/json")
@@ -230,13 +249,13 @@ public class QmsController {
 		logger.info(" Inside add-moc " + username);
 		return service.getMocList(revisionRecordId);
 	}
-	
+
 	@PostMapping(value = "/get-moc-total-list", produces = "application/json")
 	public  List<QmsQmMappingDto> getMocTotalList( @RequestHeader  String username) throws Exception {
 		logger.info(" get-moc-total-list " + username);
 		return service.getMoctotalList();
 	}
-	
+
 
 	@PostMapping(value = "/get-dwp-version-record-list", produces = "application/json")
 	public List<DwpRevisionRecordDto> getDwpVersionRecordDtoList(@RequestBody QmsDocTypeDto qmsDocTypeDto, @RequestHeader  String username) throws Exception {
@@ -310,109 +329,109 @@ public class QmsController {
 		logger.info(" Inside qm-unaddlist-to-addlist " + username);
 		return service.dwpUnAddListToAddList(selectedSections, username);
 	}
-	
+
 	@PostMapping(value = "/update-chapter-desc", produces = "application/json")
 	public ResponseEntity<String> updateChapterDescById(@RequestHeader String username, @RequestBody CheckListMasterDto checkListMasterDto) throws Exception {
 		try {
 			logger.info( " update-chapter-desc" );
 			Integer result=service.updateChapterDescById(checkListMasterDto,username);
-			 if(result > 0) {
-				 return new ResponseEntity<String>("Successfully" , HttpStatus.OK);
-			 }else {
-				 return new ResponseEntity<String>("Unsuccessful" , HttpStatus.BAD_REQUEST);
-			 }
+			if(result > 0) {
+				return new ResponseEntity<String>("Successfully" , HttpStatus.OK);
+			}else {
+				return new ResponseEntity<String>("Unsuccessful" , HttpStatus.BAD_REQUEST);
+			}
 		} catch (Exception e) {
-			 logger.error("update-chapter-desc"+ e.getMessage());
-			 e.printStackTrace();
-			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+			logger.error("update-chapter-desc"+ e.getMessage());
+			e.printStackTrace();
+			return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
 		}
 	}
-	
+
 	@PostMapping(value = "/delete-chapter-desc", produces = "application/json")
 	public ResponseEntity<String> deleteChapterDescById(@RequestHeader String username, @RequestBody String mocId) throws Exception {
 		try {
 			logger.info( " delete-chapter-desc" );
 			Integer result=service.deleteChapterDescById(mocId,username);
-			 if(result > 0) {
-				 return new ResponseEntity<String>("S" , HttpStatus.OK);
-			 }else {
-				 return new ResponseEntity<String>("U" , HttpStatus.BAD_REQUEST);
-			 }
+			if(result > 0) {
+				return new ResponseEntity<String>("S" , HttpStatus.OK);
+			}else {
+				return new ResponseEntity<String>("U" , HttpStatus.BAD_REQUEST);
+			}
 		} catch (Exception e) {
-			 logger.error("delete-chapter-desc"+ e.getMessage());
-			 e.printStackTrace();
-			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+			logger.error("delete-chapter-desc"+ e.getMessage());
+			e.printStackTrace();
+			return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
 		}
 	}
-	
+
 	@PostMapping(value = "/delete-sub-chapter-desc", produces = "application/json")
 	public ResponseEntity<String> deleteSubChapterDescById(@RequestHeader String username, @RequestBody String mocId) throws Exception {
 		try {
 			logger.info( " delete-sub-chapter-desc" );
 			Integer result=service.deleteSubChapterDescById(mocId,username);
-			 if(result > 0) {
-				 return new ResponseEntity<String>("S" , HttpStatus.OK);
-			 }else {
-				 return new ResponseEntity<String>("U" , HttpStatus.BAD_REQUEST);
-			 }
+			if(result > 0) {
+				return new ResponseEntity<String>("S" , HttpStatus.OK);
+			}else {
+				return new ResponseEntity<String>("U" , HttpStatus.BAD_REQUEST);
+			}
 		} catch (Exception e) {
-			 logger.error("delete-sub-chapter-desc"+ e.getMessage());
-			 e.printStackTrace();
-			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+			logger.error("delete-sub-chapter-desc"+ e.getMessage());
+			e.printStackTrace();
+			return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
 		}
 	}
-	
+
 	@PostMapping(value = "/add-new-chapter", produces = "application/json")
 	public ResponseEntity<String> addNewChapter(@RequestHeader String username, @RequestBody CheckListMasterDto checkListMasterDto) throws Exception {
 		try {
 			logger.info( " add-new-chapter" );
 			Long result=service.addNewChapter(checkListMasterDto,username);
-			 if(result > 0) {
-				 return new ResponseEntity<String>("Successfully" , HttpStatus.OK);
-			 }else {
-				 return new ResponseEntity<String>("Unsuccessful" , HttpStatus.BAD_REQUEST);
-			 }
+			if(result > 0) {
+				return new ResponseEntity<String>("Successfully" , HttpStatus.OK);
+			}else {
+				return new ResponseEntity<String>("Unsuccessful" , HttpStatus.BAD_REQUEST);
+			}
 		} catch (Exception e) {
-			 logger.error("add-new-chapter"+ e.getMessage());
-			 e.printStackTrace();
-			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+			logger.error("add-new-chapter"+ e.getMessage());
+			e.printStackTrace();
+			return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
 		}
 	}
-	
+
 	@PostMapping(value = "/add-chapter-to-master", produces = "application/json")
 	public ResponseEntity<String> addChapterToMasters(@RequestHeader String username, @RequestBody List<String> mocIds) throws Exception {
 		try {
 			logger.info( " add-chapter-to-master" );
 			Integer result=service.addChapterToMasters(mocIds,username);
-			 if(result > 0) {
-				 return new ResponseEntity<String>("Successfully" , HttpStatus.OK);
-			 }else {
-				 return new ResponseEntity<String>("Unsuccessful" , HttpStatus.BAD_REQUEST);
-			 }
+			if(result > 0) {
+				return new ResponseEntity<String>("Successfully" , HttpStatus.OK);
+			}else {
+				return new ResponseEntity<String>("Unsuccessful" , HttpStatus.BAD_REQUEST);
+			}
 		} catch (Exception e) {
-			 logger.error("add-chapter-to-master"+ e.getMessage());
-			 e.printStackTrace();
-			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+			logger.error("add-chapter-to-master"+ e.getMessage());
+			e.printStackTrace();
+			return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
 		}
 	}
-	
+
 	@PostMapping(value = "/update-check-list-chapters", produces = "application/json")
 	public ResponseEntity<String> updateCheckListChapters(@RequestHeader String username, @RequestBody List<Long> mocIds) throws Exception {
 		try {
 			logger.info( " update-check-list-chapters" );
 			Integer result=service.updateCheckListChapters(mocIds,username);
-			 if(result > 0) {
-				 return new ResponseEntity<String>("Successfully" , HttpStatus.OK);
-			 }else {
-				 return new ResponseEntity<String>("Unsuccessful" , HttpStatus.BAD_REQUEST);
-			 }
+			if(result > 0) {
+				return new ResponseEntity<String>("Successfully" , HttpStatus.OK);
+			}else {
+				return new ResponseEntity<String>("Unsuccessful" , HttpStatus.BAD_REQUEST);
+			}
 		} catch (Exception e) {
-			 logger.error("update-check-list-chapters"+ e.getMessage());
-			 e.printStackTrace();
-			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+			logger.error("update-check-list-chapters"+ e.getMessage());
+			e.printStackTrace();
+			return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
 		}
 	}
-	
+
 	@PostMapping(value = "/get-dwp-revision-record", produces = "application/json")
 	public DwpRevisionRecord getDwpVersionRecordById(@RequestBody Long revisionRecordId, @RequestHeader String username) throws Exception {
 		logger.info(" Inside get-dwp-revision-record " + username);
@@ -439,9 +458,9 @@ public class QmsController {
 
 	@PostMapping(value = "/get-dwp-division-list/{imsFormRoleId}/{empId}", produces = "application/json")
 	public ResponseEntity<List<DivisionMasterDto>> getDwpDivisionlist(@PathVariable("imsFormRoleId") Integer imsFormRoleId, @PathVariable("empId") Long empId, @RequestHeader String username) throws Exception {
-			logger.info(new Date() + " Inside getDwpDivisionlist()" );
-			List<DivisionMasterDto> dto = service.getDwpDivisionMaster(imsFormRoleId, empId);
-			return new ResponseEntity<List<DivisionMasterDto>>( dto,HttpStatus.OK);
+		logger.info(new Date() + " Inside getDwpDivisionlist()" );
+		List<DivisionMasterDto> dto = service.getDwpDivisionMaster(imsFormRoleId, empId);
+		return new ResponseEntity<List<DivisionMasterDto>>( dto,HttpStatus.OK);
 	}
 
 	@PostMapping(value = "/get-dwp-division-grouplist/{imsFormRoleId}/{empId}", produces = "application/json")
@@ -450,13 +469,13 @@ public class QmsController {
 		List<DivisionGroupDto> dto = service.getDwpDivisionGroupList(imsFormRoleId, empId);
 		return new ResponseEntity<List<DivisionGroupDto>>( dto,HttpStatus.OK);
 	}
-	
+
 	@PostMapping(value = "/add-dwp-new-issue", produces = "application/json")
 	public ResponseEntity<DwpRevisionRecord> addDwpRevisionRecord(@RequestBody QmsIssueDto qmsIssueDto, @RequestHeader String username) throws Exception {
 		logger.info(new Date() + " Inside addRevisionRecord() " + username);
-		
+
 		DwpRevisionRecord res = service.addNewDwpRevisionRecord(qmsIssueDto, username);
-		
+
 		if (res  != null) {
 			return new ResponseEntity<>(res, HttpStatus.OK);
 		} else {
@@ -542,4 +561,82 @@ public class QmsController {
 		return service.addQspDocSummary(qspDocumentSummary, username);
 	}
 
+	@PostMapping(value = "/forward-qm", produces = "application/json")
+	public ResponseEntity<String> forwardQm(@RequestHeader String username, @RequestBody QmsQmRevisionRecordDto qmsqmrevisionDto) throws Exception {
+		try {
+			logger.info("forwardQm");
+			Integer result=service.forwardQm(qmsqmrevisionDto,username);
+			if(result > 0) {
+				return new ResponseEntity<String>("200" , HttpStatus.OK);
+			}else {
+				return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
+			}
+		} catch (Exception e) {
+			logger.error("forwardQm"+ e.getMessage());
+			e.printStackTrace();
+			return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+		}
+	}
+
+	@PostMapping(value = "/revoke-qm-revision", produces = "application/json")
+	public ResponseEntity<String> revokeQmRevision(@RequestHeader String username, @RequestBody QmsQmRevisionRecordDto qmsqmrevisionDto) throws Exception {
+		try {
+			logger.info("revoke-qm-revision");
+			Long result=service.revokeQmRevision(qmsqmrevisionDto,username);
+			if(result > 0) {
+				return new ResponseEntity<String>("200" , HttpStatus.OK);
+			}else {
+				return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
+			}
+		} catch (Exception e) {
+			logger.error("revoke-qm-revision"+ e.getMessage());
+			e.printStackTrace();
+			return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+		}
+	}
+
+
+	@PostMapping(value = "/revision-tran", produces = "application/json")
+	public ResponseEntity<List<QmsQmRevisionTransactionDto>> revisionTran(@RequestHeader String username,@RequestBody String revisionRecordId) throws Exception {
+		try {
+			logger.info(" Inside revisionTran"+username );
+			List<QmsQmRevisionTransactionDto> dto=service.revisionTran(revisionRecordId);
+			return new ResponseEntity<List<QmsQmRevisionTransactionDto>>(dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching revisionTran: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
+	}
+
+
+	@PostMapping(value = "/forward-dwp-gwp", produces = "application/json")
+	public ResponseEntity<String> forwardDwpGwp(@RequestHeader String username, @RequestBody DwpRevisionRecordDto dwprevisionDto) throws Exception {
+		try {
+			logger.info("forwardDwpGwp");
+			Integer result=service.forwardDwpGwp(dwprevisionDto,username);
+			if(result > 0) {
+				return new ResponseEntity<String>("200" , HttpStatus.OK);
+			}else {
+				return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
+			}
+		} catch (Exception e) {
+			logger.error("forwardDwpGwp"+ e.getMessage());
+			e.printStackTrace();
+			return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+		}
+	}
+
+
+	@PostMapping(value = "/get-mr-rep-list", produces = "application/json")
+	public List<MRMastersDto> getMrRepList(@RequestHeader  String username) throws Exception {
+		logger.info(" Inside get-mr-rep-list" + username);
+		return service.getMrRepList();
+	}
+
+	@PostMapping(value = "/get-mr-list", produces = "application/json")
+	public List<MRMastersDto> getMrList(@RequestHeader  String username) throws Exception {
+		logger.info(" Inside get-mr--list" + username);
+		return service.getMrList();
+	}
 }
