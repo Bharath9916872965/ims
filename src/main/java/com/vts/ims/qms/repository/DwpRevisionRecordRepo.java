@@ -16,4 +16,9 @@ public interface DwpRevisionRecordRepo extends JpaRepository<DwpRevisionRecord, 
 	List<DwpRevisionRecord> findAllActiveDwpRecordsByDocType(@Param("docType") String docType, @Param("groupDivisionId") Long groupDivisionId);
 	
 	public DwpRevisionRecord findByRevisionRecordId(Long revisionRecordId);
+	
+	@Query("SELECT a FROM DwpRevisionRecord a WHERE a.isActive = 1 AND a.docType=:docType  ORDER BY a.revisionRecordId DESC")
+	List<DwpRevisionRecord> findVersionRecordsByDocType(@Param("docType") String docType);
+	
+
 }
