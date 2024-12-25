@@ -21,6 +21,7 @@ import com.vts.ims.qms.dto.QmsQmMappingDto;
 import com.vts.ims.qms.dto.QmsQmRevisionRecordDto;
 import com.vts.ims.qms.dto.QmsQmRevisionTransactionDto;
 import com.vts.ims.qms.dto.QmsQmSectionsDto;
+import com.vts.ims.qms.dto.QmsQspRevisionRecordDto;
 import com.vts.ims.qms.model.DwpChapters;
 import com.vts.ims.qms.model.DwpGwpDocumentSummary;
 import com.vts.ims.qms.model.DwpRevisionRecord;
@@ -28,6 +29,9 @@ import com.vts.ims.qms.model.DwpSections;
 import com.vts.ims.qms.model.QmsAbbreviations;
 import com.vts.ims.qms.model.QmsQmDocumentSummary;
 import com.vts.ims.qms.model.QmsQmRevisionRecord;
+import com.vts.ims.qms.model.QmsQspChapters;
+import com.vts.ims.qms.model.QmsQspDocumentSummary;
+import com.vts.ims.qms.model.QmsQspRevisionRecord;
 
 public interface QmsService {
 
@@ -95,6 +99,19 @@ public interface QmsService {
 	public List<DivisionEmployeeDto> getDivisionEmployee() throws Exception;
 	public Long updateQmDescription(QmsQmRevisionRecordDto qmsqmrevisionDto, String username) throws Exception;
 	public Long updateDwpGwpDescription(DwpRevisionRecordDto dwpRevisionRecordDto, String username) throws Exception;
+	public List<QmsQspRevisionRecordDto> getQspVersionRecordDtoList() throws Exception;
+	public List<QmsQspChapters> getAllQspChapters(QmsDocTypeDto qmsDocTypeDto) throws Exception;
+	public List<QmsQspChapters> getQspSubChaptersById(Long chapterId) throws Exception;
+	public QmsQspRevisionRecord getQspRevisionRecord(Long revisionRecordId) throws Exception;
+	public QmsQspDocumentSummary getQspDocSummarybyRevisionRecordId(long revisionRecordId) throws Exception;
+	public QmsQspChapters getQspChapterById(long chapterId) throws Exception;
+	public Long updateQspChapterContent(Long chapterId, String chapterContent, String username) throws Exception;
+	public Long addQspNewSubChapter(Long chapterId, String chapterName, String username) throws Exception;
+	public Long updateQspChapterName(Long chapterId, String chapterName, String username) throws Exception;
+	public Long deleteQspChapterById(long chapterId, String username) throws Exception;
+	public Long updateQspPagebreakAndLandscape(String[] chaperContent, String username) throws Exception;
+	public long updateNotReqQspAbbreviationIds(Long revisionRecordId, String abbreviationIds, String username) throws Exception;
+	public long addQspDocSummary(QmsQspDocumentSummary qspDocumentSummary, String username) throws Exception;
 	
 	
 }

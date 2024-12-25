@@ -20,6 +20,9 @@ public interface AdminService {
 	public List<UserManagerListDto> UserManagerList(String username)throws Exception;
 	public List<FormRoleDto> roleList()throws Exception;
 	public List<FormModuleDto> getformModulelist()throws Exception;
-	public List<FormroleAccessDto> getformRoleAccessList(String roleId, String formModuleId);
-	public String updateformroleaccess(FormroleAccessDto accessDto, String username);
+	public List<FormroleAccessDto> getformRoleAccessList(String roleId, String formModuleId)throws Exception;
+	public String updateformroleaccess(FormroleAccessDto accessDto, String username)throws Exception;
+	public UserManageAddEditDto UserManagerEditData(String loginId)throws Exception;
+	public int UserManagerUpdate(UserManageAddEditDto userManageAdd, String name)throws Exception;
+	public long UserNamePresentCount(String userName)throws Exception;
 }
