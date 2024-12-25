@@ -27,11 +27,13 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.vts.ims.master.dto.DivisionEmployeeDto;
 import com.vts.ims.master.dto.DivisionGroupDto;
 import com.vts.ims.master.dto.DivisionMasterDto;
 import com.vts.ims.qms.dto.CheckListMasterDto;
 import com.vts.ims.qms.dto.DwpRevisionRecordDto;
 import com.vts.ims.qms.dto.DwpSectionDto;
+import com.vts.ims.qms.dto.DwpTransactionDto;
 import com.vts.ims.qms.dto.MRMastersDto;
 import com.vts.ims.qms.dto.QmsDocTypeDto;
 import com.vts.ims.qms.dto.QmsIssueDto;
@@ -560,4 +562,92 @@ public class QmsController {
 		logger.info(" Inside get-mr--list" + username);
 		return service.getMrList();
 	}
+	
+	
+	@PostMapping(value = "/add-new-dwp-gwp-revision", produces = "application/json")
+	public Long addnewdwpgwprevision(@RequestBody DwpRevisionRecordDto dwprevisionRecordDto, @RequestHeader String username) throws Exception {
+		logger.info(" Inside add-new-qm-revision " + username);
+		return service.addnewdwpgwprevision(dwprevisionRecordDto, username);
+	}
+	
+	
+	@PostMapping(value = "/revoke-dwp-revision", produces = "application/json")	
+	public ResponseEntity<String> revokeDwpRevision(@RequestHeader String username, @RequestBody DwpRevisionRecordDto dwprevisionRecordDto) throws Exception {
+		try {
+			logger.info("revoke-dwp-revision");
+			Long result=service.revokeDwpRevision(dwprevisionRecordDto,username);
+			 if(result > 0) {
+				 return new ResponseEntity<String>("200" , HttpStatus.OK);
+			 }else {
+				 return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
+			 }
+		} catch (Exception e) {
+			 logger.error("revoke-dwp-revision"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+		}
+	}
+	
+	
+	@PostMapping(value = "/dwp-revision-tran", produces = "application/json")
+	public ResponseEntity<List<DwpTransactionDto>> dwpRevisiontran(@RequestHeader String username,@RequestBody String revisionRecordId) throws Exception {
+		try {
+			logger.info(" Inside dwpRevisiontran"+username );
+			List<DwpTransactionDto> dto=service.dwpRevisionTran(revisionRecordId);
+			return new ResponseEntity<List<DwpTransactionDto>>(dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching dwpRevisiontran: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	@PostMapping(value = "/get-division-employee-list", produces = "application/json")
+	public ResponseEntity<List<DivisionEmployeeDto>> getDivisionEmployee(@RequestHeader String username) throws Exception {
+		try {
+			logger.info(new Date() + " Inside getEmployelist" );
+			List<DivisionEmployeeDto> dto=service.getDivisionEmployee();
+			return new ResponseEntity<List<DivisionEmployeeDto>>( dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching getEmployelist: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	
+	@PostMapping(value = "/update-qm-description", produces = "application/json")	
+	public ResponseEntity<String> updateQmDescription(@RequestHeader String username, @RequestBody QmsQmRevisionRecordDto qmsqmrevisionDto) throws Exception {
+		try {
+			logger.info("update-qm-description");
+			Long result=service.updateQmDescription(qmsqmrevisionDto,username);
+			 if(result > 0) {
+				 return new ResponseEntity<String>("200" , HttpStatus.OK);
+			 }else {
+				 return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
+			 }
+		} catch (Exception e) {
+			 logger.error("update-qm-description"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+		}
+	}
+	
+	@PostMapping(value = "/update-dwp-gwp-description", produces = "application/json")	
+	public ResponseEntity<String> updateDwpGwpDescription(@RequestHeader String username, @RequestBody DwpRevisionRecordDto dwpRevisionRecordDto) throws Exception {
+		try {
+			logger.info("update-dwp-gwp-description");
+			Long result=service.updateDwpGwpDescription(dwpRevisionRecordDto,username);
+			 if(result > 0) {
+				 return new ResponseEntity<String>("200" , HttpStatus.OK);
+			 }else {
+				 return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
+			 }
+		} catch (Exception e) {
+			 logger.error("update-dwp-gwp-description"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+		}
+	}
+	
 }

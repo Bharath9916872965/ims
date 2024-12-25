@@ -5,11 +5,13 @@ import java.util.List;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
+import com.vts.ims.master.dto.DivisionEmployeeDto;
 import com.vts.ims.master.dto.DivisionGroupDto;
 import com.vts.ims.master.dto.DivisionMasterDto;
 import com.vts.ims.qms.dto.CheckListMasterDto;
 import com.vts.ims.qms.dto.DwpRevisionRecordDto;
 import com.vts.ims.qms.dto.DwpSectionDto;
+import com.vts.ims.qms.dto.DwpTransactionDto;
 import com.vts.ims.qms.dto.MRMastersDto;
 import com.vts.ims.qms.dto.QmsDocTypeDto;
 import com.vts.ims.qms.dto.QmsIssueDto;
@@ -87,6 +89,12 @@ public interface QmsService {
 	public Integer forwardDwpGwp(DwpRevisionRecordDto dwprevisionDto, String username) throws Exception;
 	public List<MRMastersDto> getMrRepList() throws Exception;
 	public List<MRMastersDto> getMrList() throws Exception;
+	public Long addnewdwpgwprevision(DwpRevisionRecordDto dwprevisionRecordDto, String username) throws Exception;
+	public Long revokeDwpRevision(DwpRevisionRecordDto dwprevisionRecordDto, String username) throws Exception;
+	public List<DwpTransactionDto> dwpRevisionTran(String revisionRecordId) throws Exception;
+	public List<DivisionEmployeeDto> getDivisionEmployee() throws Exception;
+	public Long updateQmDescription(QmsQmRevisionRecordDto qmsqmrevisionDto, String username) throws Exception;
+	public Long updateDwpGwpDescription(DwpRevisionRecordDto dwpRevisionRecordDto, String username) throws Exception;
 	
 	
 }
