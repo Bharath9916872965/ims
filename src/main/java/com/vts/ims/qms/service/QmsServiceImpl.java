@@ -11,6 +11,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.vts.ims.qms.dto.*;
+import com.vts.ims.qms.model.*;
+import com.vts.ims.qms.repository.*;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,83 +73,92 @@ import com.vts.ims.qms.repository.QmsQmSectionsRepo;
 
 @Service
 public class QmsServiceImpl implements QmsService {
-	
+
 	private static final Logger logger=LogManager.getLogger(QmsServiceImpl.class);
 
 	@Value("${appStorage}")
 	private String storageDrive;
-	
+
 	@Value("${x_api_key}")
 	private String xApiKey;
-	
+
 	@Autowired
 	private MasterClient masterClient;
-	
+
 	@Autowired
 	private QmsQmRevisionRecordRepo qmsQmRevisionRecordRepo;
-	
+
 	@Autowired
 	private QmsQmChaptersRepo qmsQmChaptersRepo;
-	
+
 	@Autowired
 	private QmsQmSectionsRepo qmsQmSectionsRepo;
-	
+
 	@Autowired
 	private QmsQmRevisionTransactionRepo qmsQmRevisionTransactionRepo;
-	
+
 	@Autowired
 	private QmsQmDocumentSummaryRepo qmsQmDocumentSummaryRepo;
-	
+
 	@Autowired
 	private QmsAbbreviationsRepo qmsAbbreviationsRepo;
-	
+
 	@Autowired
 	private QmsQmMappingOfClassesRepo qmsQmMappingOfClassesRepo;
-	
+
 	@Autowired
 	private DwpRevisionRecordRepo dwpRevisionRecordRepo;
-	
+
 	@Autowired
 	private DwpSectionsRepo dwpSectionsRepo;
-	
+
 	@Autowired
 	private DwpChaptersRepo dwpChaptersRepo;
-	
+
 	@Autowired
 	private DwpGwpDocumentSummaryRepo dwpGwpDocumentSummaryRepo;
-	
+
 	@Autowired
 	private AuditeeRepository auditeeRepository;
 
 	@Autowired
-	DwpSectionsMasterRepo sectionsMasterRepo;
-	
+	private DwpSectionsMasterRepo sectionsMasterRepo;
+
+	@Autowired
+	private QmsQspRevisionRecordRepo qspRevisionRecordRepo;
+
+	@Autowired
+	QmsQspChaptersRepo qspChaptersRepo;
+
+	@Autowired
+	QmsQspDocumentSummaryRepo qspDocumentSummaryRepo;
+
 	@Autowired
 	QmsDocStatusRepo qmsdocstatusrepo;
-	
+
 	@Autowired
 	DwpRevisionTransactionRepo dwpTransactionrepo;
-	
+
 	@Autowired
 	MrMastersRepo mrMastersrepo;
-	
+
 	@Override
 	public List<QmsQmRevisionRecordDto> getQmVersionRecordDtoList() throws Exception {
 		logger.info( " Inside getQmVersionRecordDtoList() " );
 		try {
-			
-			
+
+
 			List<QmsQmRevisionRecordDto> qmsQmRevisionRecordDtoList = new ArrayList<QmsQmRevisionRecordDto>();
 			List<QmsQmRevisionRecord> qmRevisionRecord = qmsQmRevisionRecordRepo.findAllActiveQmRecords();
 			List<QmsDocStatus> qmsdocStatus=qmsdocstatusrepo.findAll();
 			List<EmployeeDto> employeeList=masterClient.getEmployeeList(xApiKey);
-		    Map<Long, EmployeeDto> employeeMap = employeeList.stream()
-		            .filter(employee -> employee.getEmpId() != null)
-		            .collect(Collectors.toMap(EmployeeDto::getEmpId, employee -> employee));
-		    
+			Map<Long, EmployeeDto> employeeMap = employeeList.stream()
+					.filter(employee -> employee.getEmpId() != null)
+					.collect(Collectors.toMap(EmployeeDto::getEmpId, employee -> employee));
+
 			Map<String, String> statusCodeToStatusMap = qmsdocStatus.stream()
-			        .collect(Collectors.toMap(QmsDocStatus::getStatusCode, QmsDocStatus::getStatus));
-			
+					.collect(Collectors.toMap(QmsDocStatus::getStatusCode, QmsDocStatus::getStatus));
+
 			qmRevisionRecord.forEach(revison -> {
 				EmployeeDto initiatedBy =  employeeMap.get(revison.getInitiatedBy());
 				EmployeeDto reviewed =  employeeMap.get(revison.getReviewedBy());
@@ -174,10 +187,10 @@ public class QmsServiceImpl implements QmsService {
 						.IsActive(revison.getIsActive())
 						.Status(statusCodeToStatusMap.getOrDefault(revison.getStatusCode(), "Unknown Status"))
 						.build();
-				
+
 				qmsQmRevisionRecordDtoList.add(qmsQmRevisionRecordDto);
 			});
-			
+
 			return qmsQmRevisionRecordDtoList;
 		} catch (Exception e) {
 			logger.info( " Inside getQmVersionRecordDtoList() "+ e );
@@ -185,7 +198,7 @@ public class QmsServiceImpl implements QmsService {
 			return new ArrayList<QmsQmRevisionRecordDto>();
 		}
 	}
-	
+
 	@Override
 	public List<QmsQmChaptersDto> getAllQMChapters() throws Exception {
 		logger.info( " Inside qmUnAddListToAddList() " );
@@ -214,7 +227,7 @@ public class QmsServiceImpl implements QmsService {
 						.ModifiedDate(chapter.getModifiedDate())
 						.IsActive(chapter.getIsActive())
 						.build();
-				
+
 				qmsQmChaptersDtoList.add(qmsQmChaptersDto);
 			});
 			return qmsQmChaptersDtoList;
@@ -224,15 +237,15 @@ public class QmsServiceImpl implements QmsService {
 			return new ArrayList<QmsQmChaptersDto>();
 		}
 	}
-	
-	
+
+
 	@Override
 	public List<QmsQmSectionsDto> getUnAddedQmSectionList() throws Exception {
 		logger.info( " Inside qmUnAddListToAddList() " );
 		try {
 			List<QmsQmSectionsDto> qmsQmSectionsDtoList = new ArrayList<QmsQmSectionsDto>();
 			List<QmsQmSections> qmSections = qmsQmSectionsRepo.findSectionsNotInChapters();
-			
+
 			qmSections.forEach(section -> {
 				QmsQmSectionsDto qmsQmChaptersDto = QmsQmSectionsDto.builder()
 						.SectionId(section.getSectionId())
@@ -243,10 +256,10 @@ public class QmsServiceImpl implements QmsService {
 						.ModifiedDate(section.getModifiedDate())
 						.IsActive(section.getIsActive())
 						.build();
-				
+
 				qmsQmSectionsDtoList.add(qmsQmChaptersDto);
 			});
-			
+
 			return qmsQmSectionsDtoList;
 		} catch (Exception e) {
 			logger.info( " Inside getUnAddedQmSectionList() "+ e );
@@ -254,7 +267,7 @@ public class QmsServiceImpl implements QmsService {
 			return new ArrayList<QmsQmSectionsDto>();
 		}
 	}
-	
+
 	@Override
 	public Long addNewQmSection(String sectionName, String username) throws Exception {
 		logger.info( " Inside qmUnAddListToAddList() " );
@@ -271,14 +284,14 @@ public class QmsServiceImpl implements QmsService {
 			return 0l;
 		}
 	}
-	
+
 	@Override
 	public Long qmUnAddListToAddList(@RequestBody long[] selectedSections, @RequestHeader  String username) throws Exception {
 		logger.info( " Inside qmUnAddListToAddList() " );
 		try {
 			long res=0;
 			for(long id : selectedSections) {
-			
+
 				Optional<QmsQmSections> optionalSection = qmsQmSectionsRepo.findById(id);
 				if (optionalSection.isPresent()) {
 					QmsQmSections qmsQmSections = optionalSection.get();
@@ -291,18 +304,18 @@ public class QmsServiceImpl implements QmsService {
 					qmsQmChapters.setIsActive(1);
 					res = res+ qmsQmChaptersRepo.save(qmsQmChapters).getChapterId();
 				}
-			
+
 			}
-			
+
 			return res;
-			
+
 		} catch (Exception e) {
 			logger.info( " Inside qmUnAddListToAddList() "+ e );
 			e.printStackTrace();
 			return 0l;
 		}
 	}
-	
+
 	@Override
 	public List<QmsQmChaptersDto> getQmSubChaptersById(Long chapterId) throws Exception {
 		logger.info( " Inside getQmSubChaptersById() ");
@@ -324,7 +337,7 @@ public class QmsServiceImpl implements QmsService {
 						.ModifiedDate(chapter.getModifiedDate())
 						.IsActive(chapter.getIsActive())
 						.build();
-				
+
 				qmsQmChaptersDtoList.add(qmsQmChaptersDto);
 			});
 			return qmsQmChaptersDtoList;
@@ -334,7 +347,7 @@ public class QmsServiceImpl implements QmsService {
 			return new ArrayList<QmsQmChaptersDto>();
 		}
 	}
-	
+
 	@Override
 	public Long addQmNewSubChapter(Long chapterId, String chapterName, String username) throws Exception {
 		logger.info( " Inside addQmNewSubChapter() ");
@@ -359,13 +372,16 @@ public class QmsServiceImpl implements QmsService {
 			return 0l;
 		}
 	}
-	
+
 	@Override
 	public Long updateQmChapterContent(Long chapterId, String chapterContent, String username) throws Exception {
 		logger.info( " Inside updateQmChapterContent() ");
 		try {
 			Long res = 0l;
-			chapterContent = chapterContent.replace("\"", "");
+			chapterContent = chapterContent.replace("\\", "");
+			if (chapterContent.startsWith("\"") && chapterContent.endsWith("\"")) {
+				chapterContent = chapterContent.substring(1, chapterContent.length() - 1);
+			}
 			Optional<QmsQmChapters> optionalChapters = qmsQmChaptersRepo.findById(chapterId);
 			if (optionalChapters.isPresent()) {
 				QmsQmChapters qmsQmChapters = optionalChapters.get();
@@ -382,7 +398,7 @@ public class QmsServiceImpl implements QmsService {
 			return 0l;
 		}
 	}
-	
+
 	@Override
 	public Long updateQmChapterName(Long chapterId, String chapterName, String username) throws Exception {
 		logger.info( " Inside updateQmChapterName() ");
@@ -394,7 +410,7 @@ public class QmsServiceImpl implements QmsService {
 				qmsQmChapters.setChapterName(chapterName);
 				qmsQmChapters.setModifiedBy(username);
 				qmsQmChapters.setModifiedDate(LocalDateTime.now());
-				
+
 				res = qmsQmChaptersRepo.save(qmsQmChapters).getChapterId();
 			}
 			return res;
@@ -404,7 +420,7 @@ public class QmsServiceImpl implements QmsService {
 			return 0l;
 		}
 	}
-	
+
 	@Override
 	public Long addNewQmRevision(QmsQmRevisionRecordDto qmsQmRevisionRecordDto, String username) throws Exception {
 		logger.info( " Inside addNewQmRevision() ");
@@ -412,7 +428,7 @@ public class QmsServiceImpl implements QmsService {
 		System.out.println("qmsQmRevisionRecordDto"+qmsQmRevisionRecordDto);
 		try {
 			QmsQmRevisionRecord qmsQmRevisionRecord = new QmsQmRevisionRecord();
-			
+
 			qmsQmRevisionRecord.setDescription(qmsQmRevisionRecordDto.getDescription());
 			qmsQmRevisionRecord.setIssueNo(qmsQmRevisionRecordDto.getIssueNo());
 			qmsQmRevisionRecord.setRevisionNo(qmsQmRevisionRecordDto.getRevisionNo());
@@ -423,9 +439,9 @@ public class QmsServiceImpl implements QmsService {
 			qmsQmRevisionRecord.setCreatedDate(LocalDateTime.now());
 			qmsQmRevisionRecord.setCreatedBy(username);
 			qmsQmRevisionRecord.setIsActive(1);
-			
+
 			res = qmsQmRevisionRecordRepo.save(qmsQmRevisionRecord).getRevisionRecordId();
-			
+
 //			QmsQmRevisionTransaction trans = new QmsQmRevisionTransaction();
 //			trans.setEmpId(qmsQmRevisionRecordDto.getEmpId());
 //			trans.setRevisionRecordId(qmsQmRevisionRecord.getRevisionRecordId());
@@ -433,7 +449,7 @@ public class QmsServiceImpl implements QmsService {
 //			trans.setTransactionDate(LocalDateTime.now());
 //			trans.setRemarks(null);
 //			qmsQmRevisionTransactionRepo.save(trans);
-			
+
 			return res;
 		} catch (Exception e) {
 			logger.error(  " Inside addNewQmRevision() "+ e );
@@ -441,14 +457,14 @@ public class QmsServiceImpl implements QmsService {
 			return res;
 		}
 	}
-	
+
 	@Override
 	public Long addQmDocSummary(QmsQmDocumentSummaryDto qmsQmDocumentSummaryDto, String username) throws Exception {
 		logger.info( " Inside addQmDocSummary() ");
 		try {
-			
+
 			long res =0;
-			
+
 			QmsQmDocumentSummary qmsQmDocumentSummary = new QmsQmDocumentSummary();
 			qmsQmDocumentSummary.setDocumentSummaryId(qmsQmDocumentSummaryDto.getDocumentSummaryId());
 			qmsQmDocumentSummary.setAdditionalInfo(qmsQmDocumentSummaryDto.getAdditionalInfo());
@@ -458,54 +474,54 @@ public class QmsServiceImpl implements QmsService {
 			qmsQmDocumentSummary.setRevisionRecordId(qmsQmDocumentSummaryDto.getRevisionRecordId());
 			qmsQmDocumentSummary.setCreatedBy(qmsQmDocumentSummaryDto.getCreatedBy());
 			qmsQmDocumentSummary.setCreatedDate(qmsQmDocumentSummaryDto.getCreatedDate());
-			
-			
+
+
 			if(qmsQmDocumentSummary.getDocumentSummaryId() >0 ) {
-				
+
 				qmsQmDocumentSummary.setModifiedBy(username);
 				qmsQmDocumentSummary.setModifiedDate(LocalDateTime.now());
 				res=qmsQmDocumentSummaryRepo.save(qmsQmDocumentSummary).getDocumentSummaryId();
-				
+
 			} else {
 				qmsQmDocumentSummary.setCreatedBy(username);
 				qmsQmDocumentSummary.setCreatedDate(LocalDateTime.now());
 				res=qmsQmDocumentSummaryRepo.save(qmsQmDocumentSummary).getDocumentSummaryId();
 			}
-			
+
 			return res;
-			
+
 		} catch (Exception e) {
 			logger.error(  " Inside addQmDocSummary() "+ e );
 			e.printStackTrace();
 			return 0l;
 		}
 	}
-	
+
 	@Override
 	public QmsQmDocumentSummaryDto getQmDocSummarybyId(long documentSummaryId) throws Exception {
 		logger.info( " Inside getQmDocSummarybyId() ");
 		try {
 			Optional<QmsQmDocumentSummary> optionalQmsQmDocumentSummary= qmsQmDocumentSummaryRepo.findById(documentSummaryId);
-			
+
 			QmsQmDocumentSummaryDto.QmsQmDocumentSummaryDtoBuilder qmsQmDocumentSummaryDtobuilder = QmsQmDocumentSummaryDto.builder();
 
 			if (optionalQmsQmDocumentSummary.isPresent()) {
 				QmsQmDocumentSummary existingSummary = optionalQmsQmDocumentSummary.get();
 				qmsQmDocumentSummaryDtobuilder
-				.DocumentSummaryId(existingSummary.getDocumentSummaryId())
-				.AdditionalInfo(existingSummary.getAdditionalInfo())
-				.Abstract(existingSummary.getAbstract())
-				.Keywords(existingSummary.getKeywords())
-				.Distribution(existingSummary.getDistribution())
-				.RevisionRecordId(existingSummary.getRevisionRecordId())
-				.CreatedBy(existingSummary.getCreatedBy())
-				.CreatedDate(existingSummary.getCreatedDate())
-				.ModifiedBy(existingSummary.getModifiedBy())
-				.ModifiedDate(existingSummary.getModifiedDate());
+						.DocumentSummaryId(existingSummary.getDocumentSummaryId())
+						.AdditionalInfo(existingSummary.getAdditionalInfo())
+						.Abstract(existingSummary.getAbstract())
+						.Keywords(existingSummary.getKeywords())
+						.Distribution(existingSummary.getDistribution())
+						.RevisionRecordId(existingSummary.getRevisionRecordId())
+						.CreatedBy(existingSummary.getCreatedBy())
+						.CreatedDate(existingSummary.getCreatedDate())
+						.ModifiedBy(existingSummary.getModifiedBy())
+						.ModifiedDate(existingSummary.getModifiedDate());
 			}
 
 			QmsQmDocumentSummaryDto qmsQmDocumentSummary = qmsQmDocumentSummaryDtobuilder.build();
-			
+
 			return qmsQmDocumentSummary;
 		} catch (Exception e) {
 			logger.error(  " Inside getQmDocSummarybyId() "+ e );
@@ -513,14 +529,14 @@ public class QmsServiceImpl implements QmsService {
 			return null;
 		}
 	}
-	
+
 	@Override
 	public QmsQmDocumentSummary getQmDocSummarybyRevisionRecordId(long revisionRecordId) throws Exception {
 		logger.info( " Inside getQmDocSummarybyRevisionRecordId() ");
 		try {
 			QmsQmDocumentSummary existingSummary = qmsQmDocumentSummaryRepo.findByRevisionRecordId(revisionRecordId);
-		
-			
+
+
 			return existingSummary;
 		} catch (Exception e) {
 			logger.error(  " Inside getQmDocSummarybyRevisionRecordId() "+ e );
@@ -528,7 +544,7 @@ public class QmsServiceImpl implements QmsService {
 			return null;
 		}
 	}
-	
+
 	@Override
 	public long deleteQmChapterById(long chapterId , String username) throws Exception {
 		try {
@@ -539,7 +555,7 @@ public class QmsServiceImpl implements QmsService {
 				qmsQmChapters.setIsActive(0);
 				qmsQmChapters.setModifiedBy(username);
 				qmsQmChapters.setModifiedDate(LocalDateTime.now());
-				
+
 				res = qmsQmChaptersRepo.save(qmsQmChapters).getChapterId();
 			}
 			return res;
@@ -549,7 +565,7 @@ public class QmsServiceImpl implements QmsService {
 			return 0;
 		}
 	}
-	
+
 	@Override
 	public QmsQmChaptersDto getQmChapterById(long chapterId) throws Exception {
 		logger.info( " Inside getQmChapterById() " );
@@ -557,8 +573,8 @@ public class QmsServiceImpl implements QmsService {
 			QmsQmChaptersDto qmsQmChaptersDto = QmsQmChaptersDto.builder().build();
 			Optional<QmsQmChapters> optionalChapters = qmsQmChaptersRepo.findById(chapterId);
 			if(optionalChapters.isPresent()) {
-						QmsQmChapters chapter = optionalChapters.get();
-						qmsQmChaptersDto = QmsQmChaptersDto.builder()
+				QmsQmChapters chapter = optionalChapters.get();
+				qmsQmChaptersDto = QmsQmChaptersDto.builder()
 						.ChapterId(chapter.getChapterId())
 						.ChapterParentId(chapter.getChapterParentId())
 						.SectionId(chapter.getSectionId())
@@ -572,7 +588,7 @@ public class QmsServiceImpl implements QmsService {
 						.ModifiedDate(chapter.getModifiedDate())
 						.IsActive(chapter.getIsActive())
 						.build();
-				
+
 			}
 			return qmsQmChaptersDto;
 		} catch (Exception e) {
@@ -581,8 +597,8 @@ public class QmsServiceImpl implements QmsService {
 			return QmsQmChaptersDto.builder().build();
 		}
 	}
-	
-	
+
+
 	@Override
 	public long updatechapterPagebreakAndLandscape(String[] chapterPagebreakOrLandscape, String username) throws Exception {
 		logger.info( " Inside updatechapterPagebreakAndLandscape() " );
@@ -592,7 +608,7 @@ public class QmsServiceImpl implements QmsService {
 			String IsPagebreakAfter = chapterPagebreakOrLandscape[1];
 			String IsLandscape = chapterPagebreakOrLandscape[2];
 
-			
+
 			Optional<QmsQmChapters> optionalChapters = qmsQmChaptersRepo.findById(chapterId);
 			if (optionalChapters.isPresent()) {
 				QmsQmChapters qmsQmChapters = optionalChapters.get();
@@ -600,37 +616,37 @@ public class QmsServiceImpl implements QmsService {
 				qmsQmChapters.setIsLandscape(IsLandscape.charAt(0));
 				qmsQmChapters.setModifiedBy(username);
 				qmsQmChapters.setModifiedDate(LocalDateTime.now());
-				
+
 				res = qmsQmChaptersRepo.save(qmsQmChapters).getChapterId();
 			}
-			
+
 			return res;
 		} catch (Exception e) {
 			logger.error( " Inside updatechapterPagebreakAndLandscape " +e);
 			return 0;
 		}
 	}
-	
+
 	@Override
 	public List<QmsAbbreviations> getAbbreviationList(String abbreviationIdNotReq) throws Exception {
 		logger.info( " Inside getAbbreviationList() " );
 		try {
-			
+
 			String abbreviationId = "";
 			if(abbreviationIdNotReq != null) {
 				abbreviationIdNotReq = abbreviationIdNotReq.trim();
 				abbreviationId = abbreviationIdNotReq.replace("\"", "");
 			}
-			
+
 			List<QmsAbbreviations> abbreviationList =  qmsAbbreviationsRepo.findValidAbbreviations(abbreviationId);
-			
+
 			return abbreviationList;
 		} catch (Exception e) {
 			logger.error( " Inside getAbbreviationList() " +e);
 			return new ArrayList<QmsAbbreviations>();
 		}
 	}
-	
+
 	@Override
 	public QmsQmRevisionRecord getQmsQmRevisionRecord(Long revisionRecordId) throws Exception {
 		logger.info( " Inside getQmsQmRevisionRecord() " );
@@ -642,8 +658,8 @@ public class QmsServiceImpl implements QmsService {
 			return null;
 		}
 	}
-	
-	
+
+
 	@Override
 	public long updateNotReqQmAbbreviationIds(Long revisionRecordId, String abbreviationIds, String username) throws Exception {
 		logger.info( " Inside updateNotReqQmAbbreviationIds() " );
@@ -662,8 +678,8 @@ public class QmsServiceImpl implements QmsService {
 			return 0l;
 		}
 	}
-	
-	
+
+
 	@Override
 	public Long addMappingOfClasses(Long revisionRecordId, List<String[]> mocList, String username) throws Exception {
 		logger.info( " Inside addMappingOfClasses() " );
@@ -689,7 +705,7 @@ public class QmsServiceImpl implements QmsService {
 			return 0l;
 		}
 	}
-	
+
 	@Override
 	public List<Object[]> getMocList(Long revisionRecordId) throws Exception {
 		logger.info( " Inside getMocList() " );
@@ -701,48 +717,48 @@ public class QmsServiceImpl implements QmsService {
 			return new ArrayList<Object[]>();
 		}
 	}
-	
+
 	@Override
 	public List<QmsQmMappingDto> getMoctotalList() throws Exception {
 		logger.info(new Date() + " Inside getMoctotalList() " );
 		try {
-			 List<QmsQmMappingOfClasses> result = qmsQmMappingOfClassesRepo.findAll();
-			 return Optional.ofNullable(result).orElse(Collections.emptyList()).stream().map(entity -> QmsQmMappingDto.builder()
-					 									   .mocId(entity.getMocId())
-					 									   .clauseNo(entity.getClauseNo())
-					 									   .sectionNo(entity.getSectionNo())
-					 									   .mocParentId(entity.getMocParentId())
-					 									   .description(entity.getDescription())
-					 									   .revisionRecordId(entity.getRevisionRecordId())
-					 									   .isForCheckList(entity.getIsForCheckList())
-					 									   .isActive(entity.getIsActive())
-					 									   .build()).collect(Collectors.toList());
-			 
+			List<QmsQmMappingOfClasses> result = qmsQmMappingOfClassesRepo.findAll();
+			return Optional.ofNullable(result).orElse(Collections.emptyList()).stream().map(entity -> QmsQmMappingDto.builder()
+					.mocId(entity.getMocId())
+					.clauseNo(entity.getClauseNo())
+					.sectionNo(entity.getSectionNo())
+					.mocParentId(entity.getMocParentId())
+					.description(entity.getDescription())
+					.revisionRecordId(entity.getRevisionRecordId())
+					.isForCheckList(entity.getIsForCheckList())
+					.isActive(entity.getIsActive())
+					.build()).collect(Collectors.toList());
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error(new Date()  + "Inside service getMoctotalList() " + e);
 			return List.of();
 		}
 	}
-	
+
 	@Override
 	//public List<DwpRevisionRecordDto> getDwpVersionRecordDtoList(Long divisionId) throws Exception {
 	public List<DwpRevisionRecordDto> getDwpVersionRecordDtoList(QmsDocTypeDto qmsDocTypeDto) throws Exception {
 		logger.info( " Inside getQmVersionRecordDtoList() " );
 		try {
-			
+
 			List<DivisionMasterDto> divisionDtoList = masterClient.getDivisionMaster(xApiKey);
 			List<DivisionGroupDto> divisiongroupDtoList = masterClient.getDivisionGroupList(xApiKey);
-			
+
 			List<QmsDocStatus> qmsdocStatus=qmsdocstatusrepo.findAll();
 			List<EmployeeDto> employeeList=masterClient.getEmployeeList(xApiKey);
-		    Map<Long, EmployeeDto> employeeMap = employeeList.stream()
-		            .filter(employee -> employee.getEmpId() != null)
-		            .collect(Collectors.toMap(EmployeeDto::getEmpId, employee -> employee));
-		    
+			Map<Long, EmployeeDto> employeeMap = employeeList.stream()
+					.filter(employee -> employee.getEmpId() != null)
+					.collect(Collectors.toMap(EmployeeDto::getEmpId, employee -> employee));
+
 			Map<String, String> statusCodeToStatusMap = qmsdocStatus.stream()
-			        .collect(Collectors.toMap(QmsDocStatus::getStatusCode, QmsDocStatus::getStatus));
-			
+					.collect(Collectors.toMap(QmsDocStatus::getStatusCode, QmsDocStatus::getStatus));
+
 			List<DwpRevisionRecordDto> revisionRecordDtoList = new ArrayList<DwpRevisionRecordDto>();
 			List<DwpRevisionRecord> revisionRecord = dwpRevisionRecordRepo.findAllActiveDwpRecordsByDocType(qmsDocTypeDto.getDocType(), qmsDocTypeDto.getGroupDivisionId());
 			revisionRecord.forEach(revison -> {
@@ -751,24 +767,24 @@ public class QmsServiceImpl implements QmsService {
 				EmployeeDto approved =  employeeMap.get(revison.getApprovedBy());
 				DivisionMasterDto divisionDto = null;
 				DivisionGroupDto divisiongroupDto = null;
-				
+
 				if(revison.getDocType().equalsIgnoreCase("dwp")) {
-					
+
 					divisionDto = divisionDtoList.stream()
-			    	        .filter(division -> division.getDivisionId().equals(revison.getGroupDivisionId()))
-			    	        .findFirst()
-			    	        .orElse(null);
-					
+							.filter(division -> division.getDivisionId().equals(revison.getGroupDivisionId()))
+							.findFirst()
+							.orElse(null);
+
 				} else if(revison.getDocType().equalsIgnoreCase("gwp")) {
-					
+
 					divisiongroupDto = divisiongroupDtoList.stream()
-			    	        .filter(obj -> obj.getGroupId().equals(revison.getGroupDivisionId()))
-			    	        .findFirst()
-			    	        .orElse(null);
+							.filter(obj -> obj.getGroupId().equals(revison.getGroupDivisionId()))
+							.findFirst()
+							.orElse(null);
 				}
-				
+
 				DwpRevisionRecordDto qmsQmRevisionRecordDto = DwpRevisionRecordDto.builder()
-						
+
 						.RevisionRecordId(revison.getRevisionRecordId())
 						.DocType(revison.getDocType())
 						.GroupDivisionId(revison.getGroupDivisionId())
@@ -796,10 +812,10 @@ public class QmsServiceImpl implements QmsService {
 						.IsActive(revison.getIsActive())
 						.Status(statusCodeToStatusMap.getOrDefault(revison.getStatusCode(), "Unknown Status"))
 						.build();
-				
+
 				revisionRecordDtoList.add(qmsQmRevisionRecordDto);
 			});
-			
+
 			return revisionRecordDtoList;
 		} catch (Exception e) {
 			logger.error( " Inside getDwpVersionRecordDtoList() "+ e );
@@ -807,7 +823,7 @@ public class QmsServiceImpl implements QmsService {
 			return new ArrayList<DwpRevisionRecordDto>();
 		}
 	}
-	
+
 	@Override
 	public List<DwpChapters> getAllDwpChapters(QmsDocTypeDto qmsDocTypeDto) throws Exception {
 		logger.info( " Inside getAllDwpChapters() " );
@@ -820,8 +836,8 @@ public class QmsServiceImpl implements QmsService {
 			return new ArrayList<DwpChapters>();
 		}
 	}
-	
-	
+
+
 	@Override
 	public Long updateDwpChapterName(Long chapterId, String chapterName, String username) throws Exception {
 		logger.info( " Inside updateDwpChapterName() ");
@@ -833,7 +849,7 @@ public class QmsServiceImpl implements QmsService {
 				chapters.setChapterName(chapterName);
 				chapters.setModifiedBy(username);
 				chapters.setModifiedDate(LocalDateTime.now());
-				
+
 				res = dwpChaptersRepo.save(chapters).getChapterId();
 			}
 			return res;
@@ -843,7 +859,7 @@ public class QmsServiceImpl implements QmsService {
 			return 0l;
 		}
 	}
-	
+
 	@Override
 	public List<DwpChapters> getDwpSubChaptersById(Long chapterId) throws Exception {
 		logger.info( " Inside getDwpSubChaptersById() ");
@@ -856,8 +872,8 @@ public class QmsServiceImpl implements QmsService {
 			return new ArrayList<DwpChapters>();
 		}
 	}
-	
-	
+
+
 	@Override
 	public long deleteDwpChapterById(Long chapterId , String username) throws Exception {
 		try {
@@ -868,7 +884,7 @@ public class QmsServiceImpl implements QmsService {
 				chapters.setIsActive(0);
 				chapters.setModifiedBy(username);
 				chapters.setModifiedDate(LocalDateTime.now());
-				
+
 				res = dwpChaptersRepo.save(chapters).getChapterId();
 			}
 			return res;
@@ -878,8 +894,8 @@ public class QmsServiceImpl implements QmsService {
 			return 0;
 		}
 	}
-	
-	
+
+
 	@Override
 	public Long addDwpNewSubChapter(Long chapterId, String chapterName, String username) throws Exception {
 		logger.info( " Inside addDwpNewSubChapter() ");
@@ -906,7 +922,7 @@ public class QmsServiceImpl implements QmsService {
 			return 0l;
 		}
 	}
-	
+
 	@Override
 	public long updateDwpPagebreakAndLandscape(String[] chapterPagebreakOrLandscape, String username) throws Exception {
 		logger.info( " Inside updateDwpPagebreakAndLandscape() " );
@@ -916,7 +932,7 @@ public class QmsServiceImpl implements QmsService {
 			String IsPagebreakAfter = chapterPagebreakOrLandscape[1];
 			String IsLandscape = chapterPagebreakOrLandscape[2];
 
-			
+
 			Optional<DwpChapters> optionalChapters = dwpChaptersRepo.findById(chapterId);
 			if (optionalChapters.isPresent()) {
 				DwpChapters chapters = optionalChapters.get();
@@ -924,17 +940,17 @@ public class QmsServiceImpl implements QmsService {
 				chapters.setIsLandscape(IsLandscape.charAt(0));
 				chapters.setModifiedBy(username);
 				chapters.setModifiedDate(LocalDateTime.now());
-				
+
 				res = dwpChaptersRepo.save(chapters).getChapterId();
 			}
-			
+
 			return res;
 		} catch (Exception e) {
 			logger.error( " Inside updateDwpPagebreakAndLandscape() " +e);
 			return 0;
 		}
 	}
-	
+
 	@Override
 	public DwpChapters getDwpChapterById(long chapterId) throws Exception {
 		logger.info( " Inside getDwpChapterById() " );
@@ -951,14 +967,17 @@ public class QmsServiceImpl implements QmsService {
 			return new DwpChapters();
 		}
 	}
-	
-	
+
+
 	@Override
 	public Long updateDwpChapterContent(Long chapterId, String chapterContent, String username) throws Exception {
 		logger.info( " Inside updateDwpChapterContent() ");
 		try {
 			Long res = 0l;
-			chapterContent = chapterContent.replace("\"", "");
+			chapterContent = chapterContent.replace("\\", "");
+			if (chapterContent.startsWith("\"") && chapterContent.endsWith("\"")) {
+				chapterContent = chapterContent.substring(1, chapterContent.length() - 1);
+			}
 			Optional<DwpChapters> optionalChapters = dwpChaptersRepo.findById(chapterId);
 			if (optionalChapters.isPresent()) {
 				DwpChapters chapters = optionalChapters.get();
@@ -975,14 +994,14 @@ public class QmsServiceImpl implements QmsService {
 			return 0l;
 		}
 	}
-	
+
 	@Override
 	public List<DwpSections> getDwpUnAddedQmSectionList(QmsDocTypeDto qmsDocTypeDto) throws Exception {
 		logger.info( " Inside qmUnAddListToAddList() " );
 		try {
 			List<DwpSections> sections = dwpSectionsRepo.findSectionsNotInChapters(qmsDocTypeDto.getDocType(), qmsDocTypeDto.getGroupDivisionId());
-			
-			
+
+
 			return sections;
 		} catch (Exception e) {
 			logger.error( " Inside getUnAddedQmSectionList() "+ e );
@@ -990,7 +1009,7 @@ public class QmsServiceImpl implements QmsService {
 			return new ArrayList<DwpSections>();
 		}
 	}
-	
+
 	@Override
 	public Long addNewDwpSection(DwpSectionDto dwpSectionDto, String username) throws Exception {
 		logger.info( " Inside addNewDwpSection() " );
@@ -1009,14 +1028,14 @@ public class QmsServiceImpl implements QmsService {
 			return 0l;
 		}
 	}
-	
+
 	@Override
 	public Long dwpUnAddListToAddList(@RequestBody long[] selectedSections, @RequestHeader  String username) throws Exception {
 		logger.info( " Inside dwpUnAddListToAddList() " );
 		try {
 			long res=0;
 			for(long id : selectedSections) {
-			
+
 				Optional<DwpSections> optionalSection = dwpSectionsRepo.findById(id);
 				if (optionalSection.isPresent()) {
 					DwpSections sections = optionalSection.get();
@@ -1030,9 +1049,9 @@ public class QmsServiceImpl implements QmsService {
 					res = res+ dwpChaptersRepo.save(chapters).getChapterId();
 				}
 			}
-			
+
 			return res;
-			
+
 		} catch (Exception e) {
 			logger.error( " Inside dwpUnAddListToAddList() "+ e );
 			e.printStackTrace();
@@ -1042,110 +1061,110 @@ public class QmsServiceImpl implements QmsService {
 
 	@Override
 	public Integer updateChapterDescById(CheckListMasterDto checkListMasterDto, String username) throws Exception {
-	    logger.info(" AuditServiceImpl Inside method updateChapterDescById()");
-	    Integer result = 0;
-	    try {
-	    	 result = qmsQmMappingOfClassesRepo.updateMoc(checkListMasterDto.getMocId(),checkListMasterDto.getDescription(),username,LocalDateTime.now());
-	    	
-	    } catch (Exception e) {
-	    	e.printStackTrace();
-	        logger.error("AuditServiceImpl Inside method updateChapterDescById() " + e);
-	    }
-	    return result;
+		logger.info(" AuditServiceImpl Inside method updateChapterDescById()");
+		Integer result = 0;
+		try {
+			result = qmsQmMappingOfClassesRepo.updateMoc(checkListMasterDto.getMocId(),checkListMasterDto.getDescription(),username,LocalDateTime.now());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method updateChapterDescById() " + e);
+		}
+		return result;
 	}
-	
+
 	@Override
 	public Integer deleteChapterDescById(String mocId, String username) throws Exception {
-	    logger.info(" AuditServiceImpl Inside method deleteChapterDescById()");
-	    Integer result = 0;
-	    try {
-	    	 result = qmsQmMappingOfClassesRepo.deleteMoc(mocId,username,LocalDateTime.now());
-	    	
-	    } catch (Exception e) {
-	    	e.printStackTrace();
-	        logger.error("AuditServiceImpl Inside method deleteChapterDescById() " + e);
-	    }
-	    return result;
+		logger.info(" AuditServiceImpl Inside method deleteChapterDescById()");
+		Integer result = 0;
+		try {
+			result = qmsQmMappingOfClassesRepo.deleteMoc(mocId,username,LocalDateTime.now());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method deleteChapterDescById() " + e);
+		}
+		return result;
 	}
-	
+
 	@Override
 	public Integer deleteSubChapterDescById(String mocId, String username) throws Exception {
-	    logger.info(" AuditServiceImpl Inside method deleteSubChapterDescById()");
-	    Integer result = 0;
-	    try {
-	    	 result = qmsQmMappingOfClassesRepo.deleteSubChapter(mocId,username,LocalDateTime.now());
-	    	
-	    } catch (Exception e) {
-	    	e.printStackTrace();
-	        logger.error("AuditServiceImpl Inside method deleteSubChapterDescById() " + e);
-	    }
-	    return result;
+		logger.info(" AuditServiceImpl Inside method deleteSubChapterDescById()");
+		Integer result = 0;
+		try {
+			result = qmsQmMappingOfClassesRepo.deleteSubChapter(mocId,username,LocalDateTime.now());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method deleteSubChapterDescById() " + e);
+		}
+		return result;
 	}
 
 	@Override
 	public Long addNewChapter(CheckListMasterDto checkListMasterDto, String username) throws Exception {
-	    logger.info(" AuditServiceImpl Inside method addNewChapter()");
-	    long result = 0;
-	    try {
-	    	QmsQmMappingOfClasses mapClasses = new QmsQmMappingOfClasses();
-	    	mapClasses.setSectionNo(checkListMasterDto.getSectionNo());	
-	    	if(checkListMasterDto.getLevel() == 0) {
-		    	mapClasses.setClauseNo(checkListMasterDto.getSectionNo());	
-		    	mapClasses.setMocParentId(0L);
-	    	}else if(checkListMasterDto.getLevel() == 1 || checkListMasterDto.getLevel() == 2 || checkListMasterDto.getLevel() == 3 || checkListMasterDto.getLevel() == 4) {
-		    	mapClasses.setClauseNo(checkListMasterDto.getClauseNo());	
-		    	mapClasses.setMocParentId(checkListMasterDto.getMocId());
-	    	}
-	    	
-	    	mapClasses.setDescription(checkListMasterDto.getDescription());
-	    	mapClasses.setRevisionRecordId(1L);
-	    	mapClasses.setIsActive(1);
-	    	mapClasses.setIsForCheckList("N");
-	    	mapClasses.setCreatedBy(username);
-	    	mapClasses.setCreatedDate(LocalDateTime.now());
-	    	
-	    	result = qmsQmMappingOfClassesRepo.save(mapClasses).getMocId();	    	
-	    } catch (Exception e) {
-	    	e.printStackTrace();
-	        logger.error("AuditServiceImpl Inside method addNewChapter() " + e);
-	    }
-	    return result;
+		logger.info(" AuditServiceImpl Inside method addNewChapter()");
+		long result = 0;
+		try {
+			QmsQmMappingOfClasses mapClasses = new QmsQmMappingOfClasses();
+			mapClasses.setSectionNo(checkListMasterDto.getSectionNo());
+			if(checkListMasterDto.getLevel() == 0) {
+				mapClasses.setClauseNo(checkListMasterDto.getSectionNo());
+				mapClasses.setMocParentId(0L);
+			}else if(checkListMasterDto.getLevel() == 1 || checkListMasterDto.getLevel() == 2 || checkListMasterDto.getLevel() == 3 || checkListMasterDto.getLevel() == 4) {
+				mapClasses.setClauseNo(checkListMasterDto.getClauseNo());
+				mapClasses.setMocParentId(checkListMasterDto.getMocId());
+			}
+
+			mapClasses.setDescription(checkListMasterDto.getDescription());
+			mapClasses.setRevisionRecordId(1L);
+			mapClasses.setIsActive(1);
+			mapClasses.setIsForCheckList("N");
+			mapClasses.setCreatedBy(username);
+			mapClasses.setCreatedDate(LocalDateTime.now());
+
+			result = qmsQmMappingOfClassesRepo.save(mapClasses).getMocId();
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method addNewChapter() " + e);
+		}
+		return result;
 	}
 
 	@Override
 	public int addChapterToMasters(List<String> mocIds, String username) throws Exception {
-	    logger.info(" AuditServiceImpl Inside method addChapterToMasters()");
-	    int result = 0;
-	    try {
-	    	for(String data : mocIds) {
-	    		String[] chapterData = data.split("#");
-	    		result = qmsQmMappingOfClassesRepo.addToCheckListMaster(chapterData[0],chapterData[1],username,LocalDateTime.now());
-	    	}
-	    } catch (Exception e) {
-	    	e.printStackTrace();
-	        logger.error("AuditServiceImpl Inside method addChapterToMasters() " + e);
-	    }
-	    return result;
+		logger.info(" AuditServiceImpl Inside method addChapterToMasters()");
+		int result = 0;
+		try {
+			for(String data : mocIds) {
+				String[] chapterData = data.split("#");
+				result = qmsQmMappingOfClassesRepo.addToCheckListMaster(chapterData[0],chapterData[1],username,LocalDateTime.now());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method addChapterToMasters() " + e);
+		}
+		return result;
 	}
 
 	@Override
 	public Integer updateCheckListChapters(List<Long> mocIds, String username) throws Exception {
-	    logger.info(" AuditServiceImpl Inside method updateCheckListChapters()");
-	    int result = 0;
-	    try {
-	    	result = qmsQmMappingOfClassesRepo.deleteCheckListChapters();
-	    	if(result >0) {
-		    	for(Long id : mocIds) {
-		    		result = qmsQmMappingOfClassesRepo.updateCheckListChapters(id,username,LocalDateTime.now());
-		    	}
-	    	}
-	    } catch (Exception e) {
-	    	e.printStackTrace();
-	        logger.error("AuditServiceImpl Inside method updateCheckListChapters() " + e);
-	    }
-	    return result;
+		logger.info(" AuditServiceImpl Inside method updateCheckListChapters()");
+		int result = 0;
+		try {
+			result = qmsQmMappingOfClassesRepo.deleteCheckListChapters();
+			if(result >0) {
+				for(Long id : mocIds) {
+					result = qmsQmMappingOfClassesRepo.updateCheckListChapters(id,username,LocalDateTime.now());
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method updateCheckListChapters() " + e);
+		}
+		return result;
 	}
-	
+
 	@Override
 	public DwpRevisionRecord getDwpRevisionRecord(Long revisionRecordId) throws Exception {
 		logger.info( " Inside getDwpRevisionRecord() " );
@@ -1157,7 +1176,7 @@ public class QmsServiceImpl implements QmsService {
 			return null;
 		}
 	}
-	
+
 	@Override
 	public long updateNotReqDwpAbbreviationIds(Long revisionRecordId, String abbreviationIds, String username) throws Exception {
 		logger.info( " Inside updateNotReqDwpAbbreviationIds() " );
@@ -1176,14 +1195,14 @@ public class QmsServiceImpl implements QmsService {
 			return 0l;
 		}
 	}
-	
+
 	@Override
 	public Long addDwpDocSummary(DwpGwpDocumentSummary documentSummary, String username) throws Exception {
 		logger.info( " Inside addDwpDocSummary() ");
 		try {
-			
+
 			long res =0;
-			
+
 			DwpGwpDocumentSummary newDocumentSummary = new DwpGwpDocumentSummary();
 			newDocumentSummary.setDocumentSummaryId(documentSummary.getDocumentSummaryId());
 			newDocumentSummary.setAdditionalInfo(documentSummary.getAdditionalInfo());
@@ -1193,35 +1212,35 @@ public class QmsServiceImpl implements QmsService {
 			newDocumentSummary.setRevisionRecordId(documentSummary.getRevisionRecordId());
 			newDocumentSummary.setCreatedBy(documentSummary.getCreatedBy());
 			newDocumentSummary.setCreatedDate(documentSummary.getCreatedDate());
-			
-			
+
+
 			if(newDocumentSummary.getDocumentSummaryId() >0 ) {
-				
+
 				newDocumentSummary.setModifiedBy(username);
 				newDocumentSummary.setModifiedDate(LocalDateTime.now());
 				res = dwpGwpDocumentSummaryRepo.save(newDocumentSummary).getDocumentSummaryId();
-				
+
 			} else {
 				newDocumentSummary.setCreatedBy(username);
 				newDocumentSummary.setCreatedDate(LocalDateTime.now());
 				res = dwpGwpDocumentSummaryRepo.save(newDocumentSummary).getDocumentSummaryId();
 			}
-			
+
 			return res;
-			
+
 		} catch (Exception e) {
 			logger.error(  " Inside addDwpDocSummary() "+ e );
 			e.printStackTrace();
 			return 0l;
 		}
 	}
-	
+
 	@Override
 	public DwpGwpDocumentSummary getDwpDocSummarybyRevisionRecordId(long revisionRecordId) throws Exception {
 		logger.info( " Inside getQmDocSummarybyRevisionRecordId() ");
 		try {
 			DwpGwpDocumentSummary existingSummary = dwpGwpDocumentSummaryRepo.findByRevisionRecordId(revisionRecordId);
-				
+
 			return existingSummary;
 		} catch (Exception e) {
 			logger.error(  " Inside getQmDocSummarybyRevisionRecordId() "+ e );
@@ -1230,44 +1249,44 @@ public class QmsServiceImpl implements QmsService {
 		}
 	}
 
-	
+
 	@Override
 	public List<DivisionMasterDto> getDwpDivisionMaster(Integer imsFormRoleId, Long empId) throws Exception {
-	    logger.info("Inside getDwpDivisionMaster()");
-	    try {
+		logger.info("Inside getDwpDivisionMaster()");
+		try {
 
-	        List<Integer> isAllList = Arrays.asList(1, 2, 3, 4);
-	        List<DivisionMasterDto> divisionDto = masterClient.getDivisionMaster(xApiKey);
+			List<Integer> isAllList = Arrays.asList(1, 2, 3, 4);
+			List<DivisionMasterDto> divisionDto = masterClient.getDivisionMaster(xApiKey);
 
-	        List<DivisionMasterDto> activeAllDivisionDto = divisionDto.stream()
-	            .filter(dto -> dto.getIsActive() == 1)
-	            .collect(Collectors.toList());
+			List<DivisionMasterDto> activeAllDivisionDto = divisionDto.stream()
+					.filter(dto -> dto.getIsActive() == 1)
+					.collect(Collectors.toList());
 
-	        if (isAllList.contains(imsFormRoleId)) {
-	            return activeAllDivisionDto;
-	        }
+			if (isAllList.contains(imsFormRoleId)) {
+				return activeAllDivisionDto;
+			}
 
 			List<EmployeeDto> emp = masterClient.getEmployee(xApiKey, empId);
 
 			EmployeeDto empDto = emp.size() > 0 ? emp.get(0) : EmployeeDto.builder().build();
 
-	        List<DivisionEmployeeDto> divisionEmployeeDtoList = masterClient.getDivisionEmpDetailsById(xApiKey);
-	        List<DivisionEmployeeDto> divisionEmployeeDtoListByEmpId = divisionEmployeeDtoList.stream().filter(dto -> dto.getEmpId().equals(empId)).collect(Collectors.toList());
-	        List<Long> auditeeDivisionIds = auditeeRepository.findDivisionIdsByEmpId(empId);
-	        
+			List<DivisionEmployeeDto> divisionEmployeeDtoList = masterClient.getDivisionEmpDetailsById(xApiKey);
+			List<DivisionEmployeeDto> divisionEmployeeDtoListByEmpId = divisionEmployeeDtoList.stream().filter(dto -> dto.getEmpId().equals(empId)).collect(Collectors.toList());
+			List<Long> auditeeDivisionIds = auditeeRepository.findDivisionIdsByEmpId(empId);
 
-	        List<DivisionMasterDto> returnDivisionList = activeAllDivisionDto.stream()
-	            .filter(obj -> divisionEmployeeDtoListByEmpId.stream()
-	            		.anyMatch(dto -> dto.getDivisionId().equals(obj.getDivisionId()))
-	                    || empDto.getDivisionId().equals(obj.getDivisionId()) || (auditeeDivisionIds.contains(obj.getDivisionId())))
-	            .collect(Collectors.toList());
 
-	        return returnDivisionList;
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        logger.error("Error in getDwpDivisionMaster() ", e);
-	        return Collections.emptyList();
-	    }
+			List<DivisionMasterDto> returnDivisionList = activeAllDivisionDto.stream()
+					.filter(obj -> divisionEmployeeDtoListByEmpId.stream()
+							.anyMatch(dto -> dto.getDivisionId().equals(obj.getDivisionId()))
+							|| empDto.getDivisionId().equals(obj.getDivisionId()) || (auditeeDivisionIds.contains(obj.getDivisionId())))
+					.collect(Collectors.toList());
+
+			return returnDivisionList;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error in getDwpDivisionMaster() ", e);
+			return Collections.emptyList();
+		}
 	}
 
 	@Override
@@ -1321,23 +1340,23 @@ public class QmsServiceImpl implements QmsService {
 			return Collections.emptyList();
 		}
 	}
-	
+
 	@Override
 	public DwpRevisionRecord addNewDwpRevisionRecord(QmsIssueDto qmsIssueDto, String username) throws Exception {
 		logger.info("Inside addNewDwpRevisionRecord() ");
 
 		try {
-			
-	
+
+
 			DwpRevisionRecord dwpRevisionRecord = new DwpRevisionRecord();
-	
+
 //			Login login = loginRepo.findByUsername(username);
 //			EmployeeDto emp = masterClient.getEmployee(xApiKey, login.getEmpId()).get(0);
-			
+
 			String version = qmsIssueDto.getNewAmendVersion();
 			String issueVersion = version.split("-")[0];
 			String releaseVersion = version.split("-")[1];
-			
+
 			dwpRevisionRecord.setGroupDivisionId(qmsIssueDto.getGroupDivisionId());
 			dwpRevisionRecord.setDescription(qmsIssueDto.getAmendParticulars());
 			dwpRevisionRecord.setIssueNo(Integer.parseInt(issueVersion.substring(1)));
@@ -1351,26 +1370,26 @@ public class QmsServiceImpl implements QmsService {
 
 			List<DwpSectionsMaster> dwpSectionsMaster = sectionsMasterRepo.findAll();
 			if(!dwpSectionsMaster.isEmpty()){
-				 for (DwpSectionsMaster sectionsMaster : dwpSectionsMaster) {
-					 DwpSections master = new DwpSections();
-					 if(qmsIssueDto.getDocType().equalsIgnoreCase("gwp")){
-						 master.setDocType("gwp");
-					 }else{
-						 master.setDocType("dwp");
-					 }
-					 master.setSectionName(sectionsMaster.getSectionName());
-					 master.setGroupDivisionId(qmsIssueDto.getGroupDivisionId());
-					 master.setCreatedDate(LocalDateTime.now());
-					 master.setCreatedBy(username);
-					 master.setIsActive(1);
-					 dwpSectionsRepo.save(master);
-				 }
+				for (DwpSectionsMaster sectionsMaster : dwpSectionsMaster) {
+					DwpSections master = new DwpSections();
+					if(qmsIssueDto.getDocType().equalsIgnoreCase("gwp")){
+						master.setDocType("gwp");
+					}else{
+						master.setDocType("dwp");
+					}
+					master.setSectionName(sectionsMaster.getSectionName());
+					master.setGroupDivisionId(qmsIssueDto.getGroupDivisionId());
+					master.setCreatedDate(LocalDateTime.now());
+					master.setCreatedBy(username);
+					master.setIsActive(1);
+					dwpSectionsRepo.save(master);
+				}
 			}
 
 			List<DwpSections> dwpSections = dwpSectionsRepo.findAllByGroupDivisionIdAndDocTypeAndIsActive(qmsIssueDto.getGroupDivisionId(),qmsIssueDto.getDocType(),1);
 			if(!dwpSections.isEmpty()){
 				for (DwpSections sections : dwpSections) {
-                    DwpChapters chapters = new DwpChapters();
+					DwpChapters chapters = new DwpChapters();
 					chapters.setSectionId(sections.getSectionId());
 					chapters.setChapterParentId(0);
 					chapters.setChapterName(sections.getSectionName());
@@ -1385,18 +1404,302 @@ public class QmsServiceImpl implements QmsService {
 			}
 
 //			res = dwpRevisionRecordRepo.save(dwpRevisionRecord).getRevisionRecordId();
-			
+
 			return dwpRevisionRecordRepo.save(dwpRevisionRecord);
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("Error in addNewDwpRevisionRecord() ", e);
 			return null;
 		}
-		
+
 	}
 
 	@Override
+	public List<QmsQspRevisionRecordDto> getQspVersionRecordDtoList() throws Exception {
+		logger.info( " Inside getQmVersionRecordDtoList() " );
+		try {
+			List<QmsQspRevisionRecordDto> revisionRecordDtoList = new ArrayList<>();
+			revisionRecordDtoList = qspRevisionRecordRepo.findAll().stream()
+					.map(revision -> QmsQspRevisionRecordDto.builder()
+							.revisionRecordId(revision.getRevisionRecordId())
+							.docName(revision.getDocName().trim())
+							.docFileName(revision.getDocFileName())
+							.docFilepath(revision.getDocFilepath())
+							.description(revision.getDescription())
+							.issueNo(revision.getIssueNo())
+							.revisionNo(revision.getRevisionNo())
+							.dateOfRevision(revision.getDateOfRevision())
+							.statusCode(revision.getStatusCode())
+							.abbreviationIdNotReq(revision.getAbbreviationIdNotReq())
+							.createdBy(revision.getCreatedBy())
+							.createdDate(revision.getCreatedDate())
+							.modifiedBy(revision.getModifiedBy())
+							.modifiedDate(revision.getModifiedDate())
+							.isActive(revision.getIsActive())
+							.build())
+					.collect(Collectors.toList());
+			return revisionRecordDtoList;
+		} catch (Exception e) {
+			logger.info( " Inside getQmVersionRecordDtoList() "+ e );
+			e.printStackTrace();
+			return new ArrayList<QmsQspRevisionRecordDto>();
+		}
+	}
+
+	@Override
+	public List<QmsQspChapters> getAllQspChapters(QmsDocTypeDto qmsDocTypeDto) {
+		logger.info( " Inside getAllQspChapters() " );
+		try {
+			List<QmsQspChapters> chapters = qspChaptersRepo.findAllActiveQspChapters(qmsDocTypeDto.getDocType());
+			return chapters;
+		} catch (Exception e) {
+			logger.error( " Inside getAllQspChapters() "+ e );
+			e.printStackTrace();
+			return new ArrayList<QmsQspChapters>();
+		}
+	}
+
+	@Override
+	public List<QmsQspChapters> getQspSubChaptersById(Long chapterId) throws Exception {
+		logger.info( " Inside getQspSubChaptersById() ");
+		try {
+			List<QmsQspChapters> chapters = qspChaptersRepo.findByChapterParentIdAndIsActive(chapterId, 1);
+			return chapters;
+		} catch (Exception e) {
+			logger.error( " Inside getQspSubChaptersById() "+ e );
+			e.printStackTrace();
+			return new ArrayList<QmsQspChapters>();
+		}
+	}
+
+	@Override
+	public QmsQspRevisionRecord getQspRevisionRecord(Long revisionRecordId) throws Exception {
+		logger.info( " Inside getQspRevisionRecord() " );
+		try {
+			QmsQspRevisionRecord qspRevisionRecord = qspRevisionRecordRepo.findById(revisionRecordId).orElse(null);
+			return qspRevisionRecord;
+		} catch (Exception e) {
+			logger.error( " Inside getQspRevisionRecord() " +e);
+			return null;
+		}
+	}
+
+	@Override
+	public QmsQspDocumentSummary getQspDocSummarybyRevisionRecordId(long revisionRecordId) throws Exception {
+		logger.info( " Inside getQspDocSummarybyRevisionRecordId() ");
+		try {
+			QmsQspDocumentSummary existingSummary = qspDocumentSummaryRepo.findByRevisionRecordId(revisionRecordId);
+			return existingSummary;
+		} catch (Exception e) {
+			logger.error(  " Inside getQspDocSummarybyRevisionRecordId() "+ e );
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	@Override
+	public QmsQspChapters getQspChapterById(long chapterId) throws Exception {
+		logger.info( " Inside getQspChapterById() " );
+		try {
+			Optional<QmsQspChapters> optionalChapters = qspChaptersRepo.findById(chapterId);
+			if (optionalChapters.isPresent()) {
+				QmsQspChapters chapters = optionalChapters.get();
+				return chapters;
+			}
+			return new QmsQspChapters();
+		} catch (Exception e) {
+			logger.error(" Inside getQspChapterById() "+ e );
+			e.printStackTrace();
+			return new QmsQspChapters();
+		}
+	}
+
+	@Override
+	public Long updateQspChapterContent(Long chapterId, String chapterContent, String username) throws Exception {
+		logger.info( " Inside updateQspChapterContent() ");
+		try {
+			Long res = 0l;
+			chapterContent = chapterContent.replace("\\", "");
+			if (chapterContent.startsWith("\"") && chapterContent.endsWith("\"")) {
+				chapterContent = chapterContent.substring(1, chapterContent.length() - 1);
+			}
+			Optional<QmsQspChapters> optionalChapters = qspChaptersRepo.findById(chapterId);
+			if (optionalChapters.isPresent()) {
+				QmsQspChapters chapters = optionalChapters.get();
+				chapters.setChapterContent(chapterContent);
+				chapters.setModifiedBy(username);
+				chapters.setModifiedDate(LocalDateTime.now());
+
+				res = qspChaptersRepo.save(chapters).getChapterId();
+			}
+			return res;
+		} catch (Exception e) {
+			logger.error( " Inside updateQspChapterContent() "+ e );
+			e.printStackTrace();
+			return 0l;
+		}
+	}
+
+	@Override
+	public Long addQspNewSubChapter(Long chapterId, String chapterName, String username) throws Exception {
+		logger.info( " Inside addQspNewSubChapter() ");
+		try {
+			Long res =0l;
+			Optional<QmsQspChapters> optionalChapters = qspChaptersRepo.findById(chapterId);
+			if (optionalChapters.isPresent()) {
+				QmsQspChapters qspChapters = optionalChapters.get();
+				QmsQspChapters chapters = new QmsQspChapters();
+				chapters.setChapterName(chapterName);
+				chapters.setChapterParentId(chapterId);
+				chapters.setSectionId(qspChapters.getSectionId());
+				chapters.setIsPagebreakAfter('N');
+				chapters.setIsLandscape('N');
+				chapters.setCreatedBy(username);
+				chapters.setCreatedDate(LocalDateTime.now());
+				chapters.setIsActive(1);
+				res = qspChaptersRepo.save(chapters).getChapterId();
+			}
+			return res;
+		} catch (Exception e) {
+			logger.error(  " Inside addQspNewSubChapter() "+ e );
+			e.printStackTrace();
+			return 0l;
+		}
+	}
+
+	@Override
+	public Long updateQspChapterName(Long chapterId, String chapterName, String username) throws Exception {
+		logger.info( " Inside updateQspChapterName() ");
+		try {
+			Long res = 0l;
+			Optional<QmsQspChapters> optionalChapters = qspChaptersRepo.findById(chapterId);
+			if (optionalChapters.isPresent()) {
+				QmsQspChapters chapters = optionalChapters.get();
+				chapters.setChapterName(chapterName);
+				chapters.setModifiedBy(username);
+				chapters.setModifiedDate(LocalDateTime.now());
+
+				res = qspChaptersRepo.save(chapters).getChapterId();
+			}
+			return res;
+		} catch (Exception e) {
+			logger.error(  " Inside updateQspChapterName() "+ e );
+			e.printStackTrace();
+			return 0l;
+		}
+	}
+
+	@Override
+	public Long deleteQspChapterById(long chapterId, String username) throws Exception {
+		try {
+			Long res = 0l;
+			Optional<QmsQspChapters> optionalChapters = qspChaptersRepo.findById(chapterId);
+			if (optionalChapters.isPresent()) {
+				QmsQspChapters chapters = optionalChapters.get();
+				chapters.setIsActive(0);
+				chapters.setModifiedBy(username);
+				chapters.setModifiedDate(LocalDateTime.now());
+
+				res = qspChaptersRepo.save(chapters).getChapterId();
+			}
+			return res;
+		} catch (Exception e) {
+			logger.error( "Inside DAO deleteDwpChapterById() " + e);
+			e.printStackTrace();
+			return 0l;
+		}
+	}
+
+	@Override
+	public Long updateQspPagebreakAndLandscape(String[] chaperContent, String username) throws Exception {
+		logger.info( " Inside updateDwpPagebreakAndLandscape() " );
+		try {
+			long res=0;
+			long chapterId = Long.parseLong(chaperContent[0]);
+			String IsPagebreakAfter = chaperContent[1];
+			String IsLandscape = chaperContent[2];
+
+
+			Optional<QmsQspChapters> optionalChapters = qspChaptersRepo.findById(chapterId);
+			if (optionalChapters.isPresent()) {
+				QmsQspChapters chapters = optionalChapters.get();
+				chapters.setIsPagebreakAfter(IsPagebreakAfter.charAt(0));
+				chapters.setIsLandscape(IsLandscape.charAt(0));
+				chapters.setModifiedBy(username);
+				chapters.setModifiedDate(LocalDateTime.now());
+
+				res = qspChaptersRepo.save(chapters).getChapterId();
+			}
+
+			return res;
+		} catch (Exception e) {
+			logger.error( " Inside updateDwpPagebreakAndLandscape() " +e);
+			return 0l;
+		}
+	}
+
+	@Override
+	public long updateNotReqQspAbbreviationIds(Long revisionRecordId, String abbreviationIds, String username) throws Exception {
+		logger.info( " Inside updateNotReqQspAbbreviationIds() " );
+		try {
+			long res =0;
+			Optional<QmsQspRevisionRecord> optionalRevisionRecord = qspRevisionRecordRepo.findById(revisionRecordId);
+			System.out.println("optionalRevisionRecord"+ optionalRevisionRecord.get().getRevisionRecordId());
+			if(optionalRevisionRecord.isPresent()) {
+				QmsQspRevisionRecord qspRevisionRecord = optionalRevisionRecord.get();
+				qspRevisionRecord.setAbbreviationIdNotReq(abbreviationIds);
+				qspRevisionRecord.setModifiedBy(username);
+				qspRevisionRecord.setModifiedDate(LocalDateTime.now());
+				res = qspRevisionRecordRepo.save(qspRevisionRecord).getRevisionRecordId();
+			}
+			return res;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error( "Inside service updateNotReqQspAbbreviationIds() " + e);
+			return 0l;
+		}
+	}
+
+	@Override
+	public long addQspDocSummary(QmsQspDocumentSummary qspDocumentSummary, String username) throws Exception {
+		logger.info( " Inside addQspDocSummary() ");
+		try {
+
+			long res =0;
+
+			QmsQspDocumentSummary newDocumentSummary = new QmsQspDocumentSummary();
+			newDocumentSummary.setDocumentSummaryId(qspDocumentSummary.getDocumentSummaryId());
+			newDocumentSummary.setAdditionalInfo(qspDocumentSummary.getAdditionalInfo());
+			newDocumentSummary.setAbstract(qspDocumentSummary.getAbstract());
+			newDocumentSummary.setKeywords(qspDocumentSummary.getKeywords());
+			newDocumentSummary.setDistribution(qspDocumentSummary.getDistribution());
+			newDocumentSummary.setRevisionRecordId(qspDocumentSummary.getRevisionRecordId());
+			newDocumentSummary.setCreatedBy(qspDocumentSummary.getCreatedBy());
+			newDocumentSummary.setCreatedDate(qspDocumentSummary.getCreatedDate());
+
+
+			if(newDocumentSummary.getDocumentSummaryId() >0 ) {
+
+				newDocumentSummary.setModifiedBy(username);
+				newDocumentSummary.setModifiedDate(LocalDateTime.now());
+				res = qspDocumentSummaryRepo.save(newDocumentSummary).getDocumentSummaryId();
+
+			} else {
+				newDocumentSummary.setCreatedBy(username);
+				newDocumentSummary.setCreatedDate(LocalDateTime.now());
+				res = qspDocumentSummaryRepo.save(newDocumentSummary).getDocumentSummaryId();
+			}
+
+			return res;
+
+		} catch (Exception e) {
+			logger.error(  " Inside addQspDocSummary() "+ e );
+			e.printStackTrace();
+			return 0l;
+		}
+	}
+
 	public Integer forwardQm(QmsQmRevisionRecordDto qmsqmrevisionDto, String username) throws Exception {
 		logger.info("Inside forwardQm() ");
 		try {
@@ -1427,27 +1730,27 @@ public class QmsServiceImpl implements QmsService {
 								qmsqmrevision.setStatusCodeNext("RWD");
 							}
 						}
-			}else {
-				qmsqmrevision.setStatusCode(RevisionStatusCodeNext);
-				if(RevisionStatusCodeNext.equalsIgnoreCase("RWD")) {
-					if(qmsqmrevision.getApprovedBy()!=null) {
-						qmsqmrevision.setStatusCodeNext("APD");
-					}
+					}else {
+						qmsqmrevision.setStatusCode(RevisionStatusCodeNext);
+						if(RevisionStatusCodeNext.equalsIgnoreCase("RWD")) {
+							if(qmsqmrevision.getApprovedBy()!=null) {
+								qmsqmrevision.setStatusCodeNext("APD");
+							}
 
-				}
-				}
+						}
+					}
 					res=qmsQmRevisionRecordRepo.save(qmsqmrevision).getRevisionRecordId();
-			}else if(Action.equalsIgnoreCase("R")){
-				if(RevisionStatusCodeNext.equalsIgnoreCase("RWD")) 
-				{
-					qmsqmrevision.setStatusCode("RTM");	
+				}else if(Action.equalsIgnoreCase("R")){
+					if(RevisionStatusCodeNext.equalsIgnoreCase("RWD"))
+					{
+						qmsqmrevision.setStatusCode("RTM");
+					}
+					else if(RevisionStatusCodeNext.equalsIgnoreCase("APD"))
+					{
+						qmsqmrevision.setStatusCode("RTD");
+					}
+					res=qmsQmRevisionRecordRepo.save(qmsqmrevision).getRevisionRecordId();
 				}
-				else if(RevisionStatusCodeNext.equalsIgnoreCase("APD")) 
-				{
-					qmsqmrevision.setStatusCode("RTD");	
-				}
-				res=qmsQmRevisionRecordRepo.save(qmsqmrevision).getRevisionRecordId();
-			}
 				QmsQmRevisionTransaction trans = new QmsQmRevisionTransaction();
 				trans.setEmpId(qmsqmrevisionDto.getEmpId());
 				trans.setRevisionRecordId(res);
@@ -1468,19 +1771,19 @@ public class QmsServiceImpl implements QmsService {
 			return null;
 		}
 	}
-	
-	
+
+
 	@Override
 	public long revokeQmRevision(QmsQmRevisionRecordDto qmsqmrevisionDto, String username) {
 		logger.info("Inside revokeQmRevision() ");
 		long res=0;
 		try {
 			if(qmsqmrevisionDto!=null) {
-			Long revisionRecordId = qmsqmrevisionDto.getRevisionRecordId();
-			QmsQmRevisionRecord qmsqmrevision = qmsQmRevisionRecordRepo.findByRevisionRecordId(revisionRecordId);
-			qmsqmrevision.setStatusCode("RVM");
-			qmsqmrevision.setStatusCodeNext("RFD");
-			res=qmsQmRevisionRecordRepo.save(qmsqmrevision).getRevisionRecordId();
+				Long revisionRecordId = qmsqmrevisionDto.getRevisionRecordId();
+				QmsQmRevisionRecord qmsqmrevision = qmsQmRevisionRecordRepo.findByRevisionRecordId(revisionRecordId);
+				qmsqmrevision.setStatusCode("RVM");
+				qmsqmrevision.setStatusCodeNext("RFD");
+				res=qmsQmRevisionRecordRepo.save(qmsqmrevision).getRevisionRecordId();
 			}
 			QmsQmRevisionTransaction trans = new QmsQmRevisionTransaction();
 			trans.setEmpId(qmsqmrevisionDto.getEmpId());
@@ -1496,8 +1799,8 @@ public class QmsServiceImpl implements QmsService {
 			return res;
 		}
 	}
-	
-	
+
+
 	@Override
 	public List<QmsQmRevisionTransactionDto> revisionTran(String revisionRecordId) throws Exception {
 		logger.info( " AuditServiceImpl Inside method revisionTran()");
@@ -1505,33 +1808,33 @@ public class QmsServiceImpl implements QmsService {
 			List<Object[]> tranList = qmsQmRevisionRecordRepo.getRevisionTran(revisionRecordId);
 			List<EmployeeDto> totalEmployee = masterClient.getEmployeeMasterList(xApiKey);
 
-			
-		    Map<Long, EmployeeDto> employeeMap = totalEmployee.stream()
-		            .filter(employee -> employee.getEmpId() != null)
-		            .collect(Collectors.toMap(EmployeeDto::getEmpId, employee -> employee));
-		    
-			 List<QmsQmRevisionTransactionDto> revisionTranDtoList = Optional.ofNullable(tranList).orElse(Collections.emptyList()).stream()
-				    .map(obj -> {
-					    EmployeeDto employee =	obj[0] != null?employeeMap.get(Long.parseLong(obj[0].toString())):null;
 
-					    	return QmsQmRevisionTransactionDto.builder()
-				    			.empId(obj[0]!=null?Long.parseLong(obj[0].toString()):0L)
-				    			.statusCode(obj[1]!=null?obj[1].toString():"")
-				    			.transactionDate(obj[2]!=null?obj[2].toString():"")
-				    			.remarks(obj[3]!=null?obj[3].toString():"")
-				    			.status(obj[4]!=null?obj[4].toString():"")
-				    			.empName(employee != null?employee.getEmpName()+", "+employee.getEmpDesigName():"")
-				    			.build();
-				    })
-				    .collect(Collectors.toList());
+			Map<Long, EmployeeDto> employeeMap = totalEmployee.stream()
+					.filter(employee -> employee.getEmpId() != null)
+					.collect(Collectors.toMap(EmployeeDto::getEmpId, employee -> employee));
+
+			List<QmsQmRevisionTransactionDto> revisionTranDtoList = Optional.ofNullable(tranList).orElse(Collections.emptyList()).stream()
+					.map(obj -> {
+						EmployeeDto employee =	obj[0] != null?employeeMap.get(Long.parseLong(obj[0].toString())):null;
+
+						return QmsQmRevisionTransactionDto.builder()
+								.empId(obj[0]!=null?Long.parseLong(obj[0].toString()):0L)
+								.statusCode(obj[1]!=null?obj[1].toString():"")
+								.transactionDate(obj[2]!=null?obj[2].toString():"")
+								.remarks(obj[3]!=null?obj[3].toString():"")
+								.status(obj[4]!=null?obj[4].toString():"")
+								.empName(employee != null?employee.getEmpName()+", "+employee.getEmpDesigName():"")
+								.build();
+					})
+					.collect(Collectors.toList());
 			return revisionTranDtoList;
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("AuditServiceImpl Inside method revisionTran()"+ e);
-			 return Collections.emptyList();
+			return Collections.emptyList();
 		}
 	}
-	
+
 	@Override
 	public Integer forwardDwpGwp(DwpRevisionRecordDto dwprevisionDto, String username) throws Exception {
 		logger.info("Inside forwardDwpGwp() ");
@@ -1563,27 +1866,27 @@ public class QmsServiceImpl implements QmsService {
 								dwpqmrevision.setStatusCodeNext("RWD");
 							}
 						}
-			}else {
-				dwpqmrevision.setStatusCode(RevisionStatusCodeNext);
-				if(RevisionStatusCodeNext.equalsIgnoreCase("RWD")) {
-					if(dwpqmrevision.getApprovedBy()!=null) {
-						dwpqmrevision.setStatusCodeNext("APG");
-					}
+					}else {
+						dwpqmrevision.setStatusCode(RevisionStatusCodeNext);
+						if(RevisionStatusCodeNext.equalsIgnoreCase("RWD")) {
+							if(dwpqmrevision.getApprovedBy()!=null) {
+								dwpqmrevision.setStatusCodeNext("APG");
+							}
 
-				}
-				}
+						}
+					}
 					res=dwpRevisionRecordRepo.save(dwpqmrevision).getRevisionRecordId();
-			}else if(Action.equalsIgnoreCase("R")){
-				if(RevisionStatusCodeNext.equalsIgnoreCase("RWD")) 
-				{
-					dwpqmrevision.setStatusCode("RTM");	
+				}else if(Action.equalsIgnoreCase("R")){
+					if(RevisionStatusCodeNext.equalsIgnoreCase("RWD"))
+					{
+						dwpqmrevision.setStatusCode("RTM");
+					}
+					else if(RevisionStatusCodeNext.equalsIgnoreCase("APG"))
+					{
+						dwpqmrevision.setStatusCode("RTG");
+					}
+					res=dwpRevisionRecordRepo.save(dwpqmrevision).getRevisionRecordId();
 				}
-				else if(RevisionStatusCodeNext.equalsIgnoreCase("APG")) 
-				{
-					dwpqmrevision.setStatusCode("RTG");	
-				}
-				res=dwpRevisionRecordRepo.save(dwpqmrevision).getRevisionRecordId();
-			}
 				DwpTransaction trans = new DwpTransaction();
 				trans.setEmpId(dwprevisionDto.getEmpId());
 				trans.setRevisionRecordId(res);
@@ -1602,70 +1905,60 @@ public class QmsServiceImpl implements QmsService {
 			return null;
 		}
 	}
-	
+
 	@Override
 	public List<MRMastersDto> getMrRepList() throws Exception {
 		logger.info("Inside getMrRepList() ");
 		try {
 			List<MRMastersDto> mrMastersDtoList = new ArrayList<>();
 			List<Object[]> getMRrepList=mrMastersrepo.getMRrepList("MR Rep",LocalDate.now());
-			
+
 			getMRrepList.forEach(mrRepList -> {
 				MRMastersDto dto = new MRMastersDto();
 				dto.setEmpId(Long.parseLong(mrRepList[0].toString()));
 				dto.setMRType(mrRepList[1].toString());
 				if (mrRepList[2] != null) {
-	                dto.setMRFrom(LocalDate.parse(mrRepList[2].toString()));
-	            }
-	            if (mrRepList[3] != null) {
-	                dto.setMRTo(LocalDate.parse(mrRepList[3].toString()));
-	            }
-	            mrMastersDtoList.add(dto);
+					dto.setMRFrom(LocalDate.parse(mrRepList[2].toString()));
+				}
+				if (mrRepList[3] != null) {
+					dto.setMRTo(LocalDate.parse(mrRepList[3].toString()));
+				}
+				mrMastersDtoList.add(dto);
 			});
 			return mrMastersDtoList;
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("Error in getMrRepList() ", e);
-			return null;  
+			return null;
 		}
 	}
-	
+
 	@Override
 	public List<MRMastersDto> getMrList() throws Exception {
 		logger.info("Inside getMrList() ");
 		try {
 			List<MRMastersDto> mrMastersDtoList = new ArrayList<>();
 			List<Object[]> getMRList=mrMastersrepo.getMRrepList("MR",LocalDate.now());
-			
+
 			getMRList.forEach(mrRepList -> {
 				MRMastersDto dto = new MRMastersDto();
 				dto.setEmpId(Long.parseLong(mrRepList[0].toString()));
 				dto.setMRType(mrRepList[1].toString());
 				if (mrRepList[2] != null) {
-	                dto.setMRFrom(LocalDate.parse(mrRepList[2].toString()));
-	            }
-	            if (mrRepList[3] != null) {
-	                dto.setMRTo(LocalDate.parse(mrRepList[3].toString()));
-	            }
-	            mrMastersDtoList.add(dto);
+					dto.setMRFrom(LocalDate.parse(mrRepList[2].toString()));
+				}
+				if (mrRepList[3] != null) {
+					dto.setMRTo(LocalDate.parse(mrRepList[3].toString()));
+				}
+				mrMastersDtoList.add(dto);
 			});
 			return mrMastersDtoList;
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("Error in getMrList() ", e);
-			return null;  
+			return null;
 		}
 	}
-//	@Override
-//	public List<DwpRevisionRecordDto> getDwpVersionRecordDtoList(Long divisionId) throws Exception {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
 
-//	@Override
-//	public List<DwpChapters> getAllDwpChapters(Long divisionId) throws Exception {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
-	
+
 }

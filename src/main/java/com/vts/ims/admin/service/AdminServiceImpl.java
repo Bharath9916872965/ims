@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import com.vts.ims.admin.dto.*;
 import com.vts.ims.admin.entity.FormRoleAccess;
 import com.vts.ims.admin.repository.*;
+import com.vts.ims.login.Login;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,9 +16,6 @@ import org.springframework.stereotype.Service;
 
 import com.vts.ims.admin.entity.FormDetail;
 import com.vts.ims.admin.entity.FormModule;
-import com.vts.ims.admin.entity.ImsFormRole;
-import com.vts.ims.login.Login;
-import com.vts.ims.login.LoginRepository;
 import com.vts.ims.master.dao.MasterClient;
 import com.vts.ims.master.dto.EmployeeDto;
 import com.vts.ims.master.dto.LoginDetailsDto;
@@ -452,6 +450,71 @@ public class AdminServiceImpl implements AdminService {
 			e.printStackTrace();
 		}
 		return updateResult;
+	}
+
+	@Override
+	public UserManageAddEditDto UserManagerEditData(String loginId) throws Exception {
+		logger.info(new Date() + " AdminServiceImpl Inside method UserManagerEditData " );
+		UserManageAddEditDto userEditData =null;
+		try {
+			userEditData =new UserManageAddEditDto();
+			Login login=userManagerRepo.findByLoginId(Long.parseLong(loginId));
+			userEditData.setRoleId(login.getImsFormRoleId());
+			userEditData.setDivisionId(login.getDivisionId());
+			userEditData.setEmpId(login.getEmpId());
+			userEditData.setLogintypeId(login.getLoginType());
+			userEditData.setLoginId(login.getLoginId());
+			userEditData.setUserName(login.getUsername());
+		} catch (Exception e) {
+			logger.error(new Date() +" error in AdminServiceImpl Inside method AdminServiceImpl "+ e.getMessage());
+			e.printStackTrace();
+		}
+		return userEditData;
+	}
+
+	@Override
+	public int UserManagerUpdate(UserManageAddEditDto userManageAdd, String name) {
+		logger.info(new Date() + " AdminServiceImpl Inside method UserManagerUpdate " );
+		long result = 0;
+		try {
+			Login login=userManagerRepo.findByLoginId(userManageAdd.getLoginId());
+			login.setImsFormRoleId(userManageAdd.getRoleId());
+			login.setLoginId(userManageAdd.getLoginId());
+			login.setLoginType("NA");
+			if(userManageAdd.getEmpId()!=null) {
+				login.setEmpId(userManageAdd.getEmpId());
+				List<EmployeeDto> empData = masterClient.getEmployee(xApiKey,userManageAdd.getEmpId());
+				if (!empData.isEmpty()) {
+					EmployeeDto eDto = empData.get(0); // Get the first element
+					login.setDivisionId(eDto.getDivisionId()); // Now you can access the divisionId
+				}else {
+					login.setDivisionId(Long.parseLong("0"));
+				}
+			}else {
+				login.setEmpId(Long.parseLong("0"));
+				login.setDivisionId(Long.parseLong("0"));
+			}
+			login.setModifiedBy(name);
+			login.setModifiedDate(LocalDateTime.now());
+			userManagerRepo.save(login);
+			result = login.getLoginId();
+		} catch (Exception e) {
+			logger.error(new Date() +" error in AdminServiceImpl Inside method UserManagerUpdate "+ e.getMessage());
+			e.printStackTrace();
+		}
+		return (int) result;
+	}
+
+	@Override
+	public long UserNamePresentCount(String userName) throws Exception {
+		logger.info(new Date() + " AdminServiceImpl Inside method UserNamePresentCount " );
+		try {
+			Long count = userManagerRepo.countByUserNameAndActive(userName);
+			return (count != null) ? count : 0L; // Return 0 if count is null
+		} catch (Exception e) {
+			logger.error(new Date() +" error in AdminServiceImpl Inside method UserNamePresentCount "+ e.getMessage());
+			throw new Exception("Error while counting usernames", e);
+		}
 	}
 
 

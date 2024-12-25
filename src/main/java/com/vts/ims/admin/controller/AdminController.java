@@ -266,6 +266,49 @@ public class AdminController {
 			return result;
 		}
 	}
+
+	@RequestMapping(value = "user-manager-edit-data", method = RequestMethod.POST, produces="application/json")
+	public ResponseEntity<UserManageAddEditDto> UserManagerEditData(@RequestBody String LoginId)
+			throws Exception {
+		logger.info(new Date() + " Inside user-manager-edit-data " );
+		try {
+			UserManageAddEditDto list = service.UserManagerEditData(LoginId);
+			return new ResponseEntity<>(list, HttpStatus.OK);
+		} catch (Exception e) {
+			logger.error(new Date() +"error in user-manager-edit-data "+ e.getMessage());
+			e.printStackTrace();
+			return new ResponseEntity<>(new UserManageAddEditDto(), HttpStatus.OK);
+		}
+	}
+
+	@RequestMapping(value = "user-manager-edit-submit", method = RequestMethod.POST, produces="application/json")
+	public String UserManagerEditSubmit(@RequestBody UserManageAddEditDto UserManageAdd,Authentication authentication)
+			throws Exception {
+		logger.info(new Date() + " Inside user-manager-edit-submit " );
+		int count = 0;
+		try {
+			count = service.UserManagerUpdate(UserManageAdd, authentication.getName());
+
+		} catch (Exception e) {
+			logger.error(new Date() +"error in user-manager-edit-submit "+ e.getMessage());
+			e.printStackTrace();
+		}
+		return String.valueOf(count);
+	}
+
+	@RequestMapping(value = "username-present-count", method = RequestMethod.POST,produces="application/json")
+	public  String UserNamePresentCount(@RequestBody String userName) throws Exception {
+		logger.info(new Date() + " Inside username-present-count " );
+		userName = userName.replace("\"", "");
+		long UserNamePresentCount = 0;
+		try {
+			UserNamePresentCount = service.UserNamePresentCount(userName);
+		} catch (Exception e) {
+			logger.error(new Date() +"error in username-present-count "+ e.getMessage());
+			e.printStackTrace();
+		}
+		return String.valueOf(UserNamePresentCount);
+	}
 	
 	
 }

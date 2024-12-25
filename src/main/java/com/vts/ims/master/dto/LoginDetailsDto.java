@@ -13,6 +13,8 @@ public class LoginDetailsDto {
     private Long empId;
     private String empNo;
     private String empDesigCode;
+    private String title;
+    private String salutation;
     private String empName;
     private Long imsFormRoleId;
     private String photo;
