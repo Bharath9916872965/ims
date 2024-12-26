@@ -109,6 +109,8 @@ public class MasterServiceImpl implements MasterService {
 	                            .username(loginData.getUsername())
 	                            .empId(loginData.getEmpId())
 	                            .empNo(eDto.getEmpNo())
+								.title(eDto.getTitle())
+								.salutation(eDto.getSalutation())
 	                            .empName(eDto.getEmpName())
 	                            .empDesigCode(eDto.getEmpDesigCode()) 
 	                            .imsFormRoleId(loginData.getImsFormRoleId())
