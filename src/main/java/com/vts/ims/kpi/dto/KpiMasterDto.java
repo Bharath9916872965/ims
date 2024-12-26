@@ -10,6 +10,7 @@ public class KpiMasterDto {
 	private Long kpiId;
 	private String kpiObjectives;
 	private String kpiMerics; 
+	private String kpiNorms; 
 	private String kpiTarget; 
 	private Long   kpiUnitId; 
 	private String kpiUnitName; 

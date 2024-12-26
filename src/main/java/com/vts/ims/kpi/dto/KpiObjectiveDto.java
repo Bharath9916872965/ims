@@ -10,6 +10,7 @@ public class KpiObjectiveDto {
 	private Long kpiId;
 	private String objective;
 	private String metrics; 
+	private String norms; 
 	private String target; 
 	private Long kpiUnitId; 
 	private String revisionRecordId; 
