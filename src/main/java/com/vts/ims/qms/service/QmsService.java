@@ -2,13 +2,36 @@ package com.vts.ims.qms.service;
 
 import java.util.List;
 
-import com.vts.ims.qms.dto.*;
-import com.vts.ims.qms.model.*;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
+import com.vts.ims.master.dto.DivisionEmployeeDto;
 import com.vts.ims.master.dto.DivisionGroupDto;
 import com.vts.ims.master.dto.DivisionMasterDto;
+import com.vts.ims.qms.dto.CheckListMasterDto;
+import com.vts.ims.qms.dto.DwpRevisionRecordDto;
+import com.vts.ims.qms.dto.DwpSectionDto;
+import com.vts.ims.qms.dto.DwpTransactionDto;
+import com.vts.ims.qms.dto.MRMastersDto;
+import com.vts.ims.qms.dto.QmsDocTypeDto;
+import com.vts.ims.qms.dto.QmsIssueDto;
+import com.vts.ims.qms.dto.QmsQmChaptersDto;
+import com.vts.ims.qms.dto.QmsQmDocumentSummaryDto;
+import com.vts.ims.qms.dto.QmsQmMappingDto;
+import com.vts.ims.qms.dto.QmsQmRevisionRecordDto;
+import com.vts.ims.qms.dto.QmsQmRevisionTransactionDto;
+import com.vts.ims.qms.dto.QmsQmSectionsDto;
+import com.vts.ims.qms.dto.QmsQspRevisionRecordDto;
+import com.vts.ims.qms.model.DwpChapters;
+import com.vts.ims.qms.model.DwpGwpDocumentSummary;
+import com.vts.ims.qms.model.DwpRevisionRecord;
+import com.vts.ims.qms.model.DwpSections;
+import com.vts.ims.qms.model.QmsAbbreviations;
+import com.vts.ims.qms.model.QmsQmDocumentSummary;
+import com.vts.ims.qms.model.QmsQmRevisionRecord;
+import com.vts.ims.qms.model.QmsQspChapters;
+import com.vts.ims.qms.model.QmsQspDocumentSummary;
+import com.vts.ims.qms.model.QmsQspRevisionRecord;
 
 public interface QmsService {
 
@@ -70,6 +93,12 @@ public interface QmsService {
 	public Integer forwardDwpGwp(DwpRevisionRecordDto dwprevisionDto, String username) throws Exception;
 	public List<MRMastersDto> getMrRepList() throws Exception;
 	public List<MRMastersDto> getMrList() throws Exception;
+	public Long addnewdwpgwprevision(DwpRevisionRecordDto dwprevisionRecordDto, String username) throws Exception;
+	public Long revokeDwpRevision(DwpRevisionRecordDto dwprevisionRecordDto, String username) throws Exception;
+	public List<DwpTransactionDto> dwpRevisionTran(String revisionRecordId) throws Exception;
+	public List<DivisionEmployeeDto> getDivisionEmployee() throws Exception;
+	public Long updateQmDescription(QmsQmRevisionRecordDto qmsqmrevisionDto, String username) throws Exception;
+	public Long updateDwpGwpDescription(DwpRevisionRecordDto dwpRevisionRecordDto, String username) throws Exception;
 	public List<QmsQspRevisionRecordDto> getQspVersionRecordDtoList() throws Exception;
 	public List<QmsQspChapters> getAllQspChapters(QmsDocTypeDto qmsDocTypeDto) throws Exception;
 	public List<QmsQspChapters> getQspSubChaptersById(Long chapterId) throws Exception;

@@ -258,7 +258,6 @@ public class AdminController {
 		String result=null;
 		try {
 			result = service.updateformroleaccess(accessDto, username);
-			System.out.println("FormroleAccessDto" + Arrays.asList(accessDto));
 			return result;
 		} catch (Exception e) {
 			logger.error(new Date() +"error update-form-role-access "+ e.getMessage());
