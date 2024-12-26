@@ -13,9 +13,11 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.vts.ims.audit.model.Iqa;
+import com.vts.ims.risk.dto.MitigationRiskRegisterDto;
 import com.vts.ims.risk.dto.RiskRegisterDto;
+import com.vts.ims.risk.model.MitigationRiskRegisterModel;
 import com.vts.ims.risk.model.RiskRegisterModel;
+import com.vts.ims.risk.repository.MitigationRiskRegisterRepo;
 import com.vts.ims.risk.repository.RiskRegisterRepository;
 
 
@@ -29,11 +31,14 @@ public class RiskServiceImpl implements RiskService{
 	RiskRegisterRepository riskRepository;
 	
 	
+	@Autowired
+	MitigationRiskRegisterRepo mitigationriskRepository;
+	
 	
 	
 	@Override
 	public List<RiskRegisterDto> getRiskRegisterList(Long revisionRecordId) throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getRiskRegisterList()");
+		logger.info(new Date() + " RiskServiceImpl Inside method getRiskRegisterList()");
 		try {
 			List<Object[]> riskRegister = riskRepository.findByRevisionRecordId(revisionRecordId);
 			List<RiskRegisterDto> finalDto = Optional.ofNullable(riskRegister).orElse(Collections.emptyList()).stream()
@@ -62,7 +67,7 @@ public class RiskServiceImpl implements RiskService{
 			return finalDto;
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.error("AuditServiceImpl Inside method getRiskRegisterList()"+ e);
+			logger.error("RiskServiceImpl Inside method getRiskRegisterList()"+ e);
 			return Collections.emptyList();
 		}
 	}
@@ -70,7 +75,7 @@ public class RiskServiceImpl implements RiskService{
 	
 	@Override
 	public long insertRiskRegister(RiskRegisterDto dto, String username) throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method insertRiskRegister()");
+		logger.info(new Date() + " RiskServiceImpl Inside method insertRiskRegister()");
 		long result=0;
 		try {
 			if(dto!=null && dto.getRiskRegisterId()!=null) {
@@ -110,8 +115,105 @@ public class RiskServiceImpl implements RiskService{
 			return result;
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.error("AuditServiceImpl Inside method insertRiskRegister()"+ e);
+			logger.error("RiskServiceImpl Inside method insertRiskRegister()"+ e);
 			return 0;
+		}
+	}
+	
+	
+	@Override
+	public long insertMititgationRiskRegister(MitigationRiskRegisterDto dto, String username) throws Exception {
+		logger.info(new Date() + " RiskServiceImpl Inside method insertMititgationRiskRegister()");
+		long result=0;
+		try {
+			if(dto!=null && dto.getMitigationRiskRegisterId()!=null) {
+				Optional<MitigationRiskRegisterModel> mitigationRiskRegister = mitigationriskRepository.findById(dto.getMitigationRiskRegisterId());
+				if(mitigationRiskRegister.isPresent()) {
+			    MitigationRiskRegisterModel model =mitigationRiskRegister.get();
+			    if(dto.getAction()!=null && dto.getAction().equalsIgnoreCase("U")) {
+				model.setRiskRegisterId(dto.getRiskRegisterId());
+				model.setMitigationApproach(dto.getMitigationApproach());
+				model.setProbability(dto.getProbability());
+				model.setTechnicalPerformance(dto.getTechnicalPerformance());
+				model.setTime(dto.getTime());
+				model.setCost(dto.getCost());
+				model.setAverage(dto.getAverage());
+				model.setRiskNo(dto.getRiskNo());
+				model.setModifiedBy(username);
+				model.setModifiedDate(LocalDateTime.now());
+				model.setIsActive(1);
+				result=mitigationriskRepository.save(model).getMitigationRiskRegisterId();
+				}else if(dto.getAction()!=null && dto.getAction().equalsIgnoreCase("R")) {
+					MitigationRiskRegisterModel modelrevise = new MitigationRiskRegisterModel();
+					modelrevise.setRiskRegisterId(dto.getRiskRegisterId());
+					modelrevise.setMitigationApproach(dto.getMitigationApproach());
+					modelrevise.setProbability(dto.getProbability());
+					modelrevise.setTechnicalPerformance(dto.getTechnicalPerformance());
+					modelrevise.setTime(dto.getTime());
+					modelrevise.setCost(dto.getCost());
+					modelrevise.setAverage(dto.getAverage());
+					modelrevise.setRiskNo(dto.getRiskNo());
+					modelrevise.setRevisionNo(model.getRevisionNo()+1);
+					modelrevise.setCreatedBy(username);
+					modelrevise.setCreatedDate(LocalDateTime.now());
+					modelrevise.setIsActive(1);
+					result=mitigationriskRepository.save(modelrevise).getRiskRegisterId();
+				}
+				}
+			}else {
+			if(dto!=null) {
+				MitigationRiskRegisterModel model = new MitigationRiskRegisterModel();
+				model.setRiskRegisterId(dto.getRiskRegisterId());
+				model.setMitigationApproach(dto.getMitigationApproach());
+				model.setProbability(dto.getProbability());
+				model.setTechnicalPerformance(dto.getTechnicalPerformance());
+				model.setTime(dto.getTime());
+				model.setCost(dto.getCost());
+				model.setAverage(dto.getAverage());
+				model.setRiskNo(dto.getRiskNo());
+				model.setRevisionNo(0);
+				model.setCreatedBy(username);
+				model.setCreatedDate(LocalDateTime.now());
+				model.setIsActive(1);
+				result=mitigationriskRepository.save(model).getRiskRegisterId();
+			}
+			}
+			return result;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("RiskServiceImpl Inside method insertMititgationRiskRegister()"+ e);
+			return 0;
+		}
+	}
+	
+	@Override
+	public List<MitigationRiskRegisterDto> getMititgationRiskRegisterlist(long riskRegisterId) throws Exception {
+		logger.info(new Date() + " RiskServiceImpl Inside method getMititgationRiskRegisterlist()");
+		try {
+			List<Object[]> mitigationRiskRegister = mitigationriskRepository.findByRiskRegisterId(riskRegisterId);
+			List<MitigationRiskRegisterDto> finalDto = Optional.ofNullable(mitigationRiskRegister).orElse(Collections.emptyList()).stream()
+				    .map(obj -> {
+				    	MitigationRiskRegisterDto dto = new MitigationRiskRegisterDto();
+				    	dto.setMitigationRiskRegisterId(Long.parseLong(obj[0].toString()));
+				    	dto.setRiskRegisterId(Long.parseLong(obj[1].toString()));
+				    	dto.setMitigationApproach(obj[2].toString());
+				    	dto.setProbability(Integer.parseInt(obj[3].toString()));
+				    	dto.setTechnicalPerformance(Integer.parseInt(obj[4].toString()));
+				    	dto.setTime(Integer.parseInt(obj[5].toString()));
+				    	dto.setCost(Integer.parseInt(obj[6].toString()));
+				    	dto.setAverage(Double.parseDouble(obj[7].toString()));
+				    	dto.setRiskNo(Double.parseDouble(obj[8].toString()));
+				    	dto.setRevisionNo(Integer.parseInt(obj[9].toString()));
+				    	return dto;
+				    	
+				    })
+				    .sorted(Comparator.comparingLong(MitigationRiskRegisterDto::getMitigationRiskRegisterId).reversed()) 
+				    .collect(Collectors.toList());
+			return finalDto;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("RiskServiceImpl Inside method getMititgationRiskRegisterlist()"+ e);
+			return Collections.emptyList();
 		}
 	}
 }

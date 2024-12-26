@@ -18,7 +18,18 @@ public class QmsQspRevisionRecordDto {
     private int revisionNo;
     private LocalDate dateOfRevision;
     private String statusCode;
+    private String StatusCodeNext;
+	private String Status;
     private String abbreviationIdNotReq;
+    private Long InitiatedBy;
+	private Long ReviewedBy; 
+	private Long ApprovedBy;
+	private String Action;
+	private String Remarks;
+	private Long EmpId;
+	private String InitiatedByEmployee;
+	private String ReviewedByEmployee;
+	private String ApprovedByEmployee;
     private String createdBy;
     private LocalDateTime createdDate;
     private String modifiedBy;
