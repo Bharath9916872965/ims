@@ -83,7 +83,6 @@ public class AuditController {
 		try {
 			logger.info(new Date() + " Inside getEmployelist" );
 			List<EmployeeDto> dto=auditService.getEmployelist();
-			System.out.println("dto1234:"+dto);
 			return new ResponseEntity<List<EmployeeDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.vts.ims.qms.model.DwpRevisionRecord;
-import com.vts.ims.qms.model.QmsQmRevisionRecord;
 
 public interface DwpRevisionRecordRepo extends JpaRepository<DwpRevisionRecord, Long> {
 
@@ -19,6 +18,8 @@ public interface DwpRevisionRecordRepo extends JpaRepository<DwpRevisionRecord, 
 	
 	@Query("SELECT a FROM DwpRevisionRecord a WHERE a.isActive = 1 AND a.docType=:docType  ORDER BY a.revisionRecordId DESC")
 	List<DwpRevisionRecord> findVersionRecordsByDocType(@Param("docType") String docType);
-	
+
+	@Query(value="SELECT a.EmpId,a.StatusCode,a.TransactionDate,a.Remarks,b.Status FROM ims_qms_dwp_revision_transc a,ims_qms_doc_status b WHERE a.RevisionRecordId = :revisionRecordId AND a.StatusCode = b.StatusCode ORDER BY a.DGTransactionId",nativeQuery = true)
+	public List<Object[]> getDwpRevisionTran(@Param("revisionRecordId")String revisionRecordId);
 
 }
