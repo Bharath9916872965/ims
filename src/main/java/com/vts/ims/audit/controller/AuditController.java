@@ -326,7 +326,7 @@ public class AuditController {
 	@PostMapping(value = "/audit-team-list", produces = "application/json")
 	public ResponseEntity<List<AuditorTeamDto>> getAuditTeamList(@RequestHeader String username) throws Exception {
 		try {
-			logger.info(new Date() + " Inside getAuditTeamList" );
+			logger.info(new Date() + "Inside getAuditTeamList" );
 			List<AuditorTeamDto> dto=auditService.getAuditTeamMainList();
 			return new ResponseEntity<List<AuditorTeamDto>>(dto,HttpStatus.OK);
 		} catch (Exception e) {

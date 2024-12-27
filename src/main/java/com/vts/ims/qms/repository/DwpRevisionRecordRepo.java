@@ -12,7 +12,6 @@ import com.vts.ims.qms.model.QmsQmRevisionRecord;
 public interface DwpRevisionRecordRepo extends JpaRepository<DwpRevisionRecord, Long> {
 
 	@Query("SELECT a FROM DwpRevisionRecord a WHERE a.isActive = 1 AND a.docType=:docType AND a.groupDivisionId=:groupDivisionId ORDER BY a.revisionRecordId DESC")
-//    List<DwpRevisionRecord> findAllActiveDwpRecords();
 	List<DwpRevisionRecord> findAllActiveDwpRecordsByDocType(@Param("docType") String docType, @Param("groupDivisionId") Long groupDivisionId);
 	
 	public DwpRevisionRecord findByRevisionRecordId(Long revisionRecordId);
@@ -20,5 +19,7 @@ public interface DwpRevisionRecordRepo extends JpaRepository<DwpRevisionRecord, 
 	@Query("SELECT a FROM DwpRevisionRecord a WHERE a.isActive = 1 AND a.docType=:docType  ORDER BY a.revisionRecordId DESC")
 	List<DwpRevisionRecord> findVersionRecordsByDocType(@Param("docType") String docType);
 	
+	@Query("SELECT a FROM DwpRevisionRecord a WHERE a.isActive = 1 ORDER BY a.revisionRecordId DESC")
+	List<DwpRevisionRecord> findAllActiveDwpRecords();
 
 }
