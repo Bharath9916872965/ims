@@ -22,6 +22,7 @@ import com.vts.ims.qms.dto.QmsQmRevisionRecordDto;
 import com.vts.ims.qms.dto.QmsQmRevisionTransactionDto;
 import com.vts.ims.qms.dto.QmsQmSectionsDto;
 import com.vts.ims.qms.dto.QmsQspRevisionRecordDto;
+import com.vts.ims.qms.dto.QmsQspRevisionTransactionDto;
 import com.vts.ims.qms.model.DwpChapters;
 import com.vts.ims.qms.model.DwpGwpDocumentSummary;
 import com.vts.ims.qms.model.DwpRevisionRecord;
@@ -89,7 +90,7 @@ public interface QmsService {
 	public DwpRevisionRecord addNewDwpRevisionRecord(QmsIssueDto qmsIssueDto, String username) throws Exception;
 	public Integer forwardQm(QmsQmRevisionRecordDto qmsqmrevisionDto, String username) throws Exception;
 	public long revokeQmRevision(QmsQmRevisionRecordDto qmsqmrevisionDto, String username);
-	public List<QmsQmRevisionTransactionDto> revisionTran(String revisionRecordId) throws Exception;
+	public List<QmsQmRevisionTransactionDto> qmsRevisionTran(String revisionRecordId) throws Exception;
 	public Integer forwardDwpGwp(DwpRevisionRecordDto dwprevisionDto, String username) throws Exception;
 	public List<MRMastersDto> getMrRepList() throws Exception;
 	public List<MRMastersDto> getMrList() throws Exception;
@@ -112,6 +113,11 @@ public interface QmsService {
 	public Long updateQspPagebreakAndLandscape(String[] chaperContent, String username) throws Exception;
 	public long updateNotReqQspAbbreviationIds(Long revisionRecordId, String abbreviationIds, String username) throws Exception;
 	public long addQspDocSummary(QmsQspDocumentSummary qspDocumentSummary, String username) throws Exception;
+	public Integer forwardQsp(QmsQspRevisionRecordDto qsprevisionDto, String username) throws Exception;
+	public Long revokeQspRevision(QmsQspRevisionRecordDto qsprevisionRecordDto, String username) throws Exception;
+	public List<QmsQspRevisionTransactionDto> qspRevisionTran(String revisionRecordId) throws Exception;
+	public Long addNewQspRevision(QmsQspRevisionRecordDto qmsQspRevisionRecordDto, String username) throws Exception;
+	public Long updateQspDescription(QmsQspRevisionRecordDto qsprevisionDto, String username) throws Exception;
 	
 	
 }
