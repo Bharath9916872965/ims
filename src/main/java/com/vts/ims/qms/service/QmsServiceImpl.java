@@ -29,19 +29,6 @@ import com.vts.ims.master.dto.DivisionEmployeeDto;
 import com.vts.ims.master.dto.DivisionGroupDto;
 import com.vts.ims.master.dto.DivisionMasterDto;
 import com.vts.ims.master.dto.EmployeeDto;
-import com.vts.ims.qms.dto.CheckListMasterDto;
-import com.vts.ims.qms.dto.DwpRevisionRecordDto;
-import com.vts.ims.qms.dto.DwpSectionDto;
-import com.vts.ims.qms.dto.DwpTransactionDto;
-import com.vts.ims.qms.dto.MRMastersDto;
-import com.vts.ims.qms.dto.QmsDocTypeDto;
-import com.vts.ims.qms.dto.QmsIssueDto;
-import com.vts.ims.qms.dto.QmsQmChaptersDto;
-import com.vts.ims.qms.dto.QmsQmDocumentSummaryDto;
-import com.vts.ims.qms.dto.QmsQmMappingDto;
-import com.vts.ims.qms.dto.QmsQmRevisionRecordDto;
-import com.vts.ims.qms.dto.QmsQmRevisionTransactionDto;
-import com.vts.ims.qms.dto.QmsQmSectionsDto;
 import com.vts.ims.qms.model.DwpChapters;
 import com.vts.ims.qms.model.DwpGwpDocumentSummary;
 import com.vts.ims.qms.model.DwpRevisionRecord;
@@ -142,6 +129,9 @@ public class QmsServiceImpl implements QmsService {
 
 	@Autowired
 	MrMastersRepo mrMastersrepo;
+	
+	@Autowired
+	QmsQspRevisionTransactionRepo qmsqsprevisiontransactionrepo;
 
 	@Override
 	public List<QmsQmRevisionRecordDto> getQmVersionRecordDtoList() throws Exception {
@@ -1426,27 +1416,59 @@ public class QmsServiceImpl implements QmsService {
 	public List<QmsQspRevisionRecordDto> getQspVersionRecordDtoList() throws Exception {
 		logger.info( " Inside getQmVersionRecordDtoList() " );
 		try {
-			List<QmsQspRevisionRecordDto> revisionRecordDtoList = new ArrayList<>();
-			revisionRecordDtoList = qspRevisionRecordRepo.findAll().stream()
-					.map(revision -> QmsQspRevisionRecordDto.builder()
-							.revisionRecordId(revision.getRevisionRecordId())
-							.docName(revision.getDocName().trim())
-							.docFileName(revision.getDocFileName())
-							.docFilepath(revision.getDocFilepath())
-							.description(revision.getDescription())
-							.issueNo(revision.getIssueNo())
-							.revisionNo(revision.getRevisionNo())
-							.dateOfRevision(revision.getDateOfRevision())
-							.statusCode(revision.getStatusCode())
-							.abbreviationIdNotReq(revision.getAbbreviationIdNotReq())
-							.createdBy(revision.getCreatedBy())
-							.createdDate(revision.getCreatedDate())
-							.modifiedBy(revision.getModifiedBy())
-							.modifiedDate(revision.getModifiedDate())
-							.isActive(revision.getIsActive())
-							.build())
-					.collect(Collectors.toList());
-			return revisionRecordDtoList;
+			List<QmsQspRevisionRecordDto> qmsQspRevisionRecordDtoList = new ArrayList<>();
+
+			// Fetching data from repositories and external client
+			List<QmsQspRevisionRecord> qspRevisionRecords = qspRevisionRecordRepo.findAllActiveQspRecords();
+			List<QmsDocStatus> qmsDocStatuses = qmsdocstatusrepo.findAll();
+			List<EmployeeDto> employeeList = masterClient.getEmployeeList(xApiKey);
+
+			// Mapping employee data by Employee ID
+			Map<Long, EmployeeDto> employeeMap = employeeList.stream()
+			        .filter(employee -> employee.getEmpId() != null)
+			        .collect(Collectors.toMap(EmployeeDto::getEmpId, employee -> employee));
+
+			// Mapping document statuses by Status Code
+			Map<String, String> statusCodeToStatusMap = qmsDocStatuses.stream()
+			        .collect(Collectors.toMap(QmsDocStatus::getStatusCode, QmsDocStatus::getStatus));
+
+			// Creating DTO list from QSP revision records
+			qspRevisionRecords.forEach(revision -> {
+			    EmployeeDto initiatedBy = employeeMap.get(revision.getInitiatedBy());
+			    EmployeeDto reviewedBy = employeeMap.get(revision.getReviewedBy());
+			    EmployeeDto approvedBy = employeeMap.get(revision.getApprovedBy());
+
+			    // Constructing the DTO object
+			    QmsQspRevisionRecordDto qmsQspRevisionRecordDto = QmsQspRevisionRecordDto.builder()
+			            .revisionRecordId(revision.getRevisionRecordId())
+			            .docName(revision.getDocName() != null ? revision.getDocName().trim() : null)
+			            .docFileName(revision.getDocFileName())
+			            .docFilepath(revision.getDocFilepath())
+			            .description(revision.getDescription())
+			            .issueNo(revision.getIssueNo())
+			            .revisionNo(revision.getRevisionNo())
+			            .dateOfRevision(revision.getDateOfRevision())
+			            .statusCode(revision.getStatusCode())
+						.abbreviationIdNotReq(revision.getAbbreviationIdNotReq())
+						.InitiatedBy(revision.getInitiatedBy())
+						.ReviewedBy(revision.getReviewedBy())
+						.ApprovedBy(revision.getApprovedBy())
+						.StatusCodeNext(revision.getStatusCodeNext())
+						.InitiatedByEmployee(initiatedBy != null ? initiatedBy.getEmpName() + ", " + initiatedBy.getEmpDesigName() : null)
+						.ReviewedByEmployee(reviewedBy != null ? reviewedBy.getEmpName() + ", " + reviewedBy.getEmpDesigName() : null)
+						.ApprovedByEmployee(approvedBy != null ? approvedBy.getEmpName() + ", " + approvedBy.getEmpDesigName() : null)
+						.createdBy(revision.getCreatedBy())
+						.createdDate(revision.getCreatedDate())
+						.modifiedBy(revision.getModifiedBy())
+						.modifiedDate(revision.getModifiedDate())
+						.isActive(revision.getIsActive())
+						.Status(statusCodeToStatusMap.getOrDefault(revision.getStatusCode(), "Unknown Status"))
+			            .build();
+
+			    qmsQspRevisionRecordDtoList.add(qmsQspRevisionRecordDto);
+			});
+
+			return qmsQspRevisionRecordDtoList;
 		} catch (Exception e) {
 			logger.info( " Inside getQmVersionRecordDtoList() "+ e );
 			e.printStackTrace();
@@ -1652,7 +1674,6 @@ public class QmsServiceImpl implements QmsService {
 		try {
 			long res =0;
 			Optional<QmsQspRevisionRecord> optionalRevisionRecord = qspRevisionRecordRepo.findById(revisionRecordId);
-			System.out.println("optionalRevisionRecord"+ optionalRevisionRecord.get().getRevisionRecordId());
 			if(optionalRevisionRecord.isPresent()) {
 				QmsQspRevisionRecord qspRevisionRecord = optionalRevisionRecord.get();
 				qspRevisionRecord.setAbbreviationIdNotReq(abbreviationIds);
@@ -1807,8 +1828,8 @@ public class QmsServiceImpl implements QmsService {
 
 
 	@Override
-	public List<QmsQmRevisionTransactionDto> revisionTran(String revisionRecordId) throws Exception {
-		logger.info( " QmsServiceImpl Inside method revisionTran()");
+	public List<QmsQmRevisionTransactionDto> qmsRevisionTran(String revisionRecordId) throws Exception {
+		logger.info( " QmsServiceImpl Inside method qmsRevisionTran()");
 		try {
 			List<Object[]> tranList = qmsQmRevisionRecordRepo.getRevisionTran(revisionRecordId);
 			List<EmployeeDto> totalEmployee = masterClient.getEmployeeMasterList(xApiKey);
@@ -1835,7 +1856,7 @@ public class QmsServiceImpl implements QmsService {
 			return revisionTranDtoList;
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.error("QmsServiceImpl Inside method revisionTran()"+ e);
+			logger.error("QmsServiceImpl Inside method qmsRevisionTran()"+ e);
 			 return Collections.emptyList();
 		}
 	}
@@ -2028,7 +2049,6 @@ public class QmsServiceImpl implements QmsService {
 		try {
 			List<Object[]> tranList = dwpRevisionRecordRepo.getDwpRevisionTran(revisionRecordId);
 			List<EmployeeDto> totalEmployee = masterClient.getEmployeeMasterList(xApiKey);
-
 			
 		    Map<Long, EmployeeDto> employeeMap = totalEmployee.stream()
 		            .filter(employee -> employee.getEmpId() != null)
@@ -2112,6 +2132,187 @@ public class QmsServiceImpl implements QmsService {
 				return res;
 		}
  	}
+	
+	@Override
+	public Integer forwardQsp(QmsQspRevisionRecordDto qsprevisionDto, String username) throws Exception {
+		logger.info("Inside forwardQsp() ");
+		try {
+			Integer result=0;
+			long res=0;
+			if(qsprevisionDto!=null) {
+				Long revisionRecordId = qsprevisionDto.getRevisionRecordId();
+				QmsQspRevisionRecord qmsqsprevision = qspRevisionRecordRepo.findByRevisionRecordId(revisionRecordId);
+				List<String> forwardstatus = Arrays.asList("INI","RTM","RTD","RVM");
+				List<String> reforwardstatus = Arrays.asList("RTM","RTD");
+				String RevisionStatusCode = qmsqsprevision.getStatusCode();
+				String RevisionStatusCodeNext = qmsqsprevision.getStatusCodeNext();
+				String Action = qsprevisionDto.getAction();
+				if(Action.equalsIgnoreCase("A")) {
+					if(forwardstatus.contains(RevisionStatusCode)) {
+						if(RevisionStatusCode.equalsIgnoreCase("INI") || RevisionStatusCode.equalsIgnoreCase("RVM") ) {
+							qmsqsprevision.setInitiatedBy(qsprevisionDto.getInitiatedBy());
+							qmsqsprevision.setReviewedBy(qsprevisionDto.getReviewedBy());
+							qmsqsprevision.setApprovedBy(qsprevisionDto.getApprovedBy());
+							qmsqsprevision.setStatusCode("FWD");
+							if(qmsqsprevision.getReviewedBy()!=null) {
+								qmsqsprevision.setStatusCodeNext("RWD");
+							}
+						}
+						if(reforwardstatus.contains(RevisionStatusCode)) {
+							qmsqsprevision.setStatusCode("RFD");
+							if(qmsqsprevision.getReviewedBy()!=null) {
+								qmsqsprevision.setStatusCodeNext("RWD");
+							}
+						}
+					}else {
+						qmsqsprevision.setStatusCode(RevisionStatusCodeNext);
+						if(RevisionStatusCodeNext.equalsIgnoreCase("RWD")) {
+							if(qmsqsprevision.getApprovedBy()!=null) {
+								qmsqsprevision.setStatusCodeNext("APD");
+							}
+
+						}
+					}
+					res=qspRevisionRecordRepo.save(qmsqsprevision).getRevisionRecordId();
+				}else if(Action.equalsIgnoreCase("R")){
+					if(RevisionStatusCodeNext.equalsIgnoreCase("RWD"))
+					{
+						qmsqsprevision.setStatusCode("RTM");
+					}
+					else if(RevisionStatusCodeNext.equalsIgnoreCase("APD"))
+					{
+						qmsqsprevision.setStatusCode("RTD");
+					}
+					res=qspRevisionRecordRepo.save(qmsqsprevision).getRevisionRecordId();
+				}
+				QmsQspRevisionTransaction trans = new QmsQspRevisionTransaction();
+				trans.setEmpId(qsprevisionDto.getEmpId());
+				trans.setRevisionRecordId(res);
+				trans.setStatusCode(qmsqsprevision.getStatusCode());
+				trans.setTransactionDate(LocalDateTime.now());
+				trans.setRemarks(qsprevisionDto.getRemarks()!=null && !qsprevisionDto.getRemarks().equalsIgnoreCase("") ? qsprevisionDto.getRemarks():"");
+				qmsqsprevisiontransactionrepo.save(trans);
+			}
+			if(res>0) {
+				result=1;
+			}
+			return result;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error in forwardQsp() ", e);
+			return null;
+		}
+	}
+	
+	
+	@Override
+	public Long revokeQspRevision(QmsQspRevisionRecordDto qsprevisionRecordDto, String username) throws Exception {
+		logger.info("Inside revokeQspRevision() ");
+		long res=0;
+		try {
+			if(qsprevisionRecordDto!=null) {
+			Long revisionRecordId = qsprevisionRecordDto.getRevisionRecordId();
+			QmsQspRevisionRecord qmsqsprevision = qspRevisionRecordRepo.findByRevisionRecordId(revisionRecordId);
+			qmsqsprevision.setStatusCode("RVM");
+			qmsqsprevision.setStatusCodeNext("RFD");
+			res=qspRevisionRecordRepo.save(qmsqsprevision).getRevisionRecordId();
+			}
+			QmsQspRevisionTransaction trans = new QmsQspRevisionTransaction();
+			trans.setEmpId(qsprevisionRecordDto.getEmpId());
+			trans.setRevisionRecordId(res);
+			trans.setStatusCode("RVM");
+			trans.setTransactionDate(LocalDateTime.now());
+			trans.setRemarks(qsprevisionRecordDto.getRemarks()!=null && !qsprevisionRecordDto.getRemarks().equalsIgnoreCase("") ? qsprevisionRecordDto.getRemarks():"");
+			qmsqsprevisiontransactionrepo.save(trans);
+			return res;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error in revokeQspRevision() ", e);
+			return res;
+		}
+	}
+	
+	@Override
+	public List<QmsQspRevisionTransactionDto> qspRevisionTran(String revisionRecordId) throws Exception {
+		logger.info( " QmsServiceImpl Inside method qspRevisionTran()");
+		try {
+			List<Object[]> tranList = qspRevisionRecordRepo.getQspRevisionTran(revisionRecordId);
+			List<EmployeeDto> totalEmployee = masterClient.getEmployeeMasterList(xApiKey);
+
+			Map<Long, EmployeeDto> employeeMap = totalEmployee.stream()
+					.filter(employee -> employee.getEmpId() != null)
+					.collect(Collectors.toMap(EmployeeDto::getEmpId, employee -> employee));
+
+			List<QmsQspRevisionTransactionDto> revisionTranDtoList = Optional.ofNullable(tranList).orElse(Collections.emptyList()).stream()
+					.map(obj -> {
+						EmployeeDto employee =	obj[0] != null?employeeMap.get(Long.parseLong(obj[0].toString())):null;
+
+						return QmsQspRevisionTransactionDto.builder()
+								.empId(obj[0]!=null?Long.parseLong(obj[0].toString()):0L)
+								.statusCode(obj[1]!=null?obj[1].toString():"")
+								.transactionDate(obj[2]!=null?obj[2].toString():"")
+								.remarks(obj[3]!=null?obj[3].toString():"")
+								.status(obj[4]!=null?obj[4].toString():"")
+								.empName(employee != null?employee.getEmpName()+", "+employee.getEmpDesigName():"")
+								.build();
+					})
+					.collect(Collectors.toList());
+			return revisionTranDtoList;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("QmsServiceImpl Inside method qspRevisionTran()"+ e);
+			 return Collections.emptyList();
+		}
+	}
+	
+	
+	@Override
+	public Long addNewQspRevision(QmsQspRevisionRecordDto qmsQspRevisionRecordDto, String username) throws Exception {
+		logger.info( " Inside addNewQspRevision() ");
+		long res = 0;
+		try {
+			QmsQspRevisionRecord qmsQspRevisionRecord = new QmsQspRevisionRecord();
+			qmsQspRevisionRecord.setDescription(qmsQspRevisionRecordDto.getDescription());
+			qmsQspRevisionRecord.setIssueNo(qmsQspRevisionRecordDto.getIssueNo());
+			qmsQspRevisionRecord.setRevisionNo(qmsQspRevisionRecordDto.getRevisionNo());
+			qmsQspRevisionRecord.setDocName(qmsQspRevisionRecordDto.getDocName());
+			qmsQspRevisionRecord.setStatusCode("INI");
+			qmsQspRevisionRecord.setStatusCodeNext("INI");
+			qmsQspRevisionRecord.setAbbreviationIdNotReq(qmsQspRevisionRecordDto.getAbbreviationIdNotReq());
+			qmsQspRevisionRecord.setDateOfRevision(LocalDate.now());
+			qmsQspRevisionRecord.setCreatedDate(LocalDateTime.now());
+			qmsQspRevisionRecord.setCreatedBy(username);
+			qmsQspRevisionRecord.setIsActive(1);
+			res = qspRevisionRecordRepo.save(qmsQspRevisionRecord).getRevisionRecordId();
+			return res;
+		} catch (Exception e) {
+			logger.error(  " Inside addNewQspRevision() "+ e );
+			e.printStackTrace();
+			return res;
+		}
+	}
+	
+	
+	@Override
+	public Long updateQspDescription(QmsQspRevisionRecordDto qsprevisionDto, String username) throws Exception {
+		logger.info("Inside updateQspDescription() ");
+		long res=0;
+		try {
+			if(qsprevisionDto!=null) {
+				Long revisionRecordId = qsprevisionDto.getRevisionRecordId();
+				QmsQspRevisionRecord qsprevision = qspRevisionRecordRepo.findByRevisionRecordId(revisionRecordId);
+				qsprevision.setDescription(qsprevisionDto.getDescription());
+				qsprevision.setModifiedDate(LocalDateTime.now());
+				qsprevision.setModifiedBy(username);
+				res=qspRevisionRecordRepo.save(qsprevision).getRevisionRecordId();
+				}
+			return res;
+		} catch (Exception e) {
+				e.printStackTrace();
+				logger.error("Error in updateQspDescription() ", e);
+				return res;
+		}
+	}
 //	@Override
 //	public List<DwpRevisionRecordDto> getDwpVersionRecordDtoList(Long divisionId) throws Exception {
 //		// TODO Auto-generated method stub

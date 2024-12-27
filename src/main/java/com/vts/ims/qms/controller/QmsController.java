@@ -7,8 +7,6 @@ import java.nio.file.Path;
 import java.util.Date;
 import java.util.List;
 
-import com.vts.ims.qms.dto.*;
-import com.vts.ims.qms.model.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +43,8 @@ import com.vts.ims.qms.dto.QmsQmMappingDto;
 import com.vts.ims.qms.dto.QmsQmRevisionRecordDto;
 import com.vts.ims.qms.dto.QmsQmRevisionTransactionDto;
 import com.vts.ims.qms.dto.QmsQmSectionsDto;
+import com.vts.ims.qms.dto.QmsQspRevisionRecordDto;
+import com.vts.ims.qms.dto.QmsQspRevisionTransactionDto;
 import com.vts.ims.qms.model.DwpChapters;
 import com.vts.ims.qms.model.DwpGwpDocumentSummary;
 import com.vts.ims.qms.model.DwpRevisionRecord;
@@ -52,6 +52,9 @@ import com.vts.ims.qms.model.DwpSections;
 import com.vts.ims.qms.model.QmsAbbreviations;
 import com.vts.ims.qms.model.QmsQmDocumentSummary;
 import com.vts.ims.qms.model.QmsQmRevisionRecord;
+import com.vts.ims.qms.model.QmsQspChapters;
+import com.vts.ims.qms.model.QmsQspDocumentSummary;
+import com.vts.ims.qms.model.QmsQspRevisionRecord;
 import com.vts.ims.qms.service.QmsService;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -598,15 +601,15 @@ public class QmsController {
 	}
 
 
-	@PostMapping(value = "/revision-tran", produces = "application/json")
-	public ResponseEntity<List<QmsQmRevisionTransactionDto>> revisionTran(@RequestHeader String username,@RequestBody String revisionRecordId) throws Exception {
+	@PostMapping(value = "/qm-revision-tran", produces = "application/json")
+	public ResponseEntity<List<QmsQmRevisionTransactionDto>> qmsRevisionTran(@RequestHeader String username,@RequestBody String revisionRecordId) throws Exception {
 		try {
-			logger.info(" Inside revisionTran"+username );
-			List<QmsQmRevisionTransactionDto> dto=service.revisionTran(revisionRecordId);
+			logger.info(" Inside qmsRevisionTran"+username );
+			List<QmsQmRevisionTransactionDto> dto=service.qmsRevisionTran(revisionRecordId);
 			return new ResponseEntity<List<QmsQmRevisionTransactionDto>>(dto,HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.error("Error fetching revisionTran: ", e);
+			logger.error("Error fetching qmsRevisionTran: ", e);
 			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
 		}
 	}
@@ -729,4 +732,76 @@ public class QmsController {
 		}
 	}
 	
+	
+	@PostMapping(value = "/forward-qsp", produces = "application/json")
+	public ResponseEntity<String> forwardQsp(@RequestHeader String username, @RequestBody QmsQspRevisionRecordDto qsprevisionDto) throws Exception {
+		try {
+			logger.info("forwardQsp");
+			Integer result=service.forwardQsp(qsprevisionDto,username);
+			if(result > 0) {
+				return new ResponseEntity<String>("200" , HttpStatus.OK);
+			}else {
+				return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
+			}
+		} catch (Exception e) {
+			logger.error("forwardQsp"+ e.getMessage());
+			e.printStackTrace();
+			return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+		}
+	}
+	
+	
+	@PostMapping(value = "/revoke-qsp-revision", produces = "application/json")	
+	public ResponseEntity<String> revokeQspRevision(@RequestHeader String username, @RequestBody QmsQspRevisionRecordDto qsprevisionRecordDto) throws Exception {
+		try {
+			logger.info("revoke-qsp-revision");
+			Long result=service.revokeQspRevision(qsprevisionRecordDto,username);
+			 if(result > 0) {
+				 return new ResponseEntity<String>("200" , HttpStatus.OK);
+			 }else {
+				 return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
+			 }
+		} catch (Exception e) {
+			 logger.error("revoke-qsp-revision"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+		}
+	}
+	
+	
+	@PostMapping(value = "/qsp-revision-tran", produces = "application/json")
+	public ResponseEntity<List<QmsQspRevisionTransactionDto>> qspRevisionTran(@RequestHeader String username,@RequestBody String revisionRecordId) throws Exception {
+		try {
+			logger.info(" Inside qmsRevisionTran"+username );
+			List<QmsQspRevisionTransactionDto> dto=service.qspRevisionTran(revisionRecordId);
+			return new ResponseEntity<List<QmsQspRevisionTransactionDto>>(dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching qmsRevisionTran: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	@PostMapping(value = "/add-qsp-revision", produces = "application/json")
+	public Long amendQsp(@RequestBody QmsQspRevisionRecordDto qmsQspRevisionRecordDto, @RequestHeader String username) throws Exception {
+		logger.info(" Inside add-qsp-revision" + username);
+		return service.addNewQspRevision(qmsQspRevisionRecordDto, username);
+	}
+	
+	@PostMapping(value = "/update-qsp-description", produces = "application/json")	
+	public ResponseEntity<String> UpdateQspDescription(@RequestHeader String username, @RequestBody QmsQspRevisionRecordDto qsprevisionDto) throws Exception {
+		try {
+			logger.info("update-qsp-description");
+			Long result=service.updateQspDescription(qsprevisionDto,username);
+			 if(result > 0) {
+				 return new ResponseEntity<String>("200" , HttpStatus.OK);
+			 }else {
+				 return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
+			 }
+		} catch (Exception e) {
+			 logger.error("update-qsp-description"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+		}
+	}
 }

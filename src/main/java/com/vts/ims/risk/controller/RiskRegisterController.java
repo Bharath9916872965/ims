@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.vts.ims.audit.dto.AuditorDto;
 import com.vts.ims.audit.dto.IqaDto;
+import com.vts.ims.risk.dto.MitigationRiskRegisterDto;
 import com.vts.ims.risk.dto.RiskRegisterDto;
 import com.vts.ims.risk.service.RiskService;
 
@@ -61,6 +62,37 @@ public class RiskRegisterController {
 			 }
 		} catch (Exception e) {
 			 logger.error(new Date() +"error in insert-risk-register"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+		}
+	}
+	
+	
+	
+	@PostMapping(value = "/mititgation-risk-register-list", produces = "application/json")
+	public ResponseEntity<List<MitigationRiskRegisterDto>> mititgationRiskRegisterlist(@RequestHeader String username,@RequestBody String riskRegisterId) throws Exception {
+		try {
+			logger.info(new Date() + " Inside mititgationRiskRegisterlist" );
+			List<MitigationRiskRegisterDto> dto=service.getMititgationRiskRegisterlist(Long.parseLong(riskRegisterId));
+			return new ResponseEntity<List<MitigationRiskRegisterDto>>( dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching mititgationRiskRegisterlist: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
+	}
+	@PostMapping(value = "/insert-mititgation-risk-register", produces = "application/json")
+	public ResponseEntity<String> insertMitigationRiskRegister(@RequestHeader String username, @RequestBody MitigationRiskRegisterDto dto) throws Exception {
+		try {
+			logger.info(new Date() + " Inside insert-mititgation-risk-register" );
+			 long insertMitigationRiskRegister=service.insertMititgationRiskRegister(dto,username);
+			 if(insertMitigationRiskRegister > 0) {
+				 return new ResponseEntity<String>("200" , HttpStatus.OK);
+			 }else {
+				 return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
+			 }
+		} catch (Exception e) {
+			 logger.error(new Date() +"error in insert-mititgation-risk-register"+ e.getMessage());
 			 e.printStackTrace();
 			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
 		}
