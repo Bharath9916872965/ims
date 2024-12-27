@@ -23,4 +23,10 @@ public interface UserManagerRepo extends JpaRepository<Login, Long> {
             "ORDER BY l.LoginId DESC",
             nativeQuery = true)
     public List<Object[]> getUserManagerMasterList();
+
+    public Login findByLoginId(long loginId);
+
+    @Query(value = "SELECT COUNT(*) FROM login WHERE username = :username AND isactive = '1'", nativeQuery = true)
+    public Long countByUserNameAndActive(@Param("username") String username);
+
 }

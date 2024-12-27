@@ -721,7 +721,6 @@ public class AuditServiceImpl implements AuditService{
 				    			.divisionName(division !=null?division.getDivisionName():"")
 				    			.groupName(group !=null?group.getGroupName():"")
 				    			.projectName(project !=null?project.getProjectName():"")
-				    			.projectShortName(project !=null?project.getProjectShortName():"")
 				    			.build();
 				    })
 				    .collect(Collectors.toList());
@@ -771,24 +770,40 @@ public class AuditServiceImpl implements AuditService{
 	    long result = 0;
 	    try {
 	    	Login login = loginRepo.findByUsername(username);
+	    	AuditTransaction trans = new AuditTransaction();
 			EmployeeDto employeeLogIn = masterClient.getEmployee(xApiKey,login.getEmpId()).get(0);
 		    	AuditSchedule schedule = auditScheduleRepository.findById(auditScheduleListDto.getScheduleId()).get();
+		    	if(schedule.getScheduleStatus().equalsIgnoreCase("AES")){
+			    	schedule.setScheduleStatus("ARS");
+					trans.setAuditStatus("ARS");
+		    	}else {
+			    	schedule.setScheduleStatus("ABA");
+					trans.setAuditStatus("ABA");
+		    	}
 	
-		    	schedule.setScheduleStatus("ARS");
 		    	schedule.setModifiedBy(username);
 		    	schedule.setModifiedDate(LocalDateTime.now());
 		    	result = auditScheduleRepository.save(schedule).getScheduleId();
 		    	
-		    	AuditTransaction trans = new AuditTransaction();
+		
 				trans.setEmpId(login.getEmpId());
 				trans.setScheduleId(result);
 				trans.setTransactionDate(LocalDateTime.now());
 				trans.setRemarks("NA");
-				trans.setAuditStatus("ARS");
 				
 				auditTransactionRepository.save(trans);
-				String NotiMsg = auditScheduleListDto.getIqaNo()+" Of Audit Schedule CheckList Forwarded by "+ employeeLogIn.getEmpName()+", "+employeeLogIn.getEmpDesigName();
-				insertScheduleNomination(auditScheduleListDto.getAuditeeEmpId(),login.getEmpId(),username,"/schedule-approval",NotiMsg);
+				
+				if(schedule.getScheduleStatus().equalsIgnoreCase("AES")){
+					String NotiMsg = auditScheduleListDto.getIqaNo()+" Of Audit Schedule CheckList Forwarded by "+ employeeLogIn.getEmpName()+", "+employeeLogIn.getEmpDesigName();
+					insertScheduleNomination(auditScheduleListDto.getAuditeeEmpId(),login.getEmpId(),username,"/schedule-approval",NotiMsg);
+		    	}else {
+		    		List<Object[]> teamMemberDetails = teamRepository.getTeamMemberDetails(auditScheduleListDto.getTeamId());
+					String NotiMsg = auditScheduleListDto.getIqaNo()+" Of Audit Schedule CheckList Accepted by "+ employeeLogIn.getEmpName()+", "+employeeLogIn.getEmpDesigName();
+					for(Object[] obj : teamMemberDetails) {
+						result = insertScheduleNomination(Long.parseLong(obj[1].toString()),login.getEmpId(),username,"/schedule-approval",NotiMsg);
+					}
+		    	}
+				
 	    	
 	    } catch (Exception e) {
 	    	e.printStackTrace();
@@ -847,12 +862,17 @@ public class AuditServiceImpl implements AuditService{
 			    EmployeeDto employeeLogIn = masterClient.getEmployee(xApiKey,login.getEmpId()).get(0);
 		    	AuditSchedule schedule = auditScheduleRepository.findById(auditScheduleListDto.getScheduleId()).get();
 		    	AuditTransaction trans = new AuditTransaction();
-		    	if(auditScheduleListDto.getAuditeeEmpId().equals(login.getEmpId())){
-			    	schedule.setScheduleStatus("ASR");
-					trans.setAuditStatus("ASR");
-		    	}else if(auditScheduleListDto.getLeadEmpId().equals(login.getEmpId())){
-			    	schedule.setScheduleStatus("ARL");
-					trans.setAuditStatus("ARL");
+		    	if(schedule.getScheduleStatus().equalsIgnoreCase("ARS")){
+			    	schedule.setScheduleStatus("RBA");
+					trans.setAuditStatus("RBA");
+		    	}else {
+			    	if(auditScheduleListDto.getAuditeeEmpId().equals(login.getEmpId())){
+				    	schedule.setScheduleStatus("ASR");
+						trans.setAuditStatus("ASR");
+			    	}else if(auditScheduleListDto.getLeadEmpId().equals(login.getEmpId())){
+				    	schedule.setScheduleStatus("ARL");
+						trans.setAuditStatus("ARL");
+			    	}
 		    	}
 		    	schedule.setModifiedBy(username);
 		    	schedule.setModifiedDate(LocalDateTime.now());
@@ -865,8 +885,16 @@ public class AuditServiceImpl implements AuditService{
 				
 				auditTransactionRepository.save(trans);
 				String url= "/schedule-list";
-				String NotiMsg = auditScheduleListDto.getIqaNo()+" Of Audit Schedule Returned by "+ employeeLogIn.getEmpName()+", "+employeeLogIn.getEmpDesigName();
-				result = insertScheduleNomination(auditScheduleListDto.getActEmpId(),login.getEmpId(),username,url,NotiMsg);
+			 	if(schedule.getScheduleStatus().equalsIgnoreCase("ARS")){
+		    		List<Object[]> teamMemberDetails = teamRepository.getTeamMemberDetails(auditScheduleListDto.getTeamId());
+					String NotiMsg = auditScheduleListDto.getIqaNo()+" Of Audit Schedule CheckList Rejected by "+ employeeLogIn.getEmpName()+", "+employeeLogIn.getEmpDesigName();
+					for(Object[] obj : teamMemberDetails) {
+						result = insertScheduleNomination(Long.parseLong(obj[1].toString()),login.getEmpId(),username,"/schedule-approval",NotiMsg);
+					}
+			 	}else {
+					String NotiMsg = auditScheduleListDto.getIqaNo()+" Of Audit Schedule Returned by "+ employeeLogIn.getEmpName()+", "+employeeLogIn.getEmpDesigName();
+					result = insertScheduleNomination(auditScheduleListDto.getActEmpId(),login.getEmpId(),username,url,NotiMsg);
+			 	}
 	    	
 	    } catch (Exception e) {
 	    	e.printStackTrace();
@@ -886,7 +914,8 @@ public class AuditServiceImpl implements AuditService{
 			EmployeeDto employeeLogIn = masterClient.getEmployee(xApiKey,login.getEmpId()).get(0);
 			List<EmployeeDto> totalEmployee = masterClient.getEmployeeMasterList(xApiKey);
 			List<Object[]> auditorsByIqa = teamRepository.getAuditorsByIqa(iqaId);
-										Map<Long, List<AuditScheduleListDto>> auditeeMap = auditScheduleListDto.stream().collect(Collectors.groupingBy(AuditScheduleListDto::getAuditeeEmpId));
+							
+			Map<Long, List<AuditScheduleListDto>> auditeeMap = auditScheduleListDto.stream().collect(Collectors.groupingBy(AuditScheduleListDto::getAuditeeEmpId));
 			Map<Long, List<AuditScheduleListDto>> teamMap = auditScheduleListDto.stream().collect(Collectors.groupingBy(AuditScheduleListDto::getTeamId));			
 			
 			String url= "/schedule-approval";
