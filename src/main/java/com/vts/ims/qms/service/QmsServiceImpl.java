@@ -1267,7 +1267,7 @@ public class QmsServiceImpl implements QmsService {
 			//EmployeeDto empDto = emp.size() > 0 ? emp.get(0) : EmployeeDto.builder().build();
 			
 			List<ProjectEmployeeDto> projectEmployeeDtoList = masterClient.getProjectEmpDetailsById(xApiKey);
-			List<ProjectEmployeeDto> projectEmployeeDtoListByEmpId = projectEmployeeDtoList.stream().filter(dto -> dto.getEmpId().equals(empId)).collect(Collectors.toList());
+			List<ProjectEmployeeDto> projectEmployeeDtoListByEmpId = projectEmployeeDtoList.stream().filter(dto -> dto.getEmpId().equals(empId) && dto.getIsActive() == 1).collect(Collectors.toList());
 			List<Long> auditeeProjectIds = auditeeRepository.findProjectIdsByEmpId(empId);
 
 			List<ProjectMasterDto> returnProjectList = activeAllProjectDto.stream()
@@ -1306,7 +1306,7 @@ public class QmsServiceImpl implements QmsService {
 			EmployeeDto empDto = emp.size() > 0 ? emp.get(0) : EmployeeDto.builder().build();
 
 			List<DivisionEmployeeDto> divisionEmployeeDtoList = masterClient.getDivisionEmpDetailsById(xApiKey);
-			List<DivisionEmployeeDto> divisionEmployeeDtoListByEmpId = divisionEmployeeDtoList.stream().filter(dto -> dto.getEmpId().equals(empId)).collect(Collectors.toList());
+			List<DivisionEmployeeDto> divisionEmployeeDtoListByEmpId = divisionEmployeeDtoList.stream().filter(dto -> dto.getEmpId().equals(empId) && dto.getIsActive() == 1).collect(Collectors.toList());
 			List<Long> auditeeDivisionIds = auditeeRepository.findDivisionIdsByEmpId(empId);
 
 
@@ -1351,7 +1351,7 @@ public class QmsServiceImpl implements QmsService {
 					.collect(Collectors.toList());
 
 			List<DivisionEmployeeDto> divisionEmployeeDtoList = masterClient.getDivisionEmpDetailsById(xApiKey);
-			List<DivisionEmployeeDto> divisionEmployeeDtoListByEmpId = divisionEmployeeDtoList.stream().filter(dto -> dto.getEmpId().equals(empId)).collect(Collectors.toList());
+			List<DivisionEmployeeDto> divisionEmployeeDtoListByEmpId = divisionEmployeeDtoList.stream().filter(dto -> dto.getEmpId().equals(empId) && dto.getIsActive() == 1).collect(Collectors.toList());
 			List<Long> auditeeDivisionIds = auditeeRepository.findDivisionIdsByEmpId(empId);
 			List<Long> auditeeDivisionGroupIds = auditeeRepository.findDivisionGroupIdsByEmpId(empId);
 
