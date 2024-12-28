@@ -749,4 +749,30 @@ public class AuditController {
 			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST); 
 		}
 	}
+	
+	@PostMapping(value = "/auditcheck-list-byObsIds", produces = "application/json")
+	public ResponseEntity<List<CheckListDto>> getAuditCheckListbyObsIds(@RequestHeader String username,@RequestBody String scheduleId) throws Exception {
+		try {
+			logger.info(new Date() + " Inside getAuditCheckListbyObsIds" );
+			List<CheckListDto> dto=auditService.getAuditCheckListbyObsIds();
+			return new ResponseEntity<List<CheckListDto>>( dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching getAuditCheckListbyObsIds: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST); 
+		}
+	}
+	@PostMapping(value = "/mostFrequent-Nc-list", produces = "application/json")
+	public ResponseEntity<List<CheckListDto>> getMostFrequentNC(@RequestHeader String username,@RequestBody String scheduleId) throws Exception {
+		try {
+			logger.info(new Date() + " Inside getMostFrequentNC" );
+			List<CheckListDto> dto=auditService.getMostFrequentNC();
+			return new ResponseEntity<List<CheckListDto>>( dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching getMostFrequentNC: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST); 
+		}
+	}
+
 }
