@@ -17,6 +17,11 @@ public class AuditCorrectiveActionDTO {
     private String targetDate;
     private Long scheduleId;
     private Long auditeeId;
+    private String carAttachment;
+    private String rootCause;
+    private String carCompletionDate;
+    private String executiveName;
+    private String carDate;
 
 }
 

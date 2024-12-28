@@ -122,4 +122,8 @@ public interface AuditService {
 
 	public int insertCorrectiveAction(List<AuditCarDTO> auditCarDTO, String username)throws Exception;
 
+	public int updateCorrectiveAction(AuditCarDTO auditCarDTO, String username)throws Exception;
+
+	public long uploadCarAttachment(MultipartFile file, Map<String, Object> response, String username)throws Exception;
+
 }

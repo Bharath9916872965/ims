@@ -781,4 +781,42 @@ public class AuditController {
 			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
 		}
 	}
+	
+	@PostMapping(value = "/update-corrective-action", produces = "application/json")
+	public ResponseEntity<Response> updateCorrectiveAction(@RequestHeader String username, @RequestBody AuditCarDTO auditCarDTO) throws Exception {
+		try {
+			logger.info( " Inside update-corrective-action" );
+			 int result=auditService.updateCorrectiveAction(auditCarDTO,username);
+			 if(result > 0) {
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("Corrective Actions Added Successfully","S"));
+			 }else {
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("Corrective Actions Add Unsuccessful","F"));			 
+			 }
+		} catch (Exception e) {
+			 logger.error("error in update-corrective-action"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
+		}
+	}
+	
+	@PostMapping("/upload-car-attachment")
+	public ResponseEntity<Response> uploadCarAttachment(@RequestHeader  String username, @RequestParam("ad") String attachment,
+			@RequestParam("file") MultipartFile file) throws Exception {
+		
+		logger.info(new Date() + " Inside upload-car-attachment " + username);
+		long result = 0;
+		Map<String, Object> response = null;
+		try {
+			response = new ObjectMapper().readValue(attachment, HashMap.class);
+			result = auditService.uploadCarAttachment(file, response, username);
+		} catch (Exception e) {
+			logger.info(new Date() + " Inside uploadCarAttachment " + e);
+		}
+		if (result > 0) {
+			return ResponseEntity.status(HttpStatus.OK).body(new Response("Corrective Actions Added Successfully","S"));
+		} else {
+			return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new Response("Corrective Actions Add Unsuccessful","F"));
+		}
+
+	}
 }

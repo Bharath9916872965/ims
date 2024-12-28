@@ -13,6 +13,10 @@ public class AuditCarDTO {
     private String action;
     private Long employee;
     private LocalDateTime targetDate;
+    private String attachmentName;
+    private String rootCause;
+    private LocalDateTime completionDate;
+    private String carRefNo;
 
 }
 

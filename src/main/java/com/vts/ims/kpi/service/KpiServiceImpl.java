@@ -294,7 +294,7 @@ public class KpiServiceImpl implements KpiService{
 			List<DwpRevisionRecordDto> revisionRecordDtoList = new ArrayList<DwpRevisionRecordDto>();
 			
 			List<DwpRevisionRecord> revisionRecord = dwpRevisionRecordRepo.findAll();
-			
+			revisionRecord = revisionRecord.stream().filter(data -> data.getRevisionNo() == 0).collect(Collectors.toList());			
 			revisionRecord.forEach(revison -> {
 				
 				DivisionMasterDto divisionDto = null;

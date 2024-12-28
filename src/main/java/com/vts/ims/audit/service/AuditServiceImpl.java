@@ -1764,10 +1764,15 @@ public class AuditServiceImpl implements AuditService{
 					    	  .iqaAuditeeId(obj[6] != null?Long.parseLong(obj[6].toString()):0L)
 					    	  .auditee(employee != null?employee.getEmpName()+", "+employee.getEmpDesigName():"")
 					    	  .divisionName(division !=null?division.getDivisionCode():"")
+					    	  .divisionFullName(division !=null?division.getDivisionName():"")
 					    	  .groupName(group !=null?group.getGroupCode():"")
+					    	  .groupFullName(group !=null?group.getGroupName():"")
 					    	  .projectName(project !=null?project.getProjectName():"")
 					    	  .projectShortName(project !=null?project.getProjectShortName():"")
 					    	  .projectCode(project !=null?project.getProjectCode():"")
+					    	  .divisionHeadName(division !=null?division.getDivHeadName()+", "+division.getDivHeadDesig():"")
+					    	  .groupHeadName(group !=null?group.getGroupHeadName()+", "+group.getGroupHeadDesig():"")
+					    	  .projectDirectorName(project !=null?project.getPrjDirectorName()+", "+project.getPrjDirectorDesig():"")
 					    	  .build();
 				    })
 				    .collect(Collectors.toList());
@@ -1960,9 +1965,14 @@ public class AuditServiceImpl implements AuditService{
 		logger.info(new Date() + " AuditServiceImpl Inside method getCarList()");
 		try {
 			 List<Object[]> result = auditCorrectiveActionRepository.getActionTotalList();
+			 List<EmployeeDto> totalEmployee = masterClient.getEmployeeMasterList(xApiKey);
+		    Map<Long, EmployeeDto> employeeMap = totalEmployee.stream()
+		            .filter(employee -> employee.getEmpId() != null)
+		            .collect(Collectors.toMap(EmployeeDto::getEmpId, employee -> employee));
 			 
 			return Optional.ofNullable(result).orElse(Collections.emptyList()).stream()
 					    .map(obj -> {
+					       EmployeeDto employee   =	obj[6] != null?employeeMap.get(Long.parseLong(obj[6].toString())):null;
 						    	return AuditCorrectiveActionDTO.builder()
 					    			.correctiveActionId(obj[0]!=null?Long.parseLong(obj[0].toString()):0L)
 					    			.auditCheckListId(obj[1]!=null?Long.parseLong(obj[1].toString()):0L)
@@ -1974,6 +1984,11 @@ public class AuditServiceImpl implements AuditService{
 					    			.targetDate(obj[7]!=null?obj[7].toString():"")
 					      			.scheduleId(obj[8]!=null?Long.parseLong(obj[8].toString()):0L)
 					    			.auditeeId(obj[9]!=null?Long.parseLong(obj[9].toString()):0L)
+					    			.carAttachment(obj[10]!=null?obj[10].toString():"")
+					    			.rootCause(obj[11]!=null?obj[11].toString():"")
+					    			.carCompletionDate(obj[12]!=null?obj[12].toString():"")
+					    			.carDate(obj[13]!=null?obj[13].toString():"")
+					    			.executiveName(employee != null?employee.getEmpName()+", "+employee.getEmpDesigName():"")
 					    			.build();
 					    })
 					    .collect(Collectors.toList());
@@ -2102,6 +2117,66 @@ public class AuditServiceImpl implements AuditService{
 		}
 		return result;
 	}
+	@Override
+	public int updateCorrectiveAction(AuditCarDTO auditCarDTO, String username) throws Exception {
+		int result = 0;
+		logger.info(new Date() + " AuditServiceImpl Inside method updateCorrectiveAction()");
+		try {
 	
+			  result = auditCorrectiveActionRepository.updateCarReport(auditCarDTO.getAttachmentName(),auditCarDTO.getRootCause(),DLocalConvertion.converLocalTime(auditCarDTO.getCompletionDate()),username,LocalDateTime.now(),auditCarDTO.getCorrectiveActionId());	
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method updateCorrectiveAction()"+ e);
+		}
+		return result;
+
+	}
+
+
+	@Override
+	public long uploadCarAttachment(MultipartFile file, Map<String, Object> response, String username)throws Exception {
+		logger.info(new Date() +" Inside uploadCarAttachment ");
+		Long count= 0L;
+
+		try{
+			String orgNameExtension = FilenameUtils.getExtension(file.getOriginalFilename());
+			
+			String Attachmentname=FilenameUtils.removeExtension(response.get("attachmentName").toString());   
+			AuditCorrectiveAction car = auditCorrectiveActionRepository.findById(Long.parseLong(response.get("correctiveActionId").toString())).get();
+			String refNo = response.get("carRefNo").toString().replace("/", "_");
+			String oldFileName = car.getCarAttachment();
+			if(oldFileName != null) {
+				File fileR = Paths.get(storageDrive,"CAR",refNo,oldFileName).toFile();
+				fileR.delete();
+			}
+			
+			car.setCarAttachment(response.get("attachmentName").toString());
+			car.setRootCause(response.get("rootCause").toString());
+			car.setCarCompletionDate(DLocalConvertion.converLocalTime(LocalDateTime.parse(response.get("completionDate").toString().replace("Z",""))));
+			car.setModifiedBy(username);
+			car.setModifiedDate(LocalDateTime.now());
+			auditCorrectiveActionRepository.save(car);
+			
+			Path filePath = null;
+	
+				filePath = Paths.get( storageDrive,"CAR",refNo);
+				
+			logger.info(new Date() +" Inside uploadCarAttachment " +filePath);
+	        File theDir = filePath.toFile();
+	        if (!theDir.exists()){
+			     theDir.mkdirs();
+			 }
+	       Path fileToSave = filePath.resolve(Attachmentname + "." + orgNameExtension);
+	        file.transferTo(fileToSave.toFile());
+
+	        count=1L;
+
+		   } 
+		catch(Exception e){
+			logger.error(new Date() +" Inside uploadCarAttachment " +e);
+		}
+		
+		return count;
+	}
 
 }

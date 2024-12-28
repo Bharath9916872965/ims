@@ -47,6 +47,15 @@ public class AuditCorrectiveAction {
 	
 	@Column(name = "ActEmpId")
 	private Long actEmpId;
+	    
+	@Column(name = "CarAttachment")
+	private String carAttachment;
+	
+	@Column(name = "RootCause")
+	private String rootCause;
+	
+	@Column(name = "CarCompletionDate")
+	private LocalDateTime carCompletionDate;
 	
 	@Column(name = "CreatedBy")
 	private String createdBy;
