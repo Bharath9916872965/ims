@@ -29,6 +29,8 @@ import com.vts.ims.master.dto.DivisionEmployeeDto;
 import com.vts.ims.master.dto.DivisionGroupDto;
 import com.vts.ims.master.dto.DivisionMasterDto;
 import com.vts.ims.master.dto.EmployeeDto;
+import com.vts.ims.master.dto.ProjectEmployeeDto;
+import com.vts.ims.master.dto.ProjectMasterDto;
 import com.vts.ims.qms.model.DwpChapters;
 import com.vts.ims.qms.model.DwpGwpDocumentSummary;
 import com.vts.ims.qms.model.DwpRevisionRecord;
@@ -1246,6 +1248,42 @@ public class QmsServiceImpl implements QmsService {
 		}
 	}
 
+	@Override
+	public List<ProjectMasterDto> getDwpProjectMaster(Integer imsFormRoleId, Long empId) throws Exception{
+		logger.info("Inside getDwpProjectMaster()");
+		try {
+			List<Integer> isAllList = Arrays.asList(1, 2, 3, 4);
+			List<ProjectMasterDto> projectDto = masterClient.getProjectMasterList(xApiKey);
+			List<ProjectMasterDto> activeAllProjectDto = projectDto.stream()
+					.filter(dto -> dto.getIsActive() == 1)
+					.collect(Collectors.toList());
+
+			if (isAllList.contains(imsFormRoleId)) {
+				return activeAllProjectDto;
+			}
+			
+			//List<EmployeeDto> emp = masterClient.getEmployee(xApiKey, empId);
+
+			//EmployeeDto empDto = emp.size() > 0 ? emp.get(0) : EmployeeDto.builder().build();
+			
+			List<ProjectEmployeeDto> projectEmployeeDtoList = masterClient.getProjectEmpDetailsById(xApiKey);
+			List<ProjectEmployeeDto> projectEmployeeDtoListByEmpId = projectEmployeeDtoList.stream().filter(dto -> dto.getEmpId().equals(empId)).collect(Collectors.toList());
+			List<Long> auditeeProjectIds = auditeeRepository.findProjectIdsByEmpId(empId);
+
+			List<ProjectMasterDto> returnProjectList = activeAllProjectDto.stream()
+					.filter(obj -> projectEmployeeDtoListByEmpId.stream()
+							.anyMatch(dto -> dto.getProjectId().equals(obj.getProjectId()))
+					|| (auditeeProjectIds.contains(obj.getProjectId())))
+					.collect(Collectors.toList());
+
+			return returnProjectList;
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error in getDwpProjectMaster() ", e);
+			return Collections.emptyList();
+		}
+	}
 
 	@Override
 	public List<DivisionMasterDto> getDwpDivisionMaster(Integer imsFormRoleId, Long empId) throws Exception {

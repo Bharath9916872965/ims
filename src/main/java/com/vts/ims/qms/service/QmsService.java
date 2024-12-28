@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import com.vts.ims.master.dto.DivisionEmployeeDto;
 import com.vts.ims.master.dto.DivisionGroupDto;
 import com.vts.ims.master.dto.DivisionMasterDto;
+import com.vts.ims.master.dto.ProjectMasterDto;
 import com.vts.ims.qms.dto.CheckListMasterDto;
 import com.vts.ims.qms.dto.DwpRevisionRecordDto;
 import com.vts.ims.qms.dto.DwpSectionDto;
@@ -85,6 +86,7 @@ public interface QmsService {
 	public long updateNotReqDwpAbbreviationIds(Long revisionRecordId, String abbreviationIds, String username) throws Exception;
 	public Long addDwpDocSummary(DwpGwpDocumentSummary documentSummary, String username) throws Exception;
 	public DwpGwpDocumentSummary getDwpDocSummarybyRevisionRecordId(long revisionRecordId) throws Exception;
+	public List<ProjectMasterDto> getDwpProjectMaster(Integer imsFormRoleId, Long empId) throws Exception;
 	public List<DivisionMasterDto> getDwpDivisionMaster(Integer imsFormRoleId, Long empId) throws Exception;
 	public List<DivisionGroupDto> getDwpDivisionGroupList(Integer imsFormRoleId, Long empId) throws Exception;
 	public DwpRevisionRecord addNewDwpRevisionRecord(QmsIssueDto qmsIssueDto, String username) throws Exception;

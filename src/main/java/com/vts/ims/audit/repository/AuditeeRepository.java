@@ -20,5 +20,8 @@ public interface AuditeeRepository extends JpaRepository<Auditee, Long>{
 	
 	@Query("SELECT a.groupId FROM Auditee a WHERE a.empId = :empId AND a.groupId>0 AND a.isActive = 1")
 	public List<Long> findDivisionGroupIdsByEmpId(@Param("empId") Long empId);
+	
+	@Query("SELECT a.projectId FROM Auditee a WHERE a.empId = :empId AND a.projectId>0 AND a.isActive = 1")
+	public List<Long> findProjectIdsByEmpId(@Param("empId") Long empId);
 
 }
