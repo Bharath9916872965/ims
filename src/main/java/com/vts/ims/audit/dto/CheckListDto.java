@@ -20,6 +20,7 @@ public class CheckListDto {
     private String isForCheckList;
     private String description;
     private String scheduleStatus;
-
+    
+private Long ncCount; 
 }
 

@@ -147,6 +147,7 @@ public class AuditServiceImpl implements AuditService{
 	@Value("${appStorage}")
 	private String storageDrive ;
 	
+
 	@Autowired
 	private AuditCorrectiveActionRepository auditCorrectiveActionRepository;
 	
@@ -2103,6 +2104,69 @@ public class AuditServiceImpl implements AuditService{
 		return result;
 	}
 
+	@Override
+	public List<CheckListDto> getAuditCheckListbyObsIds() throws Exception {
+		logger.info(new Date() + " AuditServiceImpl Inside method getAuditCheckListbyObsIds()");
+		try {
+			 List<Object[]> result = auditCheckListRepository.getAuditCheckListbyObsIds();
+			 
+			return Optional.ofNullable(result).orElse(Collections.emptyList()).stream()
+					    .map(obj -> {
+						    	return CheckListDto.builder()
+					    			.auditCheckListId(obj[0]!=null?Long.parseLong(obj[0].toString()):0L)
+					    			.scheduleId(obj[1]!=null?Long.parseLong(obj[1].toString()):0L)
+					    			.iqaId(obj[2]!=null?Long.parseLong(obj[2].toString()):0L)
+					    			.mocId(obj[3]!=null?Long.parseLong(obj[3].toString()):0L)
+					    			.auditObsId(obj[4]!=null?Long.parseLong(obj[4].toString()):0L)
+					    			.auditorRemarks(obj[5]!=null?obj[5].toString():"")
+					    			.clauseNo(obj[6]!=null?obj[6].toString():"")
+					    			.sectionNo(obj[7]!=null?obj[7].toString():"")
+					    			.mocParentId(obj[8]!=null?Long.parseLong(obj[8].toString()):0L)
+					    			.isForCheckList(obj[9]!=null?obj[9].toString():"")
+					    			.description(obj[10]!=null?obj[10].toString():"")
+					    			.auditeeRemarks(obj[11]!=null?obj[11].toString():"")
+					    			.scheduleStatus(obj[12]!=null?obj[12].toString():"")
+					    			.build();
+					    })
+					    .collect(Collectors.toList());
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method getAuditCheckListbyObsIds()"+ e);
+			return List.of();
+		}
+	}
+	@Override
+	public List<CheckListDto> getMostFrequentNC() throws Exception {
+		logger.info(new Date() + " AuditServiceImpl Inside method getMostFrequentNC()");
+		try {
+			 List<Object[]> result = auditCheckListRepository.getMostFrequentNC();
+			 System.out.println("result: " + result);
+			return Optional.ofNullable(result).orElse(Collections.emptyList()).stream()
+					    .map(obj -> {
+						    	return CheckListDto.builder()
+					    			//.auditCheckListId(obj[0]!=null?Long.parseLong(obj[0].toString()):0L)
+					    			//.scheduleId(obj[1]!=null?Long.parseLong(obj[1].toString()):0L)
+					    			//.iqaId(obj[2]!=null?Long.parseLong(obj[2].toString()):0L)
+					    			.mocId(obj[0]!=null?Long.parseLong(obj[0].toString()):0L)
+					    			//.auditObsId(obj[4]!=null?Long.parseLong(obj[4].toString()):0L)
+					    			//.auditorRemarks(obj[5]!=null?obj[5].toString():"")
+					    			.clauseNo(obj[3]!=null?obj[3].toString():"")
+					    			.sectionNo(obj[4]!=null?obj[4].toString():"")
+					    			.mocParentId(obj[5]!=null?Long.parseLong(obj[5].toString()):0L)
+					    			.isForCheckList(obj[6]!=null?obj[6].toString():"")
+					    			.description(obj[1]!=null?obj[1].toString():"")
+					    			.ncCount(obj[2]!=null?Long.parseLong(obj[2].toString()):0L)
+					    			//.auditeeRemarks(obj[11]!=null?obj[11].toString():"")
+					    			//.scheduleStatus(obj[12]!=null?obj[12].toString():"")
+					    			.build();
+					    })
+					    .collect(Collectors.toList());
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method getMostFrequentNC()"+ e);
+			return List.of();
+		}
+	}
 
 	@Override
 	public int insertCorrectiveAction(List<AuditCarDTO> auditCarDTO, String username) throws Exception {
@@ -2135,7 +2199,6 @@ public class AuditServiceImpl implements AuditService{
 	}
 
 
-	@Override
 	public long uploadCarAttachment(MultipartFile file, Map<String, Object> response, String username)throws Exception {
 		logger.info(new Date() +" Inside uploadCarAttachment ");
 		Long count= 0L;

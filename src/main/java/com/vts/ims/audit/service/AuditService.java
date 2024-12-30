@@ -120,6 +120,10 @@ public interface AuditService {
 
 	public int deleteAuditor(String auditorId)throws Exception;
 
+	public List<CheckListDto> getAuditCheckListbyObsIds()throws Exception;
+
+	public List<CheckListDto> getMostFrequentNC() throws Exception;
+	
 	public int insertCorrectiveAction(List<AuditCarDTO> auditCarDTO, String username)throws Exception;
 
 	public int updateCorrectiveAction(AuditCarDTO auditCarDTO, String username)throws Exception;
