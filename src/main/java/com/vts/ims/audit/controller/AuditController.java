@@ -22,7 +22,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vts.ims.audit.dto.AuditCarDTO;
 import com.vts.ims.audit.dto.AuditCheckListDTO;
+import com.vts.ims.audit.dto.AuditCorrectiveActionDTO;
 import com.vts.ims.audit.dto.AuditRescheduleDto;
 import com.vts.ims.audit.dto.AuditScheduleDto;
 import com.vts.ims.audit.dto.AuditScheduleListDto;
@@ -325,7 +327,7 @@ public class AuditController {
 	@PostMapping(value = "/audit-team-list", produces = "application/json")
 	public ResponseEntity<List<AuditorTeamDto>> getAuditTeamList(@RequestHeader String username) throws Exception {
 		try {
-			logger.info(new Date() + " Inside getAuditTeamList" );
+			logger.info(new Date() + "Inside getAuditTeamList" );
 			List<AuditorTeamDto> dto=auditService.getAuditTeamMainList();
 			return new ResponseEntity<List<AuditorTeamDto>>(dto,HttpStatus.OK);
 		} catch (Exception e) {
@@ -670,6 +672,19 @@ public class AuditController {
 		}
 	}
 	
+	@PostMapping(value = "/get-car-list", produces = "application/json")
+	public ResponseEntity<List<AuditCorrectiveActionDTO>> getCarList(@RequestHeader String username) throws Exception {
+		try {
+			logger.info(new Date() + " Inside getCarList" );
+			List<AuditCorrectiveActionDTO> dto=auditService.getCarList();
+			return new ResponseEntity<List<AuditCorrectiveActionDTO>>( dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching getCarList: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST); 
+		}
+	}
+	
 	@PostMapping(value = "/update-audit-check-list", produces = "application/json")
 	public ResponseEntity<Response> updateAuditCheckList(@RequestHeader String username, @RequestBody AuditCheckListDTO auditCheckListDTO) throws Exception {
 		try {
@@ -775,4 +790,58 @@ public class AuditController {
 		}
 	}
 
+	@PostMapping(value = "/add-corrective-action", produces = "application/json")
+	public ResponseEntity<Response> insertCorrectiveAction(@RequestHeader String username, @RequestBody List<AuditCarDTO> auditCarDTO) throws Exception {
+		try {
+			logger.info( " Inside add-corrective-action" );
+			 int result=auditService.insertCorrectiveAction(auditCarDTO,username);
+			 if(result > 0) {
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("Corrective Actions Added Successfully","S"));
+			 }else {
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("Corrective Actions Add Unsuccessful","F"));			 
+			 }
+		} catch (Exception e) {
+			 logger.error("error in add-corrective-action"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
+		}
+	}
+	
+	@PostMapping(value = "/update-corrective-action", produces = "application/json")
+	public ResponseEntity<Response> updateCorrectiveAction(@RequestHeader String username, @RequestBody AuditCarDTO auditCarDTO) throws Exception {
+		try {
+			logger.info( " Inside update-corrective-action" );
+			 int result=auditService.updateCorrectiveAction(auditCarDTO,username);
+			 if(result > 0) {
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("Corrective Actions Added Successfully","S"));
+			 }else {
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("Corrective Actions Add Unsuccessful","F"));			 
+			 }
+		} catch (Exception e) {
+			 logger.error("error in update-corrective-action"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
+		}
+	}
+	
+	@PostMapping("/upload-car-attachment")
+	public ResponseEntity<Response> uploadCarAttachment(@RequestHeader  String username, @RequestParam("ad") String attachment,
+			@RequestParam("file") MultipartFile file) throws Exception {
+		
+		logger.info(new Date() + " Inside upload-car-attachment " + username);
+		long result = 0;
+		Map<String, Object> response = null;
+		try {
+			response = new ObjectMapper().readValue(attachment, HashMap.class);
+			result = auditService.uploadCarAttachment(file, response, username);
+		} catch (Exception e) {
+			logger.info(new Date() + " Inside uploadCarAttachment " + e);
+		}
+		if (result > 0) {
+			return ResponseEntity.status(HttpStatus.OK).body(new Response("Corrective Actions Added Successfully","S"));
+		} else {
+			return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new Response("Corrective Actions Add Unsuccessful","F"));
+		}
+
+	}
 }

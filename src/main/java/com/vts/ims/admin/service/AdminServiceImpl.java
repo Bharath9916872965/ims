@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.vts.ims.admin.entity.ApprovalAuthority;
 import com.vts.ims.admin.entity.FormDetail;
 import com.vts.ims.admin.entity.FormModule;
 import com.vts.ims.master.dao.MasterClient;
@@ -51,6 +52,9 @@ public class AdminServiceImpl implements AdminService {
 
     @Autowired
 	FormRoleAccessRepo formRoleAccessRepo;
+    
+    @Autowired
+    ApprovalAuthorityRepository approvalAuthorityRepo;
 	
 	
 	@Value("${x_api_key}")
@@ -517,5 +521,124 @@ public class AdminServiceImpl implements AdminService {
 		}
 	}
 
+	
+	@Override
+	public List<ApprovalAuthorityDto> approvalAuthorityList() throws Exception {
+		logger.info(new Date() + " AdminServiceImpl Inside method approvalAuthorityList " );
+		try {
+			List<ApprovalAuthority> approvalAuthority = approvalAuthorityRepo.findAll();
+			List<EmployeeDto> employeeList=masterClient.getEmployeeList(xApiKey);
+		    Map<Long, EmployeeDto> employeeMap = employeeList.stream()
+		            .filter(employee -> employee.getEmpId() != null)
+		            .collect(Collectors.toMap(EmployeeDto::getEmpId, employee -> employee));
+		    List<ApprovalAuthorityDto> finalDto = approvalAuthority.stream()
+				    .map(obj -> {
+				    	ApprovalAuthorityDto approvalAuthorityDto = new ApprovalAuthorityDto();
+				       // EmployeeDto employeeDto = masterClient.getEmployee(xApiKey, obj.getEmpId()).get(0);
+				        EmployeeDto employeeDto =  employeeMap.get(obj.getEmpId());
+				        approvalAuthorityDto.setEmpId(obj.getEmpId());
+				        approvalAuthorityDto.setEmpName(employeeDto.getEmpName()+", "+employeeDto.getEmpDesigName());
+				        approvalAuthorityDto.setMrType(obj.getMRType());
+				        approvalAuthorityDto.setMrFrom(obj.getMRFrom());
+				        approvalAuthorityDto.setMrTo(obj.getMRTo());
+				        approvalAuthorityDto.setMRsId(obj.getMRsId());
+				        approvalAuthorityDto.setIsActive(obj.getIsActive());
+				        approvalAuthorityDto.setSalutation(employeeDto.getSalutation());
+				        approvalAuthorityDto.setMRsId(obj.getMRsId());
+				        return approvalAuthorityDto;
+				    })
+				    .sorted(Comparator.comparingLong(ApprovalAuthorityDto::getMRsId).reversed()) 
+				    .collect(Collectors.toList());
+			return finalDto;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error(new Date() +" error in AdminServiceImpl Inside method approvalAuthorityList "+ e.getMessage());
+			return List.of();
+		}
+		// TODO Auto-generated method stub
+	}
 
+	
+	@Override
+	public long insertApprovalAuthority(ApprovalAuthorityDto approvalAuthorityDto, String username) throws Exception {
+		logger.info(new Date() + " AdminServiceImpl Inside method insertApprovalAuthority " );
+		long result=0;
+		try {
+			if(approvalAuthorityDto!=null) {
+				if(approvalAuthorityDto.getMrRepEmpId()!=null && approvalAuthorityDto.getMrRepEmpId().length>0) {
+					for(int i=0;i<approvalAuthorityDto.getMrRepEmpId().length;i++) {
+						ApprovalAuthority model=new ApprovalAuthority();
+						model.setEmpId(Long.parseLong(approvalAuthorityDto.getMrRepEmpId()[i].toString()));
+						model.setMRType(approvalAuthorityDto.getMrType());
+						model.setMRFrom(approvalAuthorityDto.getMrFrom());
+						model.setMRTo(approvalAuthorityDto.getMrTo());
+						model.setCreatedBy(username);
+						model.setCreatedDate(LocalDateTime.now());
+						model.setIsActive(1);
+						result=approvalAuthorityRepo.save(model).getMRsId();
+					}
+				}else {
+					ApprovalAuthority model=new ApprovalAuthority();
+					model.setEmpId(approvalAuthorityDto.getMrempId());
+					model.setMRType(approvalAuthorityDto.getMrType());
+					model.setMRFrom(approvalAuthorityDto.getMrFrom());
+					model.setMRTo(approvalAuthorityDto.getMrTo());
+					model.setCreatedBy(username);
+					model.setCreatedDate(LocalDateTime.now());
+					model.setIsActive(1);
+					result=approvalAuthorityRepo.save(model).getMRsId();
+				}
+			}
+			return result;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error(new Date() +" error in AdminServiceImpl Inside method insertApprovalAuthority "+ e.getMessage());
+			return result;
+		}
+		
+	}
+	
+	
+	@Override
+	public long approvalAuthorityInactive(ApprovalAuthorityDto approvalAuthorityDto, String username) throws Exception {
+		logger.info(new Date() + " AuditServiceImpl Inside method approvalAuthorityInactive()");
+		long result=0;
+		try {
+			Optional<ApprovalAuthority> model =approvalAuthorityRepo.findById(approvalAuthorityDto.getMRsId());
+			if(model.isPresent()) {
+				ApprovalAuthority data = model.get();
+				data.setIsActive(approvalAuthorityDto.getIsActive());
+				data.setModifiedBy(username);
+				data.setModifiedDate(LocalDateTime.now());
+				result=approvalAuthorityRepo.save(data).getMRsId();
+			}
+			return result;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method approvalAuthorityInactive()"+ e);
+			return 0;
+		}
+	}
+	
+	@Override
+	public Long UpdateApprovalAuthority(ApprovalAuthorityDto approvalAuthorityDto, String username) throws Exception {
+		logger.info(new Date() + " AuditServiceImpl Inside method UpdateApprovalAuthority()");
+		long result=0;
+		try {
+			Optional<ApprovalAuthority> model =approvalAuthorityRepo.findById(approvalAuthorityDto.getMRsId());
+			if(model.isPresent()) {
+				ApprovalAuthority data = model.get();
+				data.setMRFrom(approvalAuthorityDto.getMrFrom());
+				data.setMRTo(approvalAuthorityDto.getMrTo());
+				data.setModifiedBy(username);
+				data.setModifiedDate(LocalDateTime.now());
+				result=approvalAuthorityRepo.save(data).getMRsId();
+			}
+			return result;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method UpdateApprovalAuthority()"+ e);
+			return result;
+		}
+	}
 }

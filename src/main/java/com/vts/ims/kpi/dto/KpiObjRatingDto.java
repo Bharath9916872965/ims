@@ -19,6 +19,7 @@ public class KpiObjRatingDto {
 	private String kpiMerics; 
 	private Long kpiUnitId; 
 	private String kpiUnitName; 
+	private String kpiNorms; 
 	private String kpiTarget; 
 
 }
