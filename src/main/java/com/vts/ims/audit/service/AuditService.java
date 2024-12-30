@@ -5,7 +5,9 @@ import java.util.Map;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.vts.ims.audit.dto.AuditCarDTO;
 import com.vts.ims.audit.dto.AuditCheckListDTO;
+import com.vts.ims.audit.dto.AuditCorrectiveActionDTO;
 import com.vts.ims.audit.dto.AuditRescheduleDto;
 import com.vts.ims.audit.dto.AuditScheduleDto;
 import com.vts.ims.audit.dto.AuditScheduleListDto;
@@ -107,6 +109,8 @@ public interface AuditService {
 	public int updateAuditeeRemarks(AuditCheckListDTO auditCheckListDTO, String username)throws Exception;
 
 	public List<CheckListDto> getAuditCheckList(String scheduleId)throws Exception;
+	
+	public List<AuditCorrectiveActionDTO> getCarList()throws Exception;
 
 	public long uploadCheckListImage(MultipartFile file, Map<String, Object> response, String username)throws Exception;
 
@@ -115,5 +119,11 @@ public interface AuditService {
 	public Long checkAuditorPresent(String auditorId)throws Exception;
 
 	public int deleteAuditor(String auditorId)throws Exception;
+
+	public int insertCorrectiveAction(List<AuditCarDTO> auditCarDTO, String username)throws Exception;
+
+	public int updateCorrectiveAction(AuditCarDTO auditCarDTO, String username)throws Exception;
+
+	public long uploadCarAttachment(MultipartFile file, Map<String, Object> response, String username)throws Exception;
 
 }

@@ -96,6 +96,7 @@ public class KpiServiceImpl implements KpiService{
 			kpiMas.setKpiObjectives(kpiObjectiveDto.getObjective());
 			kpiMas.setKpiMerics(kpiObjectiveDto.getMetrics());
 			kpiMas.setKpiTarget(Long.parseLong(kpiObjectiveDto.getTarget()));
+			kpiMas.setKpiNorms(kpiObjectiveDto.getNorms());
 			kpiMas.setRevisionRecordId(Long.parseLong(kpiObjectiveDto.getRevisionRecordId()));
 			kpiMas.setKpiUnitId(kpiObjectiveDto.getKpiUnitId());
 			kpiMas.setCreatedBy(username);
@@ -139,6 +140,7 @@ public class KpiServiceImpl implements KpiService{
 				
 				kpiMas.setKpiObjectives(kpiObjectiveDto.getObjective());
 				kpiMas.setKpiMerics(kpiObjectiveDto.getMetrics());
+				kpiMas.setKpiNorms(kpiObjectiveDto.getNorms());
 				kpiMas.setKpiTarget(Long.parseLong(kpiObjectiveDto.getTarget()));
 				kpiMas.setKpiUnitId(kpiObjectiveDto.getKpiUnitId());
 				kpiMas.setModifiedBy(username);
@@ -215,6 +217,7 @@ public class KpiServiceImpl implements KpiService{
 						    		.revisionRecordId(obj[6]!=null?obj[6].toString():"")
 						    		.groupDivisionId(obj[7]!=null?Long.parseLong(obj[7].toString()):0L)
 						    		.docType(obj[8]!=null?obj[8].toString():"")
+						    		.kpiNorms(obj[9]!=null?obj[9].toString():"")
 						    		.groupDivisionCode(divisionGroupCode !=null ? divisionGroupCode:"")
 					    			.build();
 					    })
@@ -270,6 +273,7 @@ public class KpiServiceImpl implements KpiService{
 						    		.kpiUnitName(obj[10]!=null?obj[10].toString():"")
 						    		.kpiTarget(obj[11]!=null?obj[11].toString():"") 
 						    		.iqaNo(obj[12]!=null?obj[12].toString():"") 
+						    		.kpiNorms(obj[13]!=null?obj[13].toString():"") 
 					    			.build();
 					    })
 					    .collect(Collectors.toList());
@@ -290,7 +294,7 @@ public class KpiServiceImpl implements KpiService{
 			List<DwpRevisionRecordDto> revisionRecordDtoList = new ArrayList<DwpRevisionRecordDto>();
 			
 			List<DwpRevisionRecord> revisionRecord = dwpRevisionRecordRepo.findAll();
-			
+			revisionRecord = revisionRecord.stream().filter(data -> data.getRevisionNo() == 0).collect(Collectors.toList());			
 			revisionRecord.forEach(revison -> {
 				
 				DivisionMasterDto divisionDto = null;

@@ -25,4 +25,8 @@ public interface AdminService {
 	public UserManageAddEditDto UserManagerEditData(String loginId)throws Exception;
 	public int UserManagerUpdate(UserManageAddEditDto userManageAdd, String name)throws Exception;
 	public long UserNamePresentCount(String userName)throws Exception;
+	public List<ApprovalAuthorityDto> approvalAuthorityList() throws Exception;
+	public long insertApprovalAuthority(ApprovalAuthorityDto approvalAuthorityDto, String username) throws Exception;
+	public long approvalAuthorityInactive(ApprovalAuthorityDto approvalAuthorityDto, String username) throws Exception;
+	public Long UpdateApprovalAuthority(ApprovalAuthorityDto approvalAuthorityDto, String username) throws Exception;
 }
