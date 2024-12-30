@@ -24,10 +24,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vts.ims.admin.service.AdminService;
+import com.vts.ims.audit.dto.AuditorDto;
+import com.vts.ims.audit.dto.IqaDto;
 import com.vts.ims.master.dto.EmployeeDto;
 import com.vts.ims.master.dto.LoginDetailsDto;
 import com.vts.ims.login.Login;
 import com.vts.ims.model.LoginStamping;
+import com.vts.ims.qms.dto.QmsQspRevisionRecordDto;
 import com.vts.ims.login.LoginRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -309,5 +312,72 @@ public class AdminController {
 		return String.valueOf(UserNamePresentCount);
 	}
 	
+	
+	
+	@PostMapping(value = "approval-authority-list", produces="application/json")
+	public ResponseEntity <List<ApprovalAuthorityDto>> approvalAuthorityList(@RequestHeader  String username) throws Exception {
+		logger.info(new Date() + " Inside approval-authority-list" );
+
+		List<ApprovalAuthorityDto> list=null;
+		try {
+			list=service.approvalAuthorityList();
+		} catch (Exception e) {
+			logger.error(new Date() +" error in approval-authority-list"+ e.getMessage());
+			e.printStackTrace();
+		}
+		return new ResponseEntity<>(list, HttpStatus.OK);
+	}
+	
+	
+	@PostMapping(value = "/insert-approval-authority", produces = "application/json")
+	public ResponseEntity<String> insertApprovalAuthority( @RequestBody ApprovalAuthorityDto approvalAuthorityDto,@RequestHeader String username) throws Exception {
+		try {
+			logger.info(new Date() + " Inside insert-approval-authority" );
+			long insertApprovalAuthority=service.insertApprovalAuthority(approvalAuthorityDto,username);
+			 if(insertApprovalAuthority > 0) {
+				 return new ResponseEntity<String>("200" , HttpStatus.OK);
+			 }else {
+				 return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
+			 }
+		} catch (Exception e) {
+			 logger.error(new Date() +"error in insert-approval-authority"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+		}
+	}
+	
+	@RequestMapping (value="/approval_authority-inactive", method=RequestMethod.POST,produces="application/json")
+    public ResponseEntity<String> approvalAuthorityInactive(@RequestBody ApprovalAuthorityDto approvalAuthorityDto, @RequestHeader  String username) throws Exception{
+   		 try {
+   			logger.info("{} Inside approval_authority-inactive");
+   			long result=service.approvalAuthorityInactive(approvalAuthorityDto,username);
+		    if(result > 0) {
+		    	return new ResponseEntity<String>("200" , HttpStatus.OK);
+		    }else {
+		    	return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
+		    }
+   		 } catch (Exception e) {
+  			  logger.error(new Date() +" error in approval_authority-inactive");
+  		         e.printStackTrace();
+  		       return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+  		}
+	}
+	
+	@PostMapping(value = "/update-approval-authority", produces = "application/json")	
+	public ResponseEntity<String> UpdateApprovalAuthority(@RequestHeader String username, @RequestBody ApprovalAuthorityDto approvalAuthorityDto) throws Exception {
+		try {
+			logger.info("update-approval-authority");
+			Long result=service.UpdateApprovalAuthority(approvalAuthorityDto,username);
+			 if(result > 0) {
+				 return new ResponseEntity<String>("200" , HttpStatus.OK);
+			 }else {
+				 return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
+			 }
+		} catch (Exception e) {
+			 logger.error("update-approval-authority"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+		}
+	}
 	
 }
