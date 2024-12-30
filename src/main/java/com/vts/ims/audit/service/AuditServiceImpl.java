@@ -2125,7 +2125,7 @@ public class AuditServiceImpl implements AuditService{
 		logger.info(new Date() + " AuditServiceImpl Inside method updateCorrectiveAction()");
 		try {
 	
-			 // result = auditCorrectiveActionRepository.updateCarReport(auditCarDTO.getRootCause(),DLocalConvertion.converLocalTime(auditCarDTO.getCompletionDate()),username,LocalDateTime.now(),auditCarDTO.getCorrectiveActionId());	
+			 result = auditCorrectiveActionRepository.updateCarReport(auditCarDTO.getRootCause(),DLocalConvertion.converLocalTime(auditCarDTO.getCompletionDate()),username,LocalDateTime.now(),auditCarDTO.getCorrectiveActionId());	
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("AuditServiceImpl Inside method updateCorrectiveAction()"+ e);

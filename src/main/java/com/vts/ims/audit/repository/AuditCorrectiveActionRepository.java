@@ -27,7 +27,7 @@ public interface AuditCorrectiveActionRepository extends JpaRepository<AuditCorr
 	public Integer updateActions(@Param("ActionPlan")String actionPlan,@Param("Responsibility")Long responsibility,@Param("TargetDate")LocalDateTime targetDate,@Param("CarDate")LocalDateTime carDate,@Param("ActEmpId")Long actEmpId,@Param("ModifiedBy")String modifiedBy,@Param("ModifiedDate")LocalDateTime modifiedDate,@Param("CorrectiveActionId")Long correctiveActionId); 
 	
 	@Modifying
-	@Query(value = "UPDATE ims_audit_corrective_action SET CarAttachment = :CarAttachment,RootCause = :RootCause,CarCompletionDate = :CarCompletionDate,ModifiedBy = :ModifiedBy,ModifiedDate = :ModifiedDate WHERE CorrectiveActionId = :CorrectiveActionId",nativeQuery = true)
-	public Integer updateCarReport(@Param("CarAttachment")String carAttachment,@Param("RootCause")String rootCause,@Param("CarCompletionDate")LocalDateTime carCompletionDate,@Param("ModifiedBy")String modifiedBy,@Param("ModifiedDate")LocalDateTime modifiedDate,@Param("CorrectiveActionId")Long correctiveActionId);
+	@Query(value = "UPDATE ims_audit_corrective_action SET RootCause = :RootCause,CarCompletionDate = :CarCompletionDate,ModifiedBy = :ModifiedBy,ModifiedDate = :ModifiedDate WHERE CorrectiveActionId = :CorrectiveActionId",nativeQuery = true)
+	public Integer updateCarReport(@Param("RootCause")String rootCause,@Param("CarCompletionDate")LocalDateTime carCompletionDate,@Param("ModifiedBy")String modifiedBy,@Param("ModifiedDate")LocalDateTime modifiedDate,@Param("CorrectiveActionId")Long correctiveActionId);
 	
 }
