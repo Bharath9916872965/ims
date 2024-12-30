@@ -802,7 +802,8 @@ public class AuditServiceImpl implements AuditService{
 //		    			}else {
 //		    				ObsCode = "OFI";
 //		    			} 					
-		    			action.setAuditCheckListId(Long.parseLong(obj[0].toString()));	 		    			action.setCarDescription(obj[10].toString());	 
+		    			action.setAuditCheckListId(Long.parseLong(obj[0].toString()));	 
+		    			action.setCarDescription(obj[10].toString());	 
 		    			action.setCarRefNo(auditScheduleListDto.getIqaNo()+"/"+divisionGroupName+"/"+ObsCode+"/"+ (++actionCount));
 		    			action.setIqaId(auditScheduleListDto.getIqaId());	    			
 		    			action.setCreatedBy(username);
@@ -952,7 +953,8 @@ public class AuditServiceImpl implements AuditService{
 			EmployeeDto employeeLogIn = masterClient.getEmployee(xApiKey,login.getEmpId()).get(0);
 			List<EmployeeDto> totalEmployee = masterClient.getEmployeeMasterList(xApiKey);
 			List<Object[]> auditorsByIqa = teamRepository.getAuditorsByIqa(iqaId);
-										Map<Long, List<AuditScheduleListDto>> auditeeMap = auditScheduleListDto.stream().collect(Collectors.groupingBy(AuditScheduleListDto::getAuditeeEmpId));
+							
+			Map<Long, List<AuditScheduleListDto>> auditeeMap = auditScheduleListDto.stream().collect(Collectors.groupingBy(AuditScheduleListDto::getAuditeeEmpId));
 			Map<Long, List<AuditScheduleListDto>> teamMap = auditScheduleListDto.stream().collect(Collectors.groupingBy(AuditScheduleListDto::getTeamId));			
 			
 			String url= "/schedule-approval";
@@ -2123,7 +2125,7 @@ public class AuditServiceImpl implements AuditService{
 		logger.info(new Date() + " AuditServiceImpl Inside method updateCorrectiveAction()");
 		try {
 	
-			  result = auditCorrectiveActionRepository.updateCarReport(auditCarDTO.getAttachmentName(),auditCarDTO.getRootCause(),DLocalConvertion.converLocalTime(auditCarDTO.getCompletionDate()),username,LocalDateTime.now(),auditCarDTO.getCorrectiveActionId());	
+			 // result = auditCorrectiveActionRepository.updateCarReport(auditCarDTO.getRootCause(),DLocalConvertion.converLocalTime(auditCarDTO.getCompletionDate()),username,LocalDateTime.now(),auditCarDTO.getCorrectiveActionId());	
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("AuditServiceImpl Inside method updateCorrectiveAction()"+ e);

@@ -26,7 +26,7 @@ public class AuditScheduleListDto {
 	private String divisionName;
 	private String groupName;  
 	private String projectName;  
-	private String projectShortName;  
+	private String projectShortName; 
 	private String scheduleStatus;  
 	private String statusName;  
 	private Long leadEmpId;
