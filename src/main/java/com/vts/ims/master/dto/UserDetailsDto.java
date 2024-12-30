@@ -13,6 +13,7 @@ public class UserDetailsDto {
 	public Long imsFormRoleId;
 	public String roleName;
 	public String labCode;
+	public Long groupId;
 	
 
 }
