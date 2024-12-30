@@ -33,6 +33,9 @@ public class ImsKpiObjectiveMaster {
 	@Column(name = "KpiMerics")
 	private String kpiMerics;
 	
+	@Column(name = "KpiNorms")
+	private String kpiNorms;
+	
 	@Column(name = "KpiTarget")
 	private Long kpiTarget;
 	

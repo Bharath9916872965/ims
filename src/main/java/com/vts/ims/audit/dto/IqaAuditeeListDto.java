@@ -16,8 +16,13 @@ public class IqaAuditeeListDto {
 	private Long projectId;
 	private String auditee;
 	private String divisionName;
+	private String divisionFullName;
+	private String divisionHeadName;
 	private String groupName;
+	private String groupHeadName;
+	private String groupFullName;
 	private String projectName;
+	private String projectDirectorName;
 	private String projectCode;
 	private String projectShortName;
 }
