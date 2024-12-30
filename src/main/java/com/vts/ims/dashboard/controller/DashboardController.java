@@ -1,11 +1,14 @@
 package com.vts.ims.dashboard.controller;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vts.ims.audit.dto.AuditorTeamDto;
+import com.vts.ims.audit.dto.IqaDto;
 import com.vts.ims.dashboard.dto.CheckListObsCountDto;
 import com.vts.ims.dashboard.service.DashboardService;
 import com.vts.ims.qms.dto.DwpRevisionRecordDto;
@@ -28,6 +32,32 @@ public class DashboardController {
 	
 	@Autowired
 	DashboardService service;
+	
+	@PostMapping(value = "/iqa-list-for-dashboard", produces = "application/json")
+	public ResponseEntity<List<IqaDto>> iqalistForDashboard(@RequestHeader String username) throws Exception {
+		try {
+			logger.info(new Date() + " Inside iqalistForDashboard" );
+			List<IqaDto> dto=service.getIqaListForDashboard();
+			return new ResponseEntity<List<IqaDto>>( dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching iqalistForDashboard: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	@PostMapping(value = "/dwp-revision-list-for-dashboard", produces = "application/json")
+	public ResponseEntity<List<DwpRevisionRecordDto>> getDwpVersionRecordDtoListForDahboard(@RequestHeader String username) throws Exception {
+		try {
+			logger.info(new Date() + " Inside getDwpVersionRecordDtoListForDahboard" );
+			List<DwpRevisionRecordDto> dto=service.getAllDwpRevisionListForDashboard();
+			return new ResponseEntity<List<DwpRevisionRecordDto>>( dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching getDwpVersionRecordDtoListForDahboard: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
+	}
 	
 	@PostMapping(value = "/get-qm-dashboard-list", produces = "application/json")
 	public List<QmsQmRevisionRecordDto> getQmDashboardList(@RequestHeader  String username) throws Exception {
@@ -82,7 +112,6 @@ public class DashboardController {
 	public long noOfActiveSchedules(@RequestHeader  String username) throws Exception {
 		logger.info(" Inside get-no-of-active-schedules " + username);
 	    long count = service.getNoOfActiveSchedules();
-
 	    return count;
 	}
 	

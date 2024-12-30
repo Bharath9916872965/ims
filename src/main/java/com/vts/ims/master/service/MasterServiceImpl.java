@@ -25,6 +25,7 @@ import com.vts.ims.admin.repository.ImsFormRoleRepo;
 import com.vts.ims.login.Login;
 import com.vts.ims.login.LoginRepository;
 import com.vts.ims.master.dao.MasterClient;
+import com.vts.ims.master.dto.DivisionMasterDto;
 import com.vts.ims.master.dto.DocTemplateAttributesDto;
 import com.vts.ims.master.dto.EmployeeDto;
 import com.vts.ims.master.dto.LabMasterDto;
@@ -230,11 +231,13 @@ public class MasterServiceImpl implements MasterService {
 		 
 		 if(login !=null) {
 				EmployeeDto employeeLogIn = masterClient.getEmployee(xApiKey,Long.parseLong(login[2].toString())).get(0);
-			 return UserDetailsDto.builder()
+				List<DivisionMasterDto> divisionDto = masterClient.getDivisionDetailsById(xApiKey,Long.parseLong(login[3].toString()));
+				return UserDetailsDto.builder()
 		 			  .loginId(Long.parseLong(login[0].toString()))	  
 		 			  .username(login[1].toString())	    
 		 			  .empId(Long.parseLong(login[2].toString()))	  
-		 			  .divisionId(Long.parseLong(login[3].toString()))	  
+		 			  .divisionId(Long.parseLong(login[3].toString()))	
+		 			  .groupId(divisionDto.isEmpty() ? 0 : divisionDto.get(0).getGroupId())
 		 			  .imsFormRoleId(Long.parseLong(login[4].toString()))	
 		 			  .roleName(login[5].toString())	
 		 			  .labCode(employeeLogIn.getLabCode())	

@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.vts.ims.master.dto.DivisionEmployeeDto;
 import com.vts.ims.master.dto.DivisionGroupDto;
 import com.vts.ims.master.dto.DivisionMasterDto;
+import com.vts.ims.master.dto.ProjectMasterDto;
 import com.vts.ims.qms.dto.CheckListMasterDto;
 import com.vts.ims.qms.dto.DwpRevisionRecordDto;
 import com.vts.ims.qms.dto.DwpSectionDto;
@@ -461,6 +462,14 @@ public class QmsController {
 		return service.getDwpDocSummarybyRevisionRecordId(revisionRecordId);
 	}
 
+	@PostMapping(value = "/get-dwp-project-list/{imsFormRoleId}/{empId}", produces = "application/json")
+	public ResponseEntity<List<ProjectMasterDto>> getDwpProjectMaster(@PathVariable("imsFormRoleId") Integer imsFormRoleId, @PathVariable("empId") Long empId, @RequestHeader String username) throws Exception {
+		logger.info(new Date() + " Inside getDwpProjectlist()" );
+		List<ProjectMasterDto> dto = service.getDwpProjectMaster(imsFormRoleId, empId);
+		return new ResponseEntity<List<ProjectMasterDto>>( dto,HttpStatus.OK);
+	}
+
+	
 	@PostMapping(value = "/get-dwp-division-list/{imsFormRoleId}/{empId}", produces = "application/json")
 	public ResponseEntity<List<DivisionMasterDto>> getDwpDivisionlist(@PathVariable("imsFormRoleId") Integer imsFormRoleId, @PathVariable("empId") Long empId, @RequestHeader String username) throws Exception {
 		logger.info(new Date() + " Inside getDwpDivisionlist()" );

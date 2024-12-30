@@ -2,6 +2,8 @@ package com.vts.ims.dashboard.service;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -17,7 +19,10 @@ import com.vts.ims.audit.dto.AuditScheduleListDto;
 import com.vts.ims.audit.dto.AuditeeDto;
 import com.vts.ims.audit.dto.AuditorDto;
 import com.vts.ims.audit.dto.AuditorTeamDto;
+import com.vts.ims.audit.dto.IqaDto;
+import com.vts.ims.audit.model.Iqa;
 import com.vts.ims.audit.repository.AuditCheckListRepository;
+import com.vts.ims.audit.repository.IqaRepository;
 import com.vts.ims.audit.service.AuditService;
 import com.vts.ims.dashboard.dto.CheckListObsCountDto;
 import com.vts.ims.master.dao.MasterClient;
@@ -29,6 +34,7 @@ import com.vts.ims.qms.dto.DwpRevisionRecordDto;
 import com.vts.ims.qms.dto.QmsDocTypeDto;
 import com.vts.ims.qms.dto.QmsQmRevisionRecordDto;
 import com.vts.ims.qms.model.DwpRevisionRecord;
+import com.vts.ims.qms.model.QmsDocStatus;
 import com.vts.ims.qms.model.QmsQmRevisionRecord;
 import com.vts.ims.qms.repository.DwpRevisionRecordRepo;
 import com.vts.ims.qms.repository.QmsQmRevisionRecordRepo;
@@ -56,6 +62,12 @@ public class DashboardServiceImpl implements DashboardService {
 	@Autowired
 	private DwpRevisionRecordRepo dwpRevisionRecordRepo;
 	
+	
+	
+	
+	@Autowired
+	IqaRepository iqaRepository;
+	
 	@Value("${x_api_key}")
 	private String xApiKey;
 	
@@ -66,6 +78,83 @@ public class DashboardServiceImpl implements DashboardService {
 	    return Long.parseLong(value.toString()); 
 	}
 
+	
+	@Override
+	public List<IqaDto> getIqaListForDashboard() throws Exception {
+		logger.info(new Date() + " AuditServiceImpl Inside method getIqaListForDashboard()");
+		try {
+			List<Iqa> iqalist = iqaRepository.getIqaListForDashboard();
+			List<IqaDto> finalIqaDtoList = iqalist.stream()
+				    .map(obj -> {
+				        IqaDto dto = new IqaDto();
+				        dto.setIqaId(obj.getIqaId());
+				        dto.setIqaNo(obj.getIqaNo());
+				        dto.setFromDate(obj.getFromDate());
+				        dto.setToDate(obj.getToDate());
+				        dto.setScope(obj.getScope());
+				        dto.setDescription(obj.getDescription());
+				        return dto;
+				    })
+				    .sorted(Comparator.comparingLong(IqaDto::getIqaId).reversed()) 
+				    .collect(Collectors.toList());
+			return finalIqaDtoList;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method getIqaListForDashboard()"+ e);
+			 return Collections.emptyList();
+		}
+	}
+	
+	@Override
+	public List<DwpRevisionRecordDto> getAllDwpRevisionListForDashboard() throws Exception {
+		logger.info(new Date() + " AuditServiceImpl Inside method getDwpRevisionListForDashboard()");
+		try {
+
+
+
+			
+			List<DwpRevisionRecordDto> revisionRecordDtoList = new ArrayList<DwpRevisionRecordDto>();
+			List<DwpRevisionRecord> revisionRecord = dwpRevisionRecordRepo.findAllActiveDwpRecords();
+			revisionRecord.forEach(revison -> {
+	
+				
+	
+				
+				DwpRevisionRecordDto qmsQmRevisionRecordDto = DwpRevisionRecordDto.builder()
+						
+						.RevisionRecordId(revison.getRevisionRecordId())
+						.DocType(revison.getDocType())
+						.GroupDivisionId(revison.getGroupDivisionId())
+						.DocFileName(revison.getDocFileName())
+						.DocFilepath(revison.getDocFilepath())
+						.Description(revison.getDescription())
+						.IssueNo(revison.getIssueNo())
+						.RevisionNo(revison.getRevisionNo())
+						.DateOfRevision(revison.getDateOfRevision())
+						.StatusCode(revison.getStatusCode())
+						.AbbreviationIdNotReq(revison.getAbbreviationIdNotReq())
+						.InitiatedBy(revison.getInitiatedBy())
+						.ReviewedBy(revison.getReviewedBy())
+						.ApprovedBy(revison.getApprovedBy())
+						.StatusCodeNext(revison.getStatusCodeNext())
+						.CreatedBy(revison.getCreatedBy())
+						.CreatedDate(revison.getCreatedDate())
+						.ModifiedBy(revison.getModifiedBy())
+						.ModifiedDate(revison.getModifiedDate())
+						.IsActive(revison.getIsActive())
+						.build();
+				
+				revisionRecordDtoList.add(qmsQmRevisionRecordDto);
+			});
+			
+			return revisionRecordDtoList;
+		
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method getDwpRevisionListForDashboard()"+ e);
+			 return Collections.emptyList();
+		}
+	}
 	
 	
 	

@@ -802,7 +802,8 @@ public class AuditServiceImpl implements AuditService{
 //		    			}else {
 //		    				ObsCode = "OFI";
 //		    			} 					
-		    			action.setAuditCheckListId(Long.parseLong(obj[0].toString()));	 		    			action.setCarDescription(obj[10].toString());	 
+		    			action.setAuditCheckListId(Long.parseLong(obj[0].toString()));	 
+		    			action.setCarDescription(obj[10].toString());	 
 		    			action.setCarRefNo(auditScheduleListDto.getIqaNo()+"/"+divisionGroupName+"/"+ObsCode+"/"+ (++actionCount));
 		    			action.setIqaId(auditScheduleListDto.getIqaId());	    			
 		    			action.setCreatedBy(username);
@@ -952,7 +953,8 @@ public class AuditServiceImpl implements AuditService{
 			EmployeeDto employeeLogIn = masterClient.getEmployee(xApiKey,login.getEmpId()).get(0);
 			List<EmployeeDto> totalEmployee = masterClient.getEmployeeMasterList(xApiKey);
 			List<Object[]> auditorsByIqa = teamRepository.getAuditorsByIqa(iqaId);
-										Map<Long, List<AuditScheduleListDto>> auditeeMap = auditScheduleListDto.stream().collect(Collectors.groupingBy(AuditScheduleListDto::getAuditeeEmpId));
+							
+			Map<Long, List<AuditScheduleListDto>> auditeeMap = auditScheduleListDto.stream().collect(Collectors.groupingBy(AuditScheduleListDto::getAuditeeEmpId));
 			Map<Long, List<AuditScheduleListDto>> teamMap = auditScheduleListDto.stream().collect(Collectors.groupingBy(AuditScheduleListDto::getTeamId));			
 			
 			String url= "/schedule-approval";
@@ -2151,7 +2153,6 @@ public class AuditServiceImpl implements AuditService{
 			}
 			
 			car.setCarAttachment(response.get("attachmentName").toString());
-			car.setRootCause(response.get("rootCause").toString());
 			car.setRootCause(response.get("rootCause").toString());
 			car.setCarCompletionDate(DLocalConvertion.converLocalTime(LocalDateTime.parse(response.get("completionDate").toString().replace("Z",""))));
 			car.setModifiedBy(username);
