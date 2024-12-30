@@ -2123,7 +2123,7 @@ public class AuditServiceImpl implements AuditService{
 		logger.info(new Date() + " AuditServiceImpl Inside method updateCorrectiveAction()");
 		try {
 	
-			  result = auditCorrectiveActionRepository.updateCarReport(auditCarDTO.getAttachmentName(),auditCarDTO.getRootCause(),DLocalConvertion.converLocalTime(auditCarDTO.getCompletionDate()),username,LocalDateTime.now(),auditCarDTO.getCorrectiveActionId());	
+			  result = auditCorrectiveActionRepository.updateCarReport(auditCarDTO.getRootCause(),DLocalConvertion.converLocalTime(auditCarDTO.getCompletionDate()),username,LocalDateTime.now(),auditCarDTO.getCorrectiveActionId());	
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("AuditServiceImpl Inside method updateCorrectiveAction()"+ e);
@@ -2151,6 +2151,7 @@ public class AuditServiceImpl implements AuditService{
 			}
 			
 			car.setCarAttachment(response.get("attachmentName").toString());
+			car.setRootCause(response.get("rootCause").toString());
 			car.setRootCause(response.get("rootCause").toString());
 			car.setCarCompletionDate(DLocalConvertion.converLocalTime(LocalDateTime.parse(response.get("completionDate").toString().replace("Z",""))));
 			car.setModifiedBy(username);
