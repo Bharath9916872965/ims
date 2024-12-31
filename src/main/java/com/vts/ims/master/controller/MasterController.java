@@ -117,7 +117,6 @@ public class MasterController {
     	try {
 			logger.info(new Date() + " Inside iqalist" );
 			List<CommitteeScheduleDto> result=service.GetQmrcList();
-			System.out.println("result"+result);
 			return new ResponseEntity<List<CommitteeScheduleDto>>( result,HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -132,7 +131,6 @@ public class MasterController {
     	try {
 			logger.info(new Date() + " Inside iqalist" );
 			List<ActionAssignDto> result=service.GetQmrcActionAssignList();
-			System.out.println("result"+result);
 			return new ResponseEntity<List<ActionAssignDto>>( result,HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
