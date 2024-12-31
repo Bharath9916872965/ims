@@ -15,7 +15,7 @@ public interface QmsQmRevisionRecordRepo extends JpaRepository<QmsQmRevisionReco
 
 	public QmsQmRevisionRecord findByRevisionRecordId(Long revisionRecordId);
 
-	@Query(value="SELECT a.EmpId,a.StatusCode,a.TransactionDate,a.Remarks,b.Status FROM ims_qms_qm_revision_transc a,ims_qms_doc_status b WHERE a.RevisionRecordId = :revisionRecordId AND a.StatusCode = b.StatusCode ORDER BY a.QMTransactionId",nativeQuery = true)
+	@Query(value="SELECT a.EmpId,a.StatusCode,a.TransactionDate,a.Remarks,b.Status,a.QMTransactionId FROM ims_qms_qm_revision_transc a,ims_qms_doc_status b WHERE a.RevisionRecordId = :revisionRecordId AND a.StatusCode = b.StatusCode ORDER BY a.QMTransactionId",nativeQuery = true)
 	public List<Object[]> getRevisionTran(@Param("revisionRecordId")String revisionRecordId);
 	
 }

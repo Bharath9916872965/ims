@@ -7,6 +7,7 @@ import lombok.Data;
 @Builder
 public class DwpTransactionDto {
 
+	private Long dgTransactionId;
 	private Long empId;
 	private String statusCode;
 	private String transactionDate;
