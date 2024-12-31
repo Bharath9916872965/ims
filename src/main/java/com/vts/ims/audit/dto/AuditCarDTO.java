@@ -15,6 +15,7 @@ public class AuditCarDTO {
     private LocalDateTime targetDate;
     private String attachmentName;
     private String rootCause;
+    private String correctiveActionTaken;
     private LocalDateTime completionDate;
     private String carRefNo;
 
