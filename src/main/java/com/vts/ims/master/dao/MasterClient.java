@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.vts.ims.master.dto.ActionAssignDto;
+import com.vts.ims.master.dto.CommitteeScheduleDto;
 import com.vts.ims.master.dto.DivisionEmployeeDto;
 import com.vts.ims.master.dto.DivisionGroupDto;
 import com.vts.ims.master.dto.DivisionMasterDto;
@@ -64,6 +66,12 @@ public interface MasterClient {
 	
 	    @PostMapping("/getProjectEmployee")
 	    List<ProjectEmployeeDto> getProjectEmpDetailsById(@RequestHeader("X-API-KEY") String apiKey);
+	    
+	    @PostMapping("/committeeScheduleList")
+		List<CommitteeScheduleDto> committeeScheduleList(@RequestHeader("X-API-KEY") String apiKey);
+	    
+	    @PostMapping("/actionAssignData")
+		List<ActionAssignDto> actionAssignData(@RequestHeader("X-API-KEY") String apiKey);
 
 
 

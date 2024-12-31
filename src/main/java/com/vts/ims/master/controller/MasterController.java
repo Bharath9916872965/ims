@@ -18,7 +18,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.vts.ims.master.dto.DivisionGroupDto;
+import com.vts.ims.master.dto.ActionAssignDto;
+import com.vts.ims.master.dto.CommitteeScheduleDto;
 import com.vts.ims.master.dto.DocTemplateAttributesDto;
 import com.vts.ims.master.dto.EmployeeDto;
 import com.vts.ims.master.dto.LabMasterDto;
@@ -110,4 +111,33 @@ public class MasterController {
 		return new ResponseEntity<>(dto, HttpStatus.OK);
 	}
 
+    
+    @PostMapping(value = "/get-qmrc-list" , produces = "application/json")
+    public ResponseEntity<List<CommitteeScheduleDto>> GetQmrcList( @RequestHeader String username)throws Exception {			    	
+    	try {
+			logger.info(new Date() + " Inside iqalist" );
+			List<CommitteeScheduleDto> result=service.GetQmrcList();
+			System.out.println("result"+result);
+			return new ResponseEntity<List<CommitteeScheduleDto>>( result,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching iqalist: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
+    }
+    
+    
+    @PostMapping(value = "/get-qmrc-action-assign-list" , produces = "application/json")
+    public ResponseEntity<List<ActionAssignDto>> GetQmrcActionAssignList( @RequestHeader String username)throws Exception {			    	
+    	try {
+			logger.info(new Date() + " Inside iqalist" );
+			List<ActionAssignDto> result=service.GetQmrcActionAssignList();
+			System.out.println("result"+result);
+			return new ResponseEntity<List<ActionAssignDto>>( result,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching iqalist: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
+    }
 }
