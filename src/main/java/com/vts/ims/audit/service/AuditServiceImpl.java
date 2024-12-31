@@ -2126,6 +2126,7 @@ public class AuditServiceImpl implements AuditService{
 					    			.description(obj[10]!=null?obj[10].toString():"")
 					    			.auditeeRemarks(obj[11]!=null?obj[11].toString():"")
 					    			.scheduleStatus(obj[12]!=null?obj[12].toString():"")
+					    			.carRefNo(obj[13]!=null?obj[13].toString():"")
 					    			.build();
 					    })
 					    .collect(Collectors.toList());
@@ -2135,6 +2136,24 @@ public class AuditServiceImpl implements AuditService{
 			return List.of();
 		}
 	}
+	@Override
+	public List<CheckListDto> getMostFqNCMocDes(Long scheduleId, Integer auditObsId, Long iqaId) throws Exception {
+	    logger.info(new Date() + " Inside method getMostFqNCMocDes()");
+	    try {
+	        List<Object[]> result = auditCheckListRepository.getMostFqNCMocDes(scheduleId, auditObsId, iqaId);
+	        return result.stream()
+	            .map(obj -> CheckListDto.builder()
+	                .clauseNo(obj[0] != null ? obj[0].toString() : "")
+	                .description(obj[1] != null ? obj[1].toString() : "")
+	                .carRefNo(obj[2] != null ? obj[2].toString() : "")
+	                .build()
+	            ).collect(Collectors.toList());
+	    } catch (Exception e) {
+	        logger.error("Error in getMostFqNCMocDes: ", e);
+	        throw e;
+	    }
+	}
+
 	@Override
 	public List<CheckListDto> getMostFrequentNC() throws Exception {
 		logger.info(new Date() + " AuditServiceImpl Inside method getMostFrequentNC()");

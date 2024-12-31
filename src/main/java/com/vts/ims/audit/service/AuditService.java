@@ -130,4 +130,10 @@ public interface AuditService {
 
 	public long uploadCarAttachment(MultipartFile file, Map<String, Object> response, String username)throws Exception;
 
+	
+
+	public List<CheckListDto> getMostFqNCMocDes(Long scheduleId, Integer auditObsId, Long iqaId)throws Exception;
+
+	
+
 }

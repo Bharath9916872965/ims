@@ -129,21 +129,39 @@ WHERE
     AND d.IsActive = 1
 GROUP BY 
     a.ScheduleId, a.AuditeeId, d.EmpId, d.DivisionId, d.GroupId, d.ProjectId, a.IqaId
-ORDER BY 
-    a.ScheduleId DESC;
+ORDER BY COALESCE(totalNC, 0) DESC;
  """, nativeQuery = true)
  List<Object[]> getCheckListObsByDivPrjGroup();
 
  @Query(value = "SELECT a.AuditCheckListId,a.ScheduleId,a.IqaId,a.MocId,a.AuditObsId,a.AuditorRemarks,b.ClauseNo,b.SectionNo,\r\n"
- 		+ "b.MocParentId,b.IsForCheckList,b.MocDescription,a.AuditeeRemarks,c.ScheduleStatus\r\n"
- 		+ "FROM ims_audit_check_list a,ims_qms_qm_mapping_classes b,ims_audit_schedule c WHERE a.IsActive = 1 AND\r\n"
- 		+ " b.IsActive = 1 AND a.MocId = b.MocId  AND a.ScheduleId = c.ScheduleId AND a.AuditObsId IN(2,3,4)",nativeQuery = true)
+ 		+ "b.MocParentId,b.IsForCheckList,b.MocDescription,a.AuditeeRemarks,c.ScheduleStatus,d.CarRefNo\r\n"
+ 		+ "FROM\r\n"
+ 		+ "ims_audit_check_list a\r\n"
+ 		+ "LEFT JOIN ims_qms_qm_mapping_classes b ON b.MocId = a.MocId AND b.IsActive = 1\r\n"
+ 		+ "LEFT JOIN ims_audit_schedule c ON c.ScheduleId = a.ScheduleId\r\n"
+ 		+ "LEFT JOIN ims_audit_corrective_action d ON d.AuditCheckListId=a.AuditCheckListId\r\n"
+ 		+ "WHERE a.AuditObsId IN (2,3,4) AND a.IsActive = 1",nativeQuery = true)
 	public List<Object[]> getAuditCheckListbyObsIds();
 	 @Query(value = "SELECT a.MocId,b.MocDescription,COUNT(a.MocId) AS QuestionCount,b.ClauseNo,b.SectionNo,b.MocParentId,b.IsForCheckList\r\n"
 	 		+ "FROM ims_audit_check_list a\r\n"
 	 		+ "LEFT JOIN ims_qms_qm_mapping_classes b ON a.MocId = b.MocId AND b.IsActive = 1 WHERE a.IsActive = 1 AND a.AuditObsId='2'\r\n"
 	 		+ "GROUP BY a.MocId ORDER BY COUNT(a.MocId) DESC",nativeQuery = true)
 			public List<Object[]> getMostFrequentNC();
+			@Query(value = 
+				       "SELECT SectionNo, m.MocDescription,d.CarRefNo ,c.AuditObsId\r\n"
+				       + "FROM ims_qms_qm_mapping_classes m \r\n"
+				       + "INNER JOIN ims_audit_check_list c ON c.MocId = m.MocId \r\n"
+				       + "AND c.AuditObsId =:auditObsId AND c.ScheduleId =:scheduleId AND c.IqaId =:iqaId\r\n"
+				       + "LEFT JOIN ims_audit_corrective_action d ON d.AuditCheckListId=c.AuditCheckListId;", nativeQuery = true)
+				List<Object[]> getMostFqNCMocDes(@Param("scheduleId") Long scheduleId, 
+				                                 @Param("auditObsId") Integer auditObsId, 
+				                                 @Param("iqaId") Long iqaId);
+
+
+
+				
+			
+			
 	
 }
 
