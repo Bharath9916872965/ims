@@ -3,13 +3,7 @@ package com.vts.ims.master.service;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import com.vts.ims.master.dto.ActionAssignDto;
-import com.vts.ims.master.dto.CommitteeScheduleDto;
-import com.vts.ims.master.dto.DocTemplateAttributesDto;
-import com.vts.ims.master.dto.EmployeeDto;
-import com.vts.ims.master.dto.LabMasterDto;
-import com.vts.ims.master.dto.LoginDetailsDto;
-import com.vts.ims.master.dto.UserDetailsDto;
+import com.vts.ims.master.dto.*;
 
 public interface MasterService {
 
@@ -22,5 +16,8 @@ public interface MasterService {
 	public List<EmployeeDto> getemployeebyid(long empId) throws ExecutionException;
 	public List<CommitteeScheduleDto> GetQmrcList() throws Exception;
 	public List<ActionAssignDto> GetQmrcActionAssignList() throws Exception;
+	public List<DivisionMasterDto> getDivisionMasterList(String username) throws Exception;
+	public List<DivisionGroupDto> getDivisonGroupList(String username) throws Exception;
+	public List<ProjectMasterDto> getprojectMasterList(String username) throws Exception;
 	
 }

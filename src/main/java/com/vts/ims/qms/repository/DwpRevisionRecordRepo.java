@@ -22,7 +22,7 @@ public interface DwpRevisionRecordRepo extends JpaRepository<DwpRevisionRecord, 
 	List<DwpRevisionRecord> findAllActiveDwpRecords();
 
 
-	@Query(value="SELECT a.EmpId,a.StatusCode,a.TransactionDate,a.Remarks,b.Status FROM ims_qms_dwp_revision_transc a,ims_qms_doc_status b WHERE a.RevisionRecordId = :revisionRecordId AND a.StatusCode = b.StatusCode ORDER BY a.DGTransactionId",nativeQuery = true)
+	@Query(value="SELECT a.EmpId,a.StatusCode,a.TransactionDate,a.Remarks,b.Status,a.DGTransactionId FROM ims_qms_dwp_revision_transc a,ims_qms_doc_status b WHERE a.RevisionRecordId = :revisionRecordId AND a.StatusCode = b.StatusCode ORDER BY a.DGTransactionId",nativeQuery = true)
 	public List<Object[]> getDwpRevisionTran(@Param("revisionRecordId")String revisionRecordId);
 
 

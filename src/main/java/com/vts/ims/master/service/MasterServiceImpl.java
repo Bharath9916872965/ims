@@ -6,13 +6,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
+import com.vts.ims.master.dto.*;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,14 +23,6 @@ import com.vts.ims.admin.repository.ImsFormRoleRepo;
 import com.vts.ims.login.Login;
 import com.vts.ims.login.LoginRepository;
 import com.vts.ims.master.dao.MasterClient;
-import com.vts.ims.master.dto.ActionAssignDto;
-import com.vts.ims.master.dto.CommitteeScheduleDto;
-import com.vts.ims.master.dto.DivisionMasterDto;
-import com.vts.ims.master.dto.DocTemplateAttributesDto;
-import com.vts.ims.master.dto.EmployeeDto;
-import com.vts.ims.master.dto.LabMasterDto;
-import com.vts.ims.master.dto.LoginDetailsDto;
-import com.vts.ims.master.dto.UserDetailsDto;
 import com.vts.ims.master.entity.DocTemplateAttributes;
 import com.vts.ims.master.repository.DocTemplateAttributesRepo;
 
@@ -290,4 +280,206 @@ public class MasterServiceImpl implements MasterService {
 	        return null;
 	    }
 	}
+
+
+	@Override
+	public List<DivisionMasterDto> getDivisionMasterList(String username) throws Exception {
+		logger.info(new Date() + " MasterServiceImpl Inside method getDivisionMasterList");
+		try {
+			List<LoginDetailsDto> loginDtoList = loginDetailsList(username);
+			// Extract labCode safely
+			String labCode = loginDtoList.stream()
+					.filter(dto -> dto.getUsername().equals(username))
+					.map(LoginDetailsDto::getLabCode)
+					.findFirst()
+					.orElse(null);
+
+			List<DivisionMasterDto> divisionMasterList = masterClient.getDivisionMaster(xApiKey);
+
+			List<EmployeeDto> employeeList = masterClient.getEmployeeList(xApiKey);
+
+			// Create a set of active division head IDs based on the lab code
+			Set<Long> divisionHeadIds = (divisionMasterList != null ? divisionMasterList.stream()
+					.filter(project -> project.getIsActive() == 1 && labCode != null && labCode.equals(project.getLabCode()))
+					.map(DivisionMasterDto::getDivisionHeadId)
+					.collect(Collectors.toSet()) : Collections.emptySet());
+
+			// Create a mapping of employee IDs to employee info
+			Map<Long, EmpInfoDto> empIdToInfoMap = (employeeList != null ? employeeList.stream()
+					.filter(emp -> divisionHeadIds.contains(emp.getEmpId()))
+					.collect(Collectors.toMap(
+							EmployeeDto::getEmpId,
+							emp -> new EmpInfoDto(emp.getEmpName(), emp.getEmpDesigName()),
+							(existing, replacement) -> existing // Handle duplicates if necessary
+					)) : Collections.emptyMap());
+
+
+			if (divisionMasterList != null && !divisionMasterList.isEmpty()) {
+				return divisionMasterList.stream()
+						.filter(dto -> dto.getIsActive() == 1) // Filter isActive == 1
+						.filter(dto -> dto.getLabCode() != null && labCode.equals(dto.getLabCode())) // Filter by labCode
+
+						.sorted(Comparator.nullsLast(
+								Comparator.comparing(DivisionMasterDto::getDivisionCode, Comparator.nullsLast(Comparator.naturalOrder()))
+						))
+
+						.map(divData -> DivisionMasterDto.builder()
+
+								.divisionId(divData.getDivisionId())
+								.labCode(divData.getLabCode())
+								.divisionCode(divData.getDivisionCode())
+								.divisionName(divData.getDivisionName())
+								.divisionHeadId(divData.getDivisionHeadId())
+								.groupId(divData.getGroupId())
+								.isActive(divData.getIsActive())
+								.divGroupName(divData.getDivGroupName())
+								.divHeadName(empIdToInfoMap.getOrDefault(divData.getDivisionHeadId(), new EmpInfoDto("", "")).getEmpName())
+								.divHeadDesig(empIdToInfoMap.getOrDefault(divData.getDivisionHeadId(), new EmpInfoDto("", "")).getEmpDesigCode())
+								.build())
+						.collect(Collectors.toList());
+			} else {
+				return List.of();
+			}
+		} catch (Exception e) {
+			logger.info(new Date() + " MasterServiceImpl Inside method getDivisionMasterList"+ e.getMessage());
+			return null;
+		}
+	}
+
+	@Override
+	public List<DivisionGroupDto> getDivisonGroupList(String username) throws Exception {
+		logger.info(new Date() + " MasterServiceImpl Inside method getDivisonGroupList");
+		try {
+			List<LoginDetailsDto> loginDtoList = loginDetailsList(username);
+			// Extract labCode safely
+			String labCode = loginDtoList.stream()
+					.filter(dto -> dto.getUsername().equals(username))
+					.map(LoginDetailsDto::getLabCode)
+					.findFirst()
+					.orElse(null);
+
+			// List<Object[]> rawResults = divisionGroupRepository.getDivisionGroupListRaw(labCode);
+			List<DivisionGroupDto> divisionGroupList  = masterClient.getDivisionGroupList(xApiKey);
+			// Filter the list based on isActive and labCode
+			List<DivisionGroupDto> filteredDivisionGroupList = divisionGroupList.stream()
+					.filter(dto -> dto.getIsActive() == 1) // isActive returns an int
+					.filter(dto -> dto.getLabCode() != null && dto.getLabCode().equals(labCode))
+					.collect(Collectors.toList());
+
+			// Create a set of active division head IDs based on the lab code
+			Set<Long> groupHeadIds = (filteredDivisionGroupList != null ? filteredDivisionGroupList.stream()
+					.map(DivisionGroupDto::getGroupHeadId)
+					.collect(Collectors.toSet()) : Collections.emptySet());
+
+			List<EmployeeDto> employeeList = masterClient.getEmployeeList(xApiKey);
+			// Create a mapping of employee IDs to employee info
+			Map<Long, EmpInfoDto> empIdToInfoMap = (employeeList != null ? employeeList.stream()
+					.filter(emp -> groupHeadIds.contains(emp.getEmpId()))
+					.collect(Collectors.toMap(
+							EmployeeDto::getEmpId,
+							emp -> new EmpInfoDto(emp.getEmpName(), emp.getEmpDesigName()),
+							(existing, replacement) -> existing // Handle duplicates if necessary
+					)) : Collections.emptyMap());
+
+			List<DivisionGroupDto> finalDivisionGroupList = filteredDivisionGroupList.stream()
+					.map(dto -> DivisionGroupDto.builder()
+							.groupId(dto.getGroupId())
+							.groupCode(dto.getGroupCode())
+							.groupName(dto.getGroupName())
+							.groupHeadId(dto.getGroupHeadId())
+							.isActive(dto.getIsActive())
+							.groupHeadName(empIdToInfoMap.getOrDefault(dto.getGroupHeadId(), new EmpInfoDto("", "")).getEmpName())
+							.groupHeadDesig(empIdToInfoMap.getOrDefault(dto.getGroupHeadId(), new EmpInfoDto("", "")).getEmpDesigCode())
+
+							.tdName(dto.getTdName())
+							.tdId(dto.getTdId())
+							.build())
+					.collect(Collectors.toList());
+			return finalDivisionGroupList;
+		} catch (Exception e) {
+			logger.info(new Date() + " MasterServiceImpl Inside method getDivisonGroupList"+ e.getMessage());
+			return null; // Return an empty list in case of an error
+		}
+	}
+
+	@Override
+	public List<ProjectMasterDto> getprojectMasterList(String username) throws Exception {
+		logger.info(new Date() + " MasterServiceImpl Inside method getprojectMasterList");
+		try {
+			List<LoginDetailsDto> loginDtoList = loginDetailsList(username);
+			String labCode = loginDtoList.stream()
+					.filter(dto -> dto.getUsername().equals(username))
+					.map(LoginDetailsDto::getLabCode)
+					.findFirst()
+					.orElse(null);
+
+			if (labCode == null) {
+				return Collections.emptyList();
+			}
+
+			List<ProjectMasterDto> projectList = masterClient.getProjectMasterList(xApiKey);
+
+			if (projectList == null || projectList.isEmpty()) {
+				return Collections.emptyList();
+			}
+
+			List<EmployeeDto> employeeList = masterClient.getEmployeeList(xApiKey);
+			Set<Long> directorEmpIds = projectList.stream()
+					.filter(project -> project.getIsActive() == 1 && project.getLabCode().equals(labCode))
+					.map(ProjectMasterDto::getProjectDirector)
+					.collect(Collectors.toSet());
+
+			Map<Long, EmpInfoDto> empIdToInfoMap = employeeList.stream()
+					.filter(emp -> directorEmpIds.contains(emp.getEmpId()))
+					.collect(Collectors.toMap(
+							EmployeeDto::getEmpId,
+							emp -> new EmpInfoDto(emp.getEmpName(), emp.getEmpDesigName())
+					));
+
+			return projectList.stream()
+					.filter(project -> project.getIsActive() == 1 && project.getLabCode().equals(labCode))
+					.sorted(Comparator.comparing(ProjectMasterDto::getCreatedDate, Comparator.nullsLast(Comparator.naturalOrder())))
+					.map(dto -> {
+						EmpInfoDto empInfo = empIdToInfoMap.get(dto.getProjectDirector());
+						return ProjectMasterDto.builder()
+								.projectId(dto.getProjectId())
+								.projectMainId(dto.getProjectMainId())
+								.labCode(dto.getLabCode())
+								.projectCode(dto.getProjectCode())
+								.projectShortName(dto.getProjectShortName())
+								.projectImmsCd(dto.getProjectImmsCd())
+								.projectName(dto.getProjectName())
+								.projectDescription(dto.getProjectDescription())
+								.unitCode(dto.getUnitCode())
+								.projectType(dto.getProjectType())
+								.projectCategory(dto.getProjectCategory())
+								.sanctionNo(dto.getSanctionNo())
+								.sanctionDate(dto.getSanctionDate())
+								.totalSanctionCost(dto.getTotalSanctionCost())
+								.sanctionCostRE(dto.getSanctionCostRE())
+								.sanctionCostFE(dto.getSanctionCostFE())
+								.pdc(dto.getPdc())
+								.projectDirector(dto.getProjectDirector())
+								.projSancAuthority(dto.getProjSancAuthority())
+								.boardReference(dto.getBoardReference())
+								.revisionNo(dto.getRevisionNo())
+								.isMainWC(dto.getIsMainWC())
+								.workCenter(dto.getWorkCenter())
+								.objective(dto.getObjective())
+								.deliverable(dto.getDeliverable())
+								.endUser(dto.getEndUser())
+								.application(dto.getApplication())
+								.labParticipating(dto.getLabParticipating())
+								.scope(dto.getScope())
+								.prjDirectorName(empInfo != null ? empInfo.getEmpName() : null)
+								.prjDirectorDesig(empInfo != null ? empInfo.getEmpDesigCode() : null)
+								.build();
+					})
+					.collect(Collectors.toList());
+		} catch (Exception e) {
+			logger.info(new Date() + " MasterServiceImpl Inside method getprojectMasterList"+ e.getMessage());
+			return null;
+		}
+	}
+
 }
