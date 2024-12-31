@@ -132,4 +132,10 @@ public interface AuditService {
 	
 	public long forwardCar(AuditCorrectiveActionDTO auditCorrectiveActionDTO, String username)throws Exception;
 
+	
+
+	public List<CheckListDto> getMostFqNCMocDes(Long scheduleId, Integer auditObsId, Long iqaId)throws Exception;
+
+	
+
 }
