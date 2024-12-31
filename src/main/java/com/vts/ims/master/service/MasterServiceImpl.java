@@ -25,6 +25,8 @@ import com.vts.ims.admin.repository.ImsFormRoleRepo;
 import com.vts.ims.login.Login;
 import com.vts.ims.login.LoginRepository;
 import com.vts.ims.master.dao.MasterClient;
+import com.vts.ims.master.dto.ActionAssignDto;
+import com.vts.ims.master.dto.CommitteeScheduleDto;
 import com.vts.ims.master.dto.DivisionMasterDto;
 import com.vts.ims.master.dto.DocTemplateAttributesDto;
 import com.vts.ims.master.dto.EmployeeDto;
@@ -260,6 +262,31 @@ public class MasterServiceImpl implements MasterService {
 			 return getEmployee;
 		 } catch (Exception e) {
 			 logger.info(new Date() + " MasterServiceImpl Inside method getemployeebyid"+ e.getMessage());
+	        return null;
+	    }
+	}
+	
+	
+	@Override
+	public List<CommitteeScheduleDto> GetQmrcList() throws Exception {
+		logger.info(new Date() + " MasterServiceImpl Inside method GetQmrcList");
+		 try {
+			 List<CommitteeScheduleDto> getcommitteSchedule=masterClient.committeeScheduleList(xApiKey);
+			 return getcommitteSchedule;
+		 } catch (Exception e) {
+			 logger.info(new Date() + " MasterServiceImpl Inside method GetQmrcList"+ e.getMessage());
+	        return null;
+	    }
+	}
+	
+	@Override
+	public List<ActionAssignDto> GetQmrcActionAssignList() throws Exception {
+		logger.info(new Date() + " MasterServiceImpl Inside method GetQmrcList");
+		 try {
+			 List<ActionAssignDto> getQmrcactionAssignList=masterClient.actionAssignData(xApiKey);
+			 return getQmrcactionAssignList;
+		 } catch (Exception e) {
+			 logger.info(new Date() + " MasterServiceImpl Inside method GetQmrcList"+ e.getMessage());
 	        return null;
 	    }
 	}
