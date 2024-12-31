@@ -9,7 +9,7 @@ import com.vts.ims.audit.model.AuditTransaction;
 
 public interface AuditTransactionRepository extends JpaRepository<AuditTransaction, Long> {
 	
-	@Query(value = "SELECT a.EmpId,a.TransactionDate,a.Remarks,b.StatusName,a.ScheduleId FROM ims_audit_trans a,ims_audit_status b WHERE a.AuditStatus IN ('ASR','ARL') AND a.AuditStatus = b.AuditStatus",nativeQuery = true)
+	@Query(value = "SELECT a.EmpId,a.TransactionDate,a.Remarks,b.StatusName,a.ScheduleId FROM ims_audit_trans a,ims_audit_status b WHERE a.AuditStatus IN ('ASR','ARL') AND a.AuditStatus = b.AuditStatus AND a.AuditType = 'S'",nativeQuery = true)
 	public List<Object[]> getScheduleRemarks();
 
 }

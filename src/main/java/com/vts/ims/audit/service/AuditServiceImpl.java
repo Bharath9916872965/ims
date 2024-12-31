@@ -566,6 +566,7 @@ public class AuditServiceImpl implements AuditService{
 			trans.setTransactionDate(LocalDateTime.now());
 			trans.setRemarks("NA");
 			trans.setAuditStatus("INI");
+			trans.setAuditType("S");
 			
 			auditTransactionRepository.save(trans);
 			
@@ -649,6 +650,7 @@ public class AuditServiceImpl implements AuditService{
 			trans.setTransactionDate(LocalDateTime.now());
 			trans.setRemarks("NA");
 			trans.setAuditStatus("ARF");
+			trans.setAuditType("S");
 			
 			auditTransactionRepository.save(trans);
 	    	
@@ -761,6 +763,7 @@ public class AuditServiceImpl implements AuditService{
 				trans.setTransactionDate(LocalDateTime.now());
 				trans.setRemarks("NA");
 				trans.setAuditStatus("FWD");
+				trans.setAuditType("S");
 				
 				auditTransactionRepository.save(trans);
 	    	}
@@ -829,7 +832,7 @@ public class AuditServiceImpl implements AuditService{
 				}else {
 					trans.setRemarks("NA");
 				}
-				
+				trans.setAuditType("S");
 				auditTransactionRepository.save(trans);
 				
 				if(schedule.getScheduleStatus().equalsIgnoreCase("AES") || schedule.getScheduleStatus().equalsIgnoreCase("RBA")){
@@ -882,6 +885,7 @@ public class AuditServiceImpl implements AuditService{
 				trans.setScheduleId(result);
 				trans.setTransactionDate(LocalDateTime.now());
 				trans.setRemarks("NA");
+				trans.setAuditType("S");
 				
 				auditTransactionRepository.save(trans);
 	    	
@@ -921,6 +925,7 @@ public class AuditServiceImpl implements AuditService{
 				trans.setScheduleId(result);
 				trans.setTransactionDate(LocalDateTime.now());
 				trans.setRemarks(auditScheduleListDto.getMessage());
+				trans.setAuditType("S");
 				
 				auditTransactionRepository.save(trans);
 				String url= "/schedule-list";
@@ -1863,6 +1868,7 @@ public class AuditServiceImpl implements AuditService{
 				trans.setScheduleId(result);
 				trans.setTransactionDate(LocalDateTime.now());
 				trans.setRemarks("NA");
+				trans.setAuditType("S");
 				
 				auditTransactionRepository.save(trans);
 				
@@ -1990,6 +1996,10 @@ public class AuditServiceImpl implements AuditService{
 					    			.rootCause(obj[11]!=null?obj[11].toString():"")
 					    			.carCompletionDate(obj[12]!=null?obj[12].toString():"")
 					    			.carDate(obj[13]!=null?obj[13].toString():"")
+					    			.correctiveActionTaken(obj[14]!=null?obj[14].toString():"")
+					    			.auditStatus(obj[15]!=null?obj[15].toString():"")
+					    			.auditStatusName(obj[16]!=null?obj[16].toString():"")
+					    			.auditeeEmpId(obj[17]!=null?Long.parseLong(obj[17].toString()):0L)
 					    			.executiveName(employee != null?employee.getEmpName()+", "+employee.getEmpDesigName():"")
 					    			.build();
 					    })
@@ -2125,7 +2135,7 @@ public class AuditServiceImpl implements AuditService{
 		logger.info(new Date() + " AuditServiceImpl Inside method updateCorrectiveAction()");
 		try {
 	
-			  result = auditCorrectiveActionRepository.updateCarReport(auditCarDTO.getRootCause(),DLocalConvertion.converLocalTime(auditCarDTO.getCompletionDate()),username,LocalDateTime.now(),auditCarDTO.getCorrectiveActionId());	
+			  result = auditCorrectiveActionRepository.updateCarReport(auditCarDTO.getRootCause(),auditCarDTO.getCorrectiveActionTaken(),DLocalConvertion.converLocalTime(auditCarDTO.getCompletionDate()),username,LocalDateTime.now(),auditCarDTO.getCorrectiveActionId());	
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("AuditServiceImpl Inside method updateCorrectiveAction()"+ e);
@@ -2141,6 +2151,7 @@ public class AuditServiceImpl implements AuditService{
 		Long count= 0L;
 
 		try{
+			Login login = loginRepo.findByUsername(username);
 			String orgNameExtension = FilenameUtils.getExtension(file.getOriginalFilename());
 			
 			String Attachmentname=FilenameUtils.removeExtension(response.get("attachmentName").toString());   
@@ -2154,10 +2165,24 @@ public class AuditServiceImpl implements AuditService{
 			
 			car.setCarAttachment(response.get("attachmentName").toString());
 			car.setRootCause(response.get("rootCause").toString());
+			if(!(car.getCarStatus() != null)) {
+				car.setCarStatus("INI");
+			}
+			car.setCorrectiveActionTaken(response.get("correctiveActionTaken").toString());
 			car.setCarCompletionDate(DLocalConvertion.converLocalTime(LocalDateTime.parse(response.get("completionDate").toString().replace("Z",""))));
 			car.setModifiedBy(username);
 			car.setModifiedDate(LocalDateTime.now());
 			auditCorrectiveActionRepository.save(car);
+			
+	    	AuditTransaction trans = new AuditTransaction();
+			trans.setEmpId(login.getEmpId());
+			trans.setScheduleId(car.getCorrectiveActionId());
+			trans.setTransactionDate(LocalDateTime.now());
+			trans.setRemarks("NA");
+			trans.setAuditStatus("INI");
+			trans.setAuditType("C");
+			
+			auditTransactionRepository.save(trans);
 			
 			Path filePath = null;
 	
@@ -2179,6 +2204,34 @@ public class AuditServiceImpl implements AuditService{
 		}
 		
 		return count;
+	}
+	
+	@Override
+	public long forwardCar(AuditCorrectiveActionDTO auditCorrectiveActionDTO, String username) throws Exception {
+	    logger.info( " AuditServiceImpl Inside method forwardCar()");
+	    long result = 0;
+	    try {
+	    	Login login = loginRepo.findByUsername(username);
+
+		    	auditCorrectiveActionRepository.updateCarStatus("FWD",username,LocalDateTime.now(),auditCorrectiveActionDTO.getCorrectiveActionId());
+		    	
+		    	AuditTransaction trans = new AuditTransaction();
+				trans.setEmpId(login.getEmpId());
+				trans.setScheduleId(auditCorrectiveActionDTO.getCorrectiveActionId());
+				trans.setTransactionDate(LocalDateTime.now());
+				trans.setRemarks("NA");
+				trans.setAuditStatus("FWD");
+				trans.setAuditType("C");
+				
+				auditTransactionRepository.save(trans);
+				
+				result = 1;
+	    	
+	    } catch (Exception e) {
+	    	e.printStackTrace();
+	        logger.error("AuditServiceImpl Inside method forwardCar() " + e);
+	    }
+	    return result;
 	}
 
 }

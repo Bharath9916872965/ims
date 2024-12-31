@@ -1,5 +1,9 @@
 package com.vts.ims.audit.controller;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -9,9 +13,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -48,6 +57,8 @@ import com.vts.ims.master.dto.DivisionMasterDto;
 import com.vts.ims.master.dto.EmployeeDto;
 import com.vts.ims.master.dto.ProjectMasterDto;
 import com.vts.ims.util.Response;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 
 
@@ -817,6 +828,45 @@ public class AuditController {
 		} else {
 			return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new Response("Corrective Actions Add Unsuccessful","F"));
 		}
+	}
+	
+	@GetMapping("/car-download")
+	public ResponseEntity<Resource> downloadCarFile(String fileName, String reqNo, @RequestHeader  String username,
+			HttpServletResponse res) throws Exception {
+		logger.info(new Date() + " car-download " + username);
+		Path filePath = null;
+		filePath = Paths.get(storageDrive,"CAR",reqNo.replace("/", "_"),fileName);
+		File file = filePath.toFile();
 
+		HttpHeaders header = new HttpHeaders();
+		header.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=img.jpg");
+		header.add("Cache-Control", "no-cache, no-store, must-revalidate");
+		header.add("Pragma", "no-cache");
+		header.add("Expires", "0");
+
+		Path path = Paths.get(file.getAbsolutePath());
+
+		ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(path));
+
+		return ResponseEntity.ok().headers(header).contentLength(file.length())
+				.contentType(MediaType.parseMediaType("application/octet-stream")).body(resource);
+
+	}
+	
+	@PostMapping(value = "/forward-car", produces = "application/json")
+	public ResponseEntity<Response> forwardCar(@RequestHeader String username, @RequestBody AuditCorrectiveActionDTO auditCorrectiveActionDTO) throws Exception {
+		try {
+			 logger.info( " Inside forward-car" );
+			 long result=auditService.forwardCar(auditCorrectiveActionDTO,username);
+			 if(result > 0) {
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("CAR Report Forwarded Successfully","S"));
+			 }else {
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("CAR Report Forwarded Unsuccessful","F"));			 
+			 }
+		} catch (Exception e) {
+			 logger.error("error in forward-car"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
+		}
 	}
 }
