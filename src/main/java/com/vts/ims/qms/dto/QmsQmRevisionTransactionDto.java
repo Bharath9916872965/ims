@@ -8,6 +8,7 @@ import lombok.Data;
 @Builder
 public class QmsQmRevisionTransactionDto {
 
+	private Long qmTransactionId;
 	private Long empId;
 	private String statusCode;
 	private String transactionDate;

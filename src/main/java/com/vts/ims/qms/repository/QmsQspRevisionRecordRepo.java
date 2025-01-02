@@ -16,7 +16,7 @@ public interface QmsQspRevisionRecordRepo extends JpaRepository<QmsQspRevisionRe
 	@Query("SELECT a FROM QmsQspRevisionRecord a WHERE a.isActive = 1 ORDER BY a.revisionRecordId DESC")
 	public List<QmsQspRevisionRecord> findAllActiveQspRecords();
 
-	@Query(value="SELECT a.EmpId,a.StatusCode,a.TransactionDate,a.Remarks,b.Status FROM ims_qms_qsp_revision_transc a,ims_qms_doc_status b WHERE a.RevisionRecordId = :revisionRecordId AND a.StatusCode = b.StatusCode ORDER BY a.QspTransactionId",nativeQuery = true)
+	@Query(value="SELECT a.EmpId,a.StatusCode,a.TransactionDate,a.Remarks,b.Status,a.QspTransactionId FROM ims_qms_qsp_revision_transc a,ims_qms_doc_status b WHERE a.RevisionRecordId = :revisionRecordId AND a.StatusCode = b.StatusCode ORDER BY a.QspTransactionId",nativeQuery = true)
 	public List<Object[]> getQspRevisionTran(@Param("revisionRecordId")String revisionRecordId);
 	
 	

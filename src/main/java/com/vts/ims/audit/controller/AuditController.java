@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -801,6 +802,21 @@ public class AuditController {
 			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST); 
 		}
 	}
+	@PostMapping(value = "/mostFqNc-Description-list/{auditObsId}/{scheduleId}/{iqaId}", produces = "application/json")
+	public ResponseEntity<List<CheckListDto>> getMostFqNCMocDes(@PathVariable("auditObsId") Integer auditObsId, @PathVariable("scheduleId") Long scheduleId,   @PathVariable("iqaId") Long iqaId, @RequestHeader String username) throws Exception {
+		try {
+			logger.info(new Date() + " Inside getMostFqNCMocDes" );
+		List<CheckListDto> dto=auditService.getMostFqNCMocDes(scheduleId,auditObsId,iqaId);
+			return new ResponseEntity<List<CheckListDto>>( dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching getMostFqNCMocDes: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST); 
+		}
+	}
+	
+
+
 
 	@PostMapping(value = "/add-corrective-action", produces = "application/json")
 	public ResponseEntity<Response> insertCorrectiveAction(@RequestHeader String username, @RequestBody List<AuditCarDTO> auditCarDTO) throws Exception {

@@ -136,5 +136,8 @@ public interface AuditService {
 	public List<AuditTranDto> carApproveEmpData(String carId)throws Exception;
 	
 	public long returnCarReport(AuditCorrectiveActionDTO auditCorrectiveActionDTO, String username)throws Exception;
+	
+	public List<CheckListDto> getMostFqNCMocDes(Long scheduleId, Integer auditObsId, Long iqaId)throws Exception;
+
 
 }
