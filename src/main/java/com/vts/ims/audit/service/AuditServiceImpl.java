@@ -30,6 +30,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.vts.ims.admin.dto.UserManagerListDto;
+import com.vts.ims.admin.service.AdminService;
 import com.vts.ims.audit.dto.AuditCarDTO;
 import com.vts.ims.audit.dto.AuditCheckListDTO;
 import com.vts.ims.audit.dto.AuditCorrectiveActionDTO;
@@ -146,6 +148,9 @@ public class AuditServiceImpl implements AuditService{
 	
 	@Value("${appStorage}")
 	private String storageDrive ;
+	
+	@Autowired
+	private LoginRepository loginRepository;
 	
 
 	@Autowired
@@ -1609,10 +1614,10 @@ public class AuditServiceImpl implements AuditService{
 
 
 	@Override
-	public List<AuditTranDto> scheduleTran(String scheduleId) throws Exception {
+	public List<AuditTranDto> scheduleTran(AuditTranDto auditTranDto) throws Exception {
 		logger.info( " AuditServiceImpl Inside method scheduleTran()");
 		try {
-			List<Object[]> tranList = auditScheduleRepository.getScheduleTran(scheduleId);
+			List<Object[]> tranList = auditScheduleRepository.getScheduleTran(auditTranDto.getId(),auditTranDto.getAuditType());
 			List<EmployeeDto> totalEmployee = masterClient.getEmployeeMasterList(xApiKey);
 
 			
@@ -1781,6 +1786,9 @@ public class AuditServiceImpl implements AuditService{
 					    	  .divisionHeadName(division !=null?division.getDivHeadName()+", "+division.getDivHeadDesig():"")
 					    	  .groupHeadName(group !=null?group.getGroupHeadName()+", "+group.getGroupHeadDesig():"")
 					    	  .projectDirectorName(project !=null?project.getPrjDirectorName()+", "+project.getPrjDirectorDesig():"")
+					    	  .divisionHeadId(division !=null?division.getDivisionHeadId():0L)
+					    	  .groupHeadId(group !=null?group.getGroupHeadId():0L)
+					    	  .projectDirectorId(project !=null?project.getProjectDirector():0L)
 					    	  .build();
 				    })
 				    .collect(Collectors.toList());
@@ -2269,30 +2277,149 @@ public class AuditServiceImpl implements AuditService{
 		return count;
 	}
 	
+	@SuppressWarnings("unlikely-arg-type")
 	@Override
 	public long forwardCar(AuditCorrectiveActionDTO auditCorrectiveActionDTO, String username) throws Exception {
 	    logger.info( " AuditServiceImpl Inside method forwardCar()");
 	    long result = 0;
 	    try {
 	    	Login login = loginRepo.findByUsername(username);
-
-		    	auditCorrectiveActionRepository.updateCarStatus("FWD",username,LocalDateTime.now(),auditCorrectiveActionDTO.getCorrectiveActionId());
-		    	
-		    	AuditTransaction trans = new AuditTransaction();
-				trans.setEmpId(login.getEmpId());
-				trans.setScheduleId(auditCorrectiveActionDTO.getCorrectiveActionId());
-				trans.setTransactionDate(LocalDateTime.now());
-				trans.setRemarks("NA");
-				trans.setAuditStatus("FWD");
-				trans.setAuditType("C");
-				
-				auditTransactionRepository.save(trans);
+			String url= "/schedule-list";
+			EmployeeDto employeeLogIn = masterClient.getEmployee(xApiKey,login.getEmpId()).get(0);
+	    		if(auditCorrectiveActionDTO.getAuditStatus().equalsIgnoreCase("FWD")){
+	    			
+			    	auditCorrectiveActionRepository.updateCarStatus("CRM",username,LocalDateTime.now(),auditCorrectiveActionDTO.getCorrectiveActionId());
+			    	
+			    	AuditTransaction trans = new AuditTransaction();
+					trans.setEmpId(login.getEmpId());
+					trans.setScheduleId(auditCorrectiveActionDTO.getCorrectiveActionId());
+					trans.setTransactionDate(LocalDateTime.now());
+					trans.setRemarks(auditCorrectiveActionDTO.getMessage());
+					trans.setAuditStatus("CRM");
+					trans.setAuditType("C");
+					
+					auditTransactionRepository.save(trans);
+					
+					List<Login> loginList = loginRepository.findByIsActive(1);
+					Set<Login> mrList = loginList.stream().filter(data -> data.getImsFormRoleId().equals(3L)).collect(Collectors.toSet());
+					
+					for(Login dto : mrList) {
+					String NotiMsg = auditCorrectiveActionDTO.getCarRefNo()+" Of CAR Report Recommended by "+ employeeLogIn.getEmpName()+", "+employeeLogIn.getEmpDesigName();
+					result = insertScheduleNomination(dto.getEmpId(),login.getEmpId(),username,url,NotiMsg);
+					}
+	    			
+	    		}else if(auditCorrectiveActionDTO.getAuditStatus().equalsIgnoreCase("CRM")){
+	    			
+			    	auditCorrectiveActionRepository.updateCarStatus("CAP",username,LocalDateTime.now(),auditCorrectiveActionDTO.getCorrectiveActionId());
+			    	
+			    	AuditTransaction trans = new AuditTransaction();
+					trans.setEmpId(login.getEmpId());
+					trans.setScheduleId(auditCorrectiveActionDTO.getCorrectiveActionId());
+					trans.setTransactionDate(LocalDateTime.now());
+					trans.setRemarks(auditCorrectiveActionDTO.getMessage());
+					trans.setAuditStatus("CAP");
+					trans.setAuditType("C");
+					
+					auditTransactionRepository.save(trans);
+					
+					String NotiMsg = auditCorrectiveActionDTO.getCarRefNo()+" Of CAR Report Approved by "+ employeeLogIn.getEmpName()+", "+employeeLogIn.getEmpDesigName();
+					result = insertScheduleNomination(auditCorrectiveActionDTO.getAuditeeEmpId(),login.getEmpId(),username,url,NotiMsg);
+					
+	    			
+	    		}else{
+			    	auditCorrectiveActionRepository.updateCarStatus("FWD",username,LocalDateTime.now(),auditCorrectiveActionDTO.getCorrectiveActionId());
+			    	
+			    	AuditTransaction trans = new AuditTransaction();
+					trans.setEmpId(login.getEmpId());
+					trans.setScheduleId(auditCorrectiveActionDTO.getCorrectiveActionId());
+					trans.setTransactionDate(LocalDateTime.now());
+					trans.setRemarks("NA");
+					trans.setAuditStatus("FWD");
+					trans.setAuditType("C");
+					
+					auditTransactionRepository.save(trans);
+					
+					String NotiMsg = auditCorrectiveActionDTO.getCarRefNo()+" Of CAR Report Forwarded by "+ employeeLogIn.getEmpName()+", "+employeeLogIn.getEmpDesigName();
+					result = insertScheduleNomination(auditCorrectiveActionDTO.getHeadId(),login.getEmpId(),username,url,NotiMsg);
+	    		}
 				
 				result = 1;
 	    	
 	    } catch (Exception e) {
 	    	e.printStackTrace();
 	        logger.error("AuditServiceImpl Inside method forwardCar() " + e);
+	    }
+	    return result;
+	}
+
+
+	@Override
+	public List<AuditTranDto> carApproveEmpData(String carId) throws Exception {
+		logger.info( " AuditServiceImpl Inside method carApproveEmpData()");
+		try {
+			List<Object[]> tranList = auditCorrectiveActionRepository.getApproveEmpDataList(carId);
+			List<EmployeeDto> totalEmployee = masterClient.getEmployeeMasterList(xApiKey);
+
+			
+		    Map<Long, EmployeeDto> employeeMap = totalEmployee.stream()
+		            .filter(employee -> employee.getEmpId() != null)
+		            .collect(Collectors.toMap(EmployeeDto::getEmpId, employee -> employee));
+		    
+			 List<AuditTranDto> auditTranDtoList = Optional.ofNullable(tranList).orElse(Collections.emptyList()).stream()
+				    .map(obj -> {
+					    EmployeeDto employee =	obj[0] != null?employeeMap.get(Long.parseLong(obj[0].toString())):null;
+
+					    	return AuditTranDto.builder()
+				    			.empId(obj[0]!=null?Long.parseLong(obj[0].toString()):0L)
+				    			.transactionDate(obj[1]!=null?obj[1].toString():"")
+				    			.auditStatus(obj[2]!=null?obj[2].toString():"")
+				    			.empName(employee != null?employee.getEmpName()+", "+employee.getEmpDesigName():"")
+				    			.build();
+				    })
+				    .collect(Collectors.toList());
+			return auditTranDtoList;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method carApproveEmpData()"+ e);
+			 return Collections.emptyList();
+		}
+	}
+	
+	@Override
+	public long returnCarReport(AuditCorrectiveActionDTO auditCorrectiveActionDTO, String username) throws Exception {
+	    logger.info( " AuditServiceImpl Inside method returnCarReport()");
+	    long result = 0;
+	    try {
+	    	    Login login = loginRepo.findByUsername(username);
+			    EmployeeDto employeeLogIn = masterClient.getEmployee(xApiKey,login.getEmpId()).get(0);
+			    AuditCorrectiveAction car = auditCorrectiveActionRepository.findById(auditCorrectiveActionDTO.getCorrectiveActionId()).get();
+		    	AuditTransaction trans = new AuditTransaction();
+		    	if(car.getCarStatus().equalsIgnoreCase("FWD")){
+		    		car.setCarStatus("CRH");
+					trans.setAuditStatus("CRH");
+		    	}else {
+		    		car.setCarStatus("CMR");
+					trans.setAuditStatus("CMR");
+		    	}
+		    	car.setModifiedBy(username);
+		    	car.setModifiedDate(LocalDateTime.now());
+		    	result = auditCorrectiveActionRepository.save(car).getCorrectiveActionId();
+		    	
+				trans.setEmpId(login.getEmpId());
+				trans.setScheduleId(result);
+				trans.setTransactionDate(LocalDateTime.now());
+				trans.setRemarks(auditCorrectiveActionDTO.getMessage());
+				trans.setAuditType("C");
+				
+				auditTransactionRepository.save(trans);
+				String url= "/schedule-list";
+	
+					String NotiMsg = auditCorrectiveActionDTO.getCarRefNo()+" Of CAR Report Returned by "+ employeeLogIn.getEmpName()+", "+employeeLogIn.getEmpDesigName();
+					result = insertScheduleNomination(auditCorrectiveActionDTO.getAuditeeEmpId(),login.getEmpId(),username,url,NotiMsg);
+	    	
+	    } catch (Exception e) {
+	    	e.printStackTrace();
+	        logger.error("AuditServiceImpl Inside method returnCarReport() " + e);
 	    }
 	    return result;
 	}

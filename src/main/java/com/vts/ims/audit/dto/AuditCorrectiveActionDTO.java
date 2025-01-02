@@ -10,6 +10,8 @@ public class AuditCorrectiveActionDTO {
     private Long correctiveActionId;
     private Long auditCheckListId;
     private Long iqaId;
+    private String iqaNo; 
+    private String divisionGroupCode; 
     private String carRefNo;
     private String carDescription;
     private String actionPlan;
@@ -26,6 +28,8 @@ public class AuditCorrectiveActionDTO {
     private String carDate;
     private String auditStatus;
     private String auditStatusName;
+    private String message;
+    private Long headId;
 
 }
 

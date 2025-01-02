@@ -35,4 +35,14 @@ public interface AuditCorrectiveActionRepository extends JpaRepository<AuditCorr
 	@Query(value = "UPDATE ims_audit_corrective_action SET CarStatus = :CarStatus,ModifiedBy = :ModifiedBy,ModifiedDate = :ModifiedDate WHERE CorrectiveActionId = :CorrectiveActionId",nativeQuery = true)
 	public Integer updateCarStatus(@Param("CarStatus")String carStatus,@Param("ModifiedBy")String modifiedBy,@Param("ModifiedDate")LocalDateTime modifiedDate,@Param("CorrectiveActionId")Long correctiveActionId);
 	
+	@Query(value = "(SELECT b.EmpId,b.TransactionDate,b.AuditStatus FROM ims_audit_corrective_action a,ims_audit_trans b WHERE b.AuditType = 'C' AND b.ScheduleId = a.CorrectiveActionId AND b.AuditStatus IN ('FWD') AND a.CorrectiveActionId = :correctiveActionId AND b.TransactionDate >\r\n"
+			+ "(SELECT IFNULL(MAX(d.TransactionDate),'1970-01-01') FROM ims_audit_corrective_action c,ims_audit_trans d WHERE d.ScheduleId = c.CorrectiveActionId AND d.AuditType = 'C' AND d.AuditStatus IN ('CRH','CMR') AND c.CorrectiveActionId = :correctiveActionId))\r\n"
+			+ "UNION\r\n"
+			+ "(SELECT b.EmpId,b.TransactionDate,b.AuditStatus FROM ims_audit_corrective_action a,ims_audit_trans b WHERE b.AuditType = 'C' AND b.ScheduleId = a.CorrectiveActionId AND b.AuditStatus IN ('CRM') AND a.CorrectiveActionId = :correctiveActionId AND b.TransactionDate >\r\n"
+			+ "(SELECT IFNULL(MAX(d.TransactionDate),'1970-01-01') FROM ims_audit_corrective_action c,ims_audit_trans d WHERE d.ScheduleId = c.CorrectiveActionId AND d.AuditType = 'C' AND d.AuditStatus IN ('CRH','CMR') AND c.CorrectiveActionId = :correctiveActionId))\r\n"
+			+ "UNION\r\n"
+			+ "(SELECT b.EmpId,b.TransactionDate,b.AuditStatus FROM ims_audit_corrective_action a,ims_audit_trans b WHERE b.AuditType = 'C' AND b.ScheduleId = a.CorrectiveActionId AND b.AuditStatus IN ('CAP') AND a.CorrectiveActionId = :correctiveActionId AND b.TransactionDate >\r\n"
+			+ "(SELECT IFNULL(MAX(d.TransactionDate),'1970-01-01') FROM ims_audit_corrective_action c,ims_audit_trans d WHERE d.ScheduleId = c.CorrectiveActionId AND d.AuditType = 'C' AND d.AuditStatus IN ('CRH','CMR') AND c.CorrectiveActionId = :correctiveActionId))",nativeQuery = true)
+	public List<Object[]> getApproveEmpDataList(@Param("correctiveActionId")String correctiveActionId);
+	
 }
