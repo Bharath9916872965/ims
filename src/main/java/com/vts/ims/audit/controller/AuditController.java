@@ -564,10 +564,11 @@ public class AuditController {
 	}
 	
 	@PostMapping(value = "/schedule-tran", produces = "application/json")
-	public ResponseEntity<List<AuditTranDto>> scheduleTran(@RequestHeader String username,@RequestBody String scheduleId) throws Exception {
+	public ResponseEntity<List<AuditTranDto>> scheduleTran(@RequestHeader String username,@RequestBody AuditTranDto auditTranDto) throws Exception {
 		try {
+			System.out.println("auditTranDto------ "+auditTranDto);
 			logger.info(" Inside scheduleTran"+username );
-			List<AuditTranDto> dto=auditService.scheduleTran(scheduleId);
+			List<AuditTranDto> dto=auditService.scheduleTran(auditTranDto);
 			return new ResponseEntity<List<AuditTranDto>>(dto,HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -906,6 +907,36 @@ public class AuditController {
 			 }
 		} catch (Exception e) {
 			 logger.error("error in forward-car"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
+		}
+	}
+	
+	@PostMapping(value = "/car-approve-emp-data", produces = "application/json")
+	public ResponseEntity<List<AuditTranDto>> carApproveEmpData(@RequestHeader String username,@RequestBody String carId) throws Exception {
+		try {
+			logger.info(new Date() + " Inside carApproveEmpData" );
+			List<AuditTranDto> dto=auditService.carApproveEmpData(carId);
+			return new ResponseEntity<List<AuditTranDto>>( dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching carApproveEmpData: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST); 
+		}
+	}
+	
+	@PostMapping(value = "/return-car-report", produces = "application/json")
+	public ResponseEntity<Response> returnCarReport(@RequestHeader String username, @RequestBody AuditCorrectiveActionDTO auditCorrectiveActionDTO) throws Exception {
+		try {
+			logger.info( " Inside return-car-report" );
+			 long result=auditService.returnCarReport(auditCorrectiveActionDTO,username);
+			 if(result > 0) {
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("CAR Report Returned Successfully","S"));
+			 }else {
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("CAR Report Return Unsuccessful","F"));			 
+			 }
+		} catch (Exception e) {
+			 logger.error("error in return-car-report"+ e.getMessage());
 			 e.printStackTrace();
 			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
 		}

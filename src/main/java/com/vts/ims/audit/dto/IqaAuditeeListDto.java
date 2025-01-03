@@ -18,11 +18,14 @@ public class IqaAuditeeListDto {
 	private String divisionName;
 	private String divisionFullName;
 	private String divisionHeadName;
+	private Long divisionHeadId;
 	private String groupName;
 	private String groupHeadName;
+	private Long   groupHeadId;
 	private String groupFullName;
 	private String projectName;
 	private String projectDirectorName;
+	private Long projectDirectorId;
 	private String projectCode;
 	private String projectShortName;
 }

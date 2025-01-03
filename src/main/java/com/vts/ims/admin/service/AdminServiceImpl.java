@@ -270,7 +270,7 @@ public class AdminServiceImpl implements AdminService {
 		logger.info(new Date() + " AdminServiceImpl Inside method UserManagerList " );
 
 		try {
-			List<LoginDetailsDto> loginDtoList = masterservice.loginDetailsList(username);
+			//List<LoginDetailsDto> loginDtoList = masterservice.loginDetailsList(username);
 			// Fetch login details and labCode
 			String labCode = masterservice.loginDetailsList(username).stream()
 					.filter(dto -> dto.getUsername().equals(username))
