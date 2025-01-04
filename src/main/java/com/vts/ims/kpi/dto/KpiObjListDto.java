@@ -11,6 +11,7 @@ public class KpiObjListDto {
            
 	private List<KpiObjDto> ratingList;
 	private Long iqaId;
-	private Long revisionRecordId; 
+	private Long groupDivisionId;
+	private String kpiType;
 
 }

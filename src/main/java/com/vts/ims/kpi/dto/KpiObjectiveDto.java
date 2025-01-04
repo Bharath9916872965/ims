@@ -13,7 +13,8 @@ public class KpiObjectiveDto {
 	private String norms; 
 	private String target; 
 	private Long kpiUnitId; 
-	private String revisionRecordId; 
+	private String groupDivisionId; 
+	private String kpiType; 
 	private List<RatingDto> ratings; 
 
 }
