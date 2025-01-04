@@ -14,8 +14,8 @@ public interface MasterService {
 	public String getDrdoLogo()throws Exception;
 	public UserDetailsDto GetEmpDetails(String  username)throws Exception;
 	public List<EmployeeDto> getemployeebyid(long empId) throws ExecutionException;
-	public List<CommitteeScheduleDto> GetQmrcList() throws Exception;
-	public List<ActionAssignDto> GetQmrcActionAssignList() throws Exception;
+	public List<CommitteeScheduleDto> GetComitteeScheduleList(String committeeType) throws Exception;
+	public List<ActionAssignDto> GetCommitteeScheduleActionAssignList(String committeeType) throws Exception;
 	public List<DivisionMasterDto> getDivisionMasterList(String username) throws Exception;
 	public List<DivisionGroupDto> getDivisonGroupList(String username) throws Exception;
 	public List<ProjectMasterDto> getprojectMasterList(String username) throws Exception;
