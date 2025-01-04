@@ -3,6 +3,7 @@ package com.vts.ims.master.controller;
 import java.util.Date;
 import java.util.List;
 
+import com.vts.ims.master.dto.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,11 +19,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.vts.ims.master.dto.DivisionGroupDto;
-import com.vts.ims.master.dto.DocTemplateAttributesDto;
-import com.vts.ims.master.dto.EmployeeDto;
-import com.vts.ims.master.dto.LabMasterDto;
-import com.vts.ims.master.dto.UserDetailsDto;
 import com.vts.ims.master.service.MasterService;
 
 
@@ -110,4 +106,73 @@ public class MasterController {
 		return new ResponseEntity<>(dto, HttpStatus.OK);
 	}
 
+    
+    @PostMapping(value = "/get-qmrc-list" , produces = "application/json")
+    public ResponseEntity<List<CommitteeScheduleDto>> GetQmrcList( @RequestHeader String username)throws Exception {			    	
+    	try {
+			logger.info(new Date() + " Inside iqalist" );
+			List<CommitteeScheduleDto> result=service.GetQmrcList();
+			return new ResponseEntity<List<CommitteeScheduleDto>>( result,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching iqalist: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
+    }
+    
+    
+    @PostMapping(value = "/get-qmrc-action-assign-list" , produces = "application/json")
+    public ResponseEntity<List<ActionAssignDto>> GetQmrcActionAssignList( @RequestHeader String username)throws Exception {			    	
+    	try {
+			logger.info(new Date() + " Inside iqalist" );
+			List<ActionAssignDto> result=service.GetQmrcActionAssignList();
+			return new ResponseEntity<List<ActionAssignDto>>( result,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching iqalist: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
+    }
+
+	@RequestMapping(value = "/division-master-list", method = RequestMethod.GET, produces="application/json")
+	public ResponseEntity<List<DivisionMasterDto>> getDivisionMasterList(@RequestHeader  String username) throws Exception {
+		logger.info("{} Inside division-master-list", new Date());
+		List<DivisionMasterDto> list = null;
+		try {
+			list = service.getDivisionMasterList(username);
+		} catch (Exception e) {
+			logger.error(new Date() +" error in  division-master-list ");
+			e.printStackTrace();
+		}
+		return new ResponseEntity<>(list, HttpStatus.OK);
+	}
+
+	@RequestMapping(value = "/division-group-master-list", method = RequestMethod.GET, produces="application/json")
+	public ResponseEntity<List<DivisionGroupDto>> getDivisionGroupList(@RequestHeader  String username) throws Exception{
+		logger.info(new Date() + " Inside division-group-master-list " );
+		List<DivisionGroupDto> list= null;
+		try {
+			list=service.getDivisonGroupList(username);
+
+		} catch (Exception e) {
+			logger.error(new Date() +" error in division-group-master-list ");
+			e.printStackTrace();
+		}
+		return new ResponseEntity<>(list, HttpStatus.OK);
+	}
+
+
+	@GetMapping(value ="project-master-active-list" , produces="application/json")
+	public ResponseEntity<List<ProjectMasterDto>> projectMainList(@RequestHeader  String username) throws Exception{
+		logger.info("{} Inside project-master-list", new Date());
+		List<ProjectMasterDto> list=null;
+		try {
+			list=service.getprojectMasterList(username);
+		} catch (Exception e) {
+			logger.error(new Date() +"project-master-list ");
+			e.printStackTrace();
+		}
+
+		return new ResponseEntity<>(list, HttpStatus.OK);
+	}
 }

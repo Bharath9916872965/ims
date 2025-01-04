@@ -1,5 +1,9 @@
 package com.vts.ims.audit.controller;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -9,9 +13,15 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -48,6 +58,8 @@ import com.vts.ims.master.dto.DivisionMasterDto;
 import com.vts.ims.master.dto.EmployeeDto;
 import com.vts.ims.master.dto.ProjectMasterDto;
 import com.vts.ims.util.Response;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 
 
@@ -552,10 +564,11 @@ public class AuditController {
 	}
 	
 	@PostMapping(value = "/schedule-tran", produces = "application/json")
-	public ResponseEntity<List<AuditTranDto>> scheduleTran(@RequestHeader String username,@RequestBody String scheduleId) throws Exception {
+	public ResponseEntity<List<AuditTranDto>> scheduleTran(@RequestHeader String username,@RequestBody AuditTranDto auditTranDto) throws Exception {
 		try {
+			System.out.println("auditTranDto------ "+auditTranDto);
 			logger.info(" Inside scheduleTran"+username );
-			List<AuditTranDto> dto=auditService.scheduleTran(scheduleId);
+			List<AuditTranDto> dto=auditService.scheduleTran(auditTranDto);
 			return new ResponseEntity<List<AuditTranDto>>(dto,HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -789,6 +802,21 @@ public class AuditController {
 			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST); 
 		}
 	}
+	@PostMapping(value = "/mostFqNc-Description-list/{auditObsId}/{scheduleId}/{iqaId}", produces = "application/json")
+	public ResponseEntity<List<CheckListDto>> getMostFqNCMocDes(@PathVariable("auditObsId") Integer auditObsId, @PathVariable("scheduleId") Long scheduleId,   @PathVariable("iqaId") Long iqaId, @RequestHeader String username) throws Exception {
+		try {
+			logger.info(new Date() + " Inside getMostFqNCMocDes" );
+		List<CheckListDto> dto=auditService.getMostFqNCMocDes(scheduleId,auditObsId,iqaId);
+			return new ResponseEntity<List<CheckListDto>>( dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching getMostFqNCMocDes: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST); 
+		}
+	}
+	
+
+
 
 	@PostMapping(value = "/add-corrective-action", produces = "application/json")
 	public ResponseEntity<Response> insertCorrectiveAction(@RequestHeader String username, @RequestBody List<AuditCarDTO> auditCarDTO) throws Exception {
@@ -842,6 +870,75 @@ public class AuditController {
 		} else {
 			return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new Response("Corrective Actions Add Unsuccessful","F"));
 		}
+	}
+	
+	@GetMapping("/car-download")
+	public ResponseEntity<Resource> downloadCarFile(String fileName, String reqNo, @RequestHeader  String username,
+			HttpServletResponse res) throws Exception {
+		logger.info(new Date() + " car-download " + username);
+		Path filePath = null;
+		filePath = Paths.get(storageDrive,"CAR",reqNo.replace("/", "_"),fileName);
+		File file = filePath.toFile();
 
+		HttpHeaders header = new HttpHeaders();
+		header.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=img.jpg");
+		header.add("Cache-Control", "no-cache, no-store, must-revalidate");
+		header.add("Pragma", "no-cache");
+		header.add("Expires", "0");
+
+		Path path = Paths.get(file.getAbsolutePath());
+
+		ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(path));
+
+		return ResponseEntity.ok().headers(header).contentLength(file.length())
+				.contentType(MediaType.parseMediaType("application/octet-stream")).body(resource);
+
+	}
+	
+	@PostMapping(value = "/forward-car", produces = "application/json")
+	public ResponseEntity<Response> forwardCar(@RequestHeader String username, @RequestBody AuditCorrectiveActionDTO auditCorrectiveActionDTO) throws Exception {
+		try {
+			 logger.info( " Inside forward-car" );
+			 long result=auditService.forwardCar(auditCorrectiveActionDTO,username);
+			 if(result > 0) {
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("CAR Report Forwarded Successfully","S"));
+			 }else {
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("CAR Report Forwarded Unsuccessful","F"));			 
+			 }
+		} catch (Exception e) {
+			 logger.error("error in forward-car"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
+		}
+	}
+	
+	@PostMapping(value = "/car-approve-emp-data", produces = "application/json")
+	public ResponseEntity<List<AuditTranDto>> carApproveEmpData(@RequestHeader String username,@RequestBody String carId) throws Exception {
+		try {
+			logger.info(new Date() + " Inside carApproveEmpData" );
+			List<AuditTranDto> dto=auditService.carApproveEmpData(carId);
+			return new ResponseEntity<List<AuditTranDto>>( dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching carApproveEmpData: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST); 
+		}
+	}
+	
+	@PostMapping(value = "/return-car-report", produces = "application/json")
+	public ResponseEntity<Response> returnCarReport(@RequestHeader String username, @RequestBody AuditCorrectiveActionDTO auditCorrectiveActionDTO) throws Exception {
+		try {
+			logger.info( " Inside return-car-report" );
+			 long result=auditService.returnCarReport(auditCorrectiveActionDTO,username);
+			 if(result > 0) {
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("CAR Report Returned Successfully","S"));
+			 }else {
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("CAR Report Return Unsuccessful","F"));			 
+			 }
+		} catch (Exception e) {
+			 logger.error("error in return-car-report"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
+		}
 	}
 }

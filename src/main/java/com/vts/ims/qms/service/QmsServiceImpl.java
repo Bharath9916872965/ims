@@ -1974,6 +1974,7 @@ public class QmsServiceImpl implements QmsService {
 								.remarks(obj[3]!=null?obj[3].toString():"")
 								.status(obj[4]!=null?obj[4].toString():"")
 								.empName(employee != null?employee.getEmpName()+", "+employee.getEmpDesigName():"")
+								.qmTransactionId(Long.parseLong(obj[5].toString()))
 								.build();
 					})
 					.collect(Collectors.toList());
@@ -2264,6 +2265,7 @@ public class QmsServiceImpl implements QmsService {
 					    EmployeeDto employee =	obj[0] != null?employeeMap.get(Long.parseLong(obj[0].toString())):null;
 
 					    	return DwpTransactionDto.builder()
+								.dgTransactionId(Long.parseLong(obj[5].toString()))
 				    			.empId(obj[0]!=null?Long.parseLong(obj[0].toString()):0L)
 				    			.statusCode(obj[1]!=null?obj[1].toString():"")
 				    			.transactionDate(obj[2]!=null?obj[2].toString():"")
@@ -2541,6 +2543,7 @@ public class QmsServiceImpl implements QmsService {
 						EmployeeDto employee =	obj[0] != null?employeeMap.get(Long.parseLong(obj[0].toString())):null;
 
 						return QmsQspRevisionTransactionDto.builder()
+								.qspTransactionId(Long.parseLong(obj[5].toString()))
 								.empId(obj[0]!=null?Long.parseLong(obj[0].toString()):0L)
 								.statusCode(obj[1]!=null?obj[1].toString():"")
 								.transactionDate(obj[2]!=null?obj[2].toString():"")

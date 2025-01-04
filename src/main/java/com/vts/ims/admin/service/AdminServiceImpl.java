@@ -10,6 +10,8 @@ import com.vts.ims.admin.repository.*;
 import com.vts.ims.login.Login;
 import com.vts.ims.login.LoginRepository;
 
+import com.vts.ims.master.dto.DivisionMasterDto;
+import com.vts.ims.master.dto.EmpInfoDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -280,7 +282,7 @@ public class AdminServiceImpl implements AdminService {
 		logger.info(new Date() + " AdminServiceImpl Inside method UserManagerList " );
 
 		try {
-			List<LoginDetailsDto> loginDtoList = masterservice.loginDetailsList(username);
+			//List<LoginDetailsDto> loginDtoList = masterservice.loginDetailsList(username);
 			// Fetch login details and labCode
 			String labCode = masterservice.loginDetailsList(username).stream()
 					.filter(dto -> dto.getUsername().equals(username))
@@ -719,7 +721,5 @@ public class AdminServiceImpl implements AdminService {
 	    }
 	}
 
-	
-	
 	
 }

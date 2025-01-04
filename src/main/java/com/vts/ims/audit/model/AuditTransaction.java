@@ -30,6 +30,9 @@ public class AuditTransaction {
 	@Column(name = "TransactionDate")
 	private LocalDateTime transactionDate;
 	
+	@Column(name = "AuditType")
+	private String auditType;
+	
 	@Column(name = "AuditStatus")
 	private String auditStatus;
 	

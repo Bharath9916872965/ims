@@ -70,6 +70,7 @@ public interface AuditService {
 	public long auditorForward(AuditScheduleListDto auditScheduleListDto, String username)throws Exception;
 	
 	public long approveSchedule(AuditScheduleListDto auditScheduleListDto, String username)throws Exception;
+	
 	public long returnSchedule(AuditScheduleListDto auditScheduleListDto, String username)throws Exception;
 
 	public long scheduleMailSend(List<AuditScheduleListDto> auditScheduleListDto, String username)throws Exception;
@@ -90,7 +91,7 @@ public interface AuditService {
 
 	public List<AuditScheduleRemarksDto> getScheduleRemarks() throws Exception;
 
-	public List<AuditTranDto> scheduleTran(String scheduleId) throws Exception;
+	public List<AuditTranDto> scheduleTran(AuditTranDto auditTranDto) throws Exception;
 
 	public List<IqaAuditeeDto> getIqaAuditeeList(Long iqaId) throws Exception;
 
@@ -129,5 +130,14 @@ public interface AuditService {
 	public int updateCorrectiveAction(AuditCarDTO auditCarDTO, String username)throws Exception;
 
 	public long uploadCarAttachment(MultipartFile file, Map<String, Object> response, String username)throws Exception;
+	
+	public long forwardCar(AuditCorrectiveActionDTO auditCorrectiveActionDTO, String username)throws Exception;
+
+	public List<AuditTranDto> carApproveEmpData(String carId)throws Exception;
+	
+	public long returnCarReport(AuditCorrectiveActionDTO auditCorrectiveActionDTO, String username)throws Exception;
+	
+	public List<CheckListDto> getMostFqNCMocDes(Long scheduleId, Integer auditObsId, Long iqaId)throws Exception;
+
 
 }

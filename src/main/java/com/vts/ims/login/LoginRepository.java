@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface LoginRepository extends JpaRepository<Login, Long> {
 	Login findByUsername(String Username);
+	List<Login> findByIsActive(int IsActive);
 	
 	@Query(value = "SELECT a.LoginId, a.Username, a.EmpId, a.DivisionId, a.ImsFormRoleId,b.FormRoleName FROM login a, ims_form_role b WHERE a.ImsFormRoleId = b.ImsFormRoleId AND a.Username = :Username",nativeQuery = true)
 	public List<Object[]> getLoginDetails(@Param("Username")String username);

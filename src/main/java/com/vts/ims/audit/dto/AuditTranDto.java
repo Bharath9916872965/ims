@@ -13,4 +13,6 @@ public class AuditTranDto {
 	private String remarks;
 	private String statusName;
 	private String empName;
+	private Long id;
+	private String auditType;
 }
