@@ -25,6 +25,7 @@ import com.vts.ims.master.dto.LoginDetailsDto;
 import com.vts.ims.master.service.MasterService;
 import com.vts.ims.model.ImsNotification;
 import com.vts.ims.model.LoginStamping;
+import com.vts.ims.repository.NotificationRepository;
 
 
 
@@ -654,28 +655,19 @@ public class AdminServiceImpl implements AdminService {
 	}
 	
 	@Override
-	public List<NotificationDto> notifictionList(String username) throws Exception {
-	    Login login = loginRepo.findByUsername(username);
-	    List<Object[]> notificationList = notificationRepo.getNotifictionList(login.getEmpId());
-	    List<EmployeeDto> allEmployeeList = masterClient.getEmployeeList(xApiKey);
-
-	    // Create a map of employee No to employee information (name, designation)
-	    Map<Long, EmpInfoDto> empIdToInfoMap = allEmployeeList.stream()
-	            .collect(Collectors.toMap(
-	                    EmployeeDto::getEmpId,
-	                    emp -> new EmpInfoDto(emp.getEmpName(), emp.getEmpDesigCode()),
-	                    (existing, replacement) -> existing // Handle duplicates temporarily
-	            ));
-
+	public List<NotificationDto> getNotifictionList(String username) throws Exception {
+		List<LoginDetailsDto> loginDetails = masterservice.loginDetailsList(username);
+	    LoginDetailsDto loginDetail =loginDetails.get(0); 
+	    
+	    
+	    List<Object[]> notificationList = notificationRepo.getNotifictionList(loginDetail.getEmpId());
 	    return notificationList.stream()
 	            .map(list -> {
-	                Long empId = list[1] != null ? Long.parseLong(list[1].toString()) : 0;
-	                EmpInfoDto empInfo = empIdToInfoMap.get(empId);
-
+	         
 	                return NotificationDto.builder()
 	                        .notificationId(list[0] != null ? Long.parseLong(list[0].toString()) : 0)
-	                        .empName(empInfo != null ? empInfo.getEmpName() : null)
-	                        .empDesig(empInfo != null ? empInfo.getEmpDesig() : null)
+	                        .empName(loginDetail.getEmpName())
+	                        .empDesig(loginDetail.getEmpDesigCode())
 	                        .notificationMessage(list[5] != null ? list[5].toString() : "")
 	                        .notificationUrl(list[3] != null ? list[3].toString() : "")
 	                        .build();
@@ -684,12 +676,11 @@ public class AdminServiceImpl implements AdminService {
 	}
 	
 	@Override
-	public long notifictionCount(String username) throws Exception {
+	public Integer getNotifictionCount(String username) throws Exception {
 		Login login=loginRepo.findByUsername(username);
-		long count = 0;
+		int count = 0;
 		try {
 			count  = notificationRepo.getNotifictionCount(login.getEmpId());
-			
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("AuditServiceImpl Inside method notifictionCount()"+ e);

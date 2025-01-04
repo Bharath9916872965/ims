@@ -83,7 +83,7 @@ import com.vts.ims.master.dto.EmployeeDto;
 import com.vts.ims.master.dto.ProjectEmployeeDto;
 import com.vts.ims.master.dto.ProjectMasterDto;
 import com.vts.ims.model.ImsNotification;
-import com.vts.ims.repository.NominationRepository;
+import com.vts.ims.repository.NotificationRepository;
 import com.vts.ims.util.DLocalConvertion;
 import com.vts.ims.util.FormatConverter;
 import com.vts.ims.util.NFormatConvertion;
@@ -133,7 +133,7 @@ public class AuditServiceImpl implements AuditService{
 	private JavaMailSender emailSender;
 	
 	@Autowired
-	private NominationRepository nominationRepository;
+	private NotificationRepository notificationRepo;
 	
 	@Value("${x_api_key}")
 	private String xApiKey;
@@ -1217,7 +1217,7 @@ public class AuditServiceImpl implements AuditService{
 			notification.setEmpId(id);
 			notification.setNotificationUrl(url);
 				
-			return nominationRepository.save(notification).getNotificationId();
+			return notificationRepo.save(notification).getNotificationId();
 			}catch (Exception e) {
 			e.printStackTrace();
 			logger.error(" Inside insertRepNomination Service " + username);

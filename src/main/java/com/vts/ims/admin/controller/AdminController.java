@@ -2,6 +2,7 @@ package com.vts.ims.admin.controller;
 
 import java.net.InetAddress;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,13 +26,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vts.ims.admin.service.AdminService;
-import com.vts.ims.audit.dto.AuditorDto;
-import com.vts.ims.audit.dto.IqaDto;
 import com.vts.ims.master.dto.EmployeeDto;
 import com.vts.ims.master.dto.LoginDetailsDto;
 import com.vts.ims.login.Login;
 import com.vts.ims.model.LoginStamping;
-import com.vts.ims.qms.dto.QmsQspRevisionRecordDto;
 import com.vts.ims.login.LoginRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -379,10 +378,13 @@ public class AdminController {
 		}
 	}
 	
-	 @PostMapping(value = "/get-notification", produces="application/json")
-		public ResponseEntity<List<NotificationDto>> getNotification(@RequestHeader  String username) throws Exception {
-			logger.info(new Date() +" Inside get get-notification List " +username);
-			List<NotificationDto> result = service.notifictionList(username);
+
+	
+	
+	 @PostMapping(value = "get-notification-count", produces="application/json")
+		public ResponseEntity<Integer> getNotificationCount(@RequestHeader  String username) throws Exception {
+			logger.info(new Date() +" Inside get get-notification-count" +username);
+			Integer result = service.getNotifictionCount(username);
 			if (result != null) {
 				return new ResponseEntity<>(result, HttpStatus.OK);
 			} else {
@@ -390,17 +392,20 @@ public class AdminController {
 			}
 		}
 
-	    @PostMapping(value = "/get-notification-count", produces="application/json")
-		public ResponseEntity<Long> getNotificationCount(@RequestHeader  String username) throws Exception {
-			logger.info(new Date() +" Inside get get-notification-count" +username);
-			long result = service.notifictionCount(username);
-			if (result != 0) {
+	 
+	 
+	    @PostMapping(value = "/get-notification-list", produces="application/json")
+		public ResponseEntity<List<NotificationDto>> getNotification(@RequestHeader  String username) throws Exception {
+			logger.info(new Date() +" Inside get get-notification List " +username);
+			List<NotificationDto> result = service.getNotifictionList(username);
+			if (result != null) {
 				return new ResponseEntity<>(result, HttpStatus.OK);
 			} else {
 				return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
 			}
 		}
-	    
+
+
 	    @PostMapping(value = "/update-notification", produces="application/json")
 		public ResponseEntity<Long> updateNotification(@RequestHeader  String username, @RequestBody String notificationId) throws Exception {
 			logger.info(new Date() +" Inside  update-notification  " +username);
@@ -411,6 +416,7 @@ public class AdminController {
 				return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
 			}
 		}
+	    
 	    	
 	    
 	
