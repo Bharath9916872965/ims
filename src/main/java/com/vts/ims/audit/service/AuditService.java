@@ -103,11 +103,11 @@ public interface AuditService {
 
 	public int addAuditCheckList(AuditCheckListDTO auditCheckListDTO, String username)throws Exception;
 	
-	public long addAuditeeRemarks(AuditCheckListDTO auditCheckListDTO, String username)throws Exception;
+	public long addAuditeeRemarks(List<MultipartFile> files,AuditCheckListDTO auditCheckListDTO, String username)throws Exception;
 	
 	public long updateAuditCheckList(AuditCheckListDTO auditCheckListDTO, String username)throws Exception;
 	
-	public int updateAuditeeRemarks(AuditCheckListDTO auditCheckListDTO, String username)throws Exception;
+	public int updateAuditeeRemarks(List<MultipartFile> files,AuditCheckListDTO auditCheckListDTO, String username)throws Exception;
 
 	public List<CheckListDto> getAuditCheckList(String scheduleId)throws Exception;
 	
@@ -138,6 +138,7 @@ public interface AuditService {
 	public long returnCarReport(AuditCorrectiveActionDTO auditCorrectiveActionDTO, String username)throws Exception;
 	
 	public List<CheckListDto> getMostFqNCMocDes(Long scheduleId, Integer auditObsId, Long iqaId)throws Exception;
+
 
 
 }

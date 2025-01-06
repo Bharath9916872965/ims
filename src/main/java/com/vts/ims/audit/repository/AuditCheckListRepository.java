@@ -15,7 +15,7 @@ import jakarta.transaction.Transactional;
 @Transactional
 public interface AuditCheckListRepository extends JpaRepository<AuditCheckList, Long>{
 
-	@Query(value = "SELECT a.AuditCheckListId,a.ScheduleId,a.IqaId,a.MocId,a.AuditObsId,a.AuditorRemarks,b.ClauseNo,b.SectionNo,b.MocParentId,b.IsForCheckList,b.MocDescription,a.AuditeeRemarks,c.ScheduleStatus,(SELECT d.Observation FROM ims_audit_obs d WHERE d.AuditObsId = a.AuditObsId ) AS 'obsName'\r\n"
+	@Query(value = "SELECT a.AuditCheckListId,a.ScheduleId,a.IqaId,a.MocId,a.AuditObsId,a.AuditorRemarks,b.ClauseNo,b.SectionNo,b.MocParentId,b.IsForCheckList,b.MocDescription,a.AuditeeRemarks,c.ScheduleStatus,(SELECT d.Observation FROM ims_audit_obs d WHERE d.AuditObsId = a.AuditObsId ) AS 'obsName',a.Attachment\r\n"
 			+ "FROM ims_audit_check_list a,ims_qms_qm_mapping_classes b,ims_audit_schedule c WHERE a.IsActive = 1 AND b.IsActive = 1 AND a.MocId = b.MocId AND a.ScheduleId = :scheduleId AND a.ScheduleId = c.ScheduleId",nativeQuery = true)
 	public List<Object[]> getAuditCheckList(@Param("scheduleId")String scheduleId);
 	
@@ -27,8 +27,12 @@ public interface AuditCheckListRepository extends JpaRepository<AuditCheckList, 
 	public Integer updateUpload(@Param("Attachment")String attachment,@Param("ModifiedBy")String modifiedBy,@Param("ModifiedDate")LocalDateTime modifiedDate,@Param("AuditCheckListId")String auditCheckListId);
 	
 	@Modifying
+	@Query(value = "UPDATE ims_audit_check_list SET AuditeeRemarks = :AuditeeRemarks,Attachment = :Attachment, ModifiedBy = :ModifiedBy, ModifiedDate = :ModifiedDate WHERE AuditCheckListId = :AuditCheckListId",nativeQuery = true)
+	public Integer updateAuditeeRemarks(@Param("AuditeeRemarks")String auditeeRemarks,@Param("Attachment")String attachment,@Param("ModifiedBy")String modifiedBy,@Param("ModifiedDate")LocalDateTime modifiedDate,@Param("AuditCheckListId")Integer auditCheckListId);
+	
+	@Modifying
 	@Query(value = "UPDATE ims_audit_check_list SET AuditeeRemarks = :AuditeeRemarks, ModifiedBy = :ModifiedBy, ModifiedDate = :ModifiedDate WHERE AuditCheckListId = :AuditCheckListId",nativeQuery = true)
-	public Integer updateAuditeeRemarks(@Param("AuditeeRemarks")String auditeeRemarks,@Param("ModifiedBy")String modifiedBy,@Param("ModifiedDate")LocalDateTime modifiedDate,@Param("AuditCheckListId")Integer auditCheckListId);
+	public Integer updateAuditeeRemarksWithoutAttachment(@Param("AuditeeRemarks")String auditeeRemarks,@Param("ModifiedBy")String modifiedBy,@Param("ModifiedDate")LocalDateTime modifiedDate,@Param("AuditCheckListId")Integer auditCheckListId);
 	
 	@Modifying
 	@Query(value = "UPDATE ims_audit_check_list SET AuditObsId = :AuditObsId, AuditorRemarks = :AuditorRemarks, ModifiedBy = :ModifiedBy, ModifiedDate = :ModifiedDate WHERE AuditCheckListId = :AuditCheckListId",nativeQuery = true)

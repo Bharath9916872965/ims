@@ -8,5 +8,6 @@ public class CheckListItem {
     private Integer observation;
     private String auditorRemarks;
     private String auditeeRemarks;
+    private String attachment;
 
 }

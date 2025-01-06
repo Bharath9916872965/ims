@@ -24,6 +24,12 @@ public class ImsKpiObjective {
 	@Column(name = "KpiId")
 	private Long kpiId;
 	
+	@Column(name = "GroupDivisionId")
+	private Long groupDivisionId;
+	
+	@Column(name = "KpiType")
+	private String kpiType;
+	
 	@Column(name = "KpiValue")
 	private Long kpiValue;
 	  
@@ -32,9 +38,6 @@ public class ImsKpiObjective {
 	
 	@Column(name = "IqaId")
 	private Long iqaId;
-	
-	@Column(name = "RevisionRecordId")
-	private Long revisionRecordId;
 	
 	@Column(name = "ActEmpId")
 	private Long actEmpId;

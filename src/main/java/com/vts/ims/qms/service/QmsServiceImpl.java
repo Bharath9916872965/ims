@@ -738,6 +738,7 @@ public class QmsServiceImpl implements QmsService {
 					.revisionRecordId(entity.getRevisionRecordId())
 					.isForCheckList(entity.getIsForCheckList())
 					.isActive(entity.getIsActive())
+					.attachmentName("")
 					.build()).collect(Collectors.toList());
 
 		} catch (Exception e) {

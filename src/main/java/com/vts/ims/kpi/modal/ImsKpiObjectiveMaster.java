@@ -24,8 +24,11 @@ public class ImsKpiObjectiveMaster {
 	@Column(name = "KpiId")
 	private Long kpiId;
 	
-	@Column(name = "RevisionRecordId")
-	private Long revisionRecordId;
+	@Column(name = "GroupDivisionId")
+	private Long groupDivisionId;
+	
+	@Column(name = "KpiType")
+	private String kpiType;
 	
 	@Column(name = "KpiObjectives")
 	private String kpiObjectives;

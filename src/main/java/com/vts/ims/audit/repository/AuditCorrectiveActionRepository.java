@@ -15,8 +15,8 @@ import jakarta.transaction.Transactional;
 @Transactional
 public interface AuditCorrectiveActionRepository extends JpaRepository<AuditCorrectiveAction, Long>{
 
-	@Query(value = "SELECT COUNT(CorrectiveActionId) FROM ims_audit_corrective_action WHERE IqaId = :IqaId AND IsActive = 1",nativeQuery = true)
-	public Integer getActionCount(@Param("IqaId")Long iqaId);
+	@Query(value = "SELECT COUNT(CorrectiveActionId) FROM ims_audit_corrective_action WHERE IqaId = :IqaId AND ScheduleId = :ScheduleId AND CarFlag = :CarFlag AND IsActive = 1",nativeQuery = true)
+	public Integer getActionCount(@Param("IqaId")Long iqaId,@Param("ScheduleId")Long scheduleId,@Param("CarFlag")String carFlag);
 	
 	@Query(value = "SELECT a.CorrectiveActionId,a.AuditCheckListId,a.IqaId,a.CarRefNo,a.CarDescription,a.ActionPlan,a.Responsibility,a.TargetDate,b.ScheduleId,c.AuditeeId,a.CarAttachment, a.RootCause,\r\n"
 			+ "a.CarCompletionDate,a.CarDate,a.CorrectiveActionTaken,a.CarStatus,(SELECT d.StatusName FROM ims_audit_status d WHERE d.AuditStatus = a.CarStatus) AS 'statusName',e.EmpId\r\n"

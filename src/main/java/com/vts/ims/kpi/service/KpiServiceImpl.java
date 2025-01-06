@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.vts.ims.kpi.dto.GroupDivisionDto;
 import com.vts.ims.kpi.dto.KpiMasterDto;
 import com.vts.ims.kpi.dto.KpiObjDto;
 import com.vts.ims.kpi.dto.KpiObjListDto;
@@ -37,8 +38,6 @@ import com.vts.ims.master.dao.MasterClient;
 import com.vts.ims.master.dto.DivisionGroupDto;
 import com.vts.ims.master.dto.DivisionMasterDto;
 import com.vts.ims.master.dto.EmployeeDto;
-import com.vts.ims.qms.dto.DwpRevisionRecordDto;
-import com.vts.ims.qms.model.DwpRevisionRecord;
 import com.vts.ims.qms.repository.DwpRevisionRecordRepo;
 
 
@@ -64,9 +63,6 @@ public class KpiServiceImpl implements KpiService{
 	
 	@Autowired
 	private KpiTargetRatingRepository kpiTargetRatingRepository;
-	
-	@Autowired
-	private DwpRevisionRecordRepo dwpRevisionRecordRepo;
 	
 	@Autowired
 	private KpiObjectiveRepository kpiObjectiveRepository;
@@ -97,7 +93,8 @@ public class KpiServiceImpl implements KpiService{
 			kpiMas.setKpiMerics(kpiObjectiveDto.getMetrics());
 			kpiMas.setKpiTarget(Long.parseLong(kpiObjectiveDto.getTarget()));
 			kpiMas.setKpiNorms(kpiObjectiveDto.getNorms());
-			kpiMas.setRevisionRecordId(Long.parseLong(kpiObjectiveDto.getRevisionRecordId()));
+			kpiMas.setKpiType(kpiObjectiveDto.getKpiType());
+			kpiMas.setGroupDivisionId(Long.parseLong(kpiObjectiveDto.getGroupDivisionId()));
 			kpiMas.setKpiUnitId(kpiObjectiveDto.getKpiUnitId());
 			kpiMas.setCreatedBy(username);
 			kpiMas.setCreatedDate(LocalDateTime.now());
@@ -192,16 +189,16 @@ public class KpiServiceImpl implements KpiService{
 			 return Optional.ofNullable(result).orElse(Collections.emptyList()).stream()
 					    .map(obj -> {
 					    	String divisionGroupCode = "";
-					    	if(obj[8].toString().equalsIgnoreCase("LAB")) {
+					    	if(obj[7].toString().equalsIgnoreCase("C")) {
 					    		divisionGroupCode = employeeLogIn.getLabCode();
-					    	}else if(obj[8].toString().equalsIgnoreCase("dwp")){
-							    DivisionMasterDto division = obj[7] !=null ? divisionMap.get(Long.parseLong(obj[7].toString())):null;
+					    	}else if(obj[7].toString().equalsIgnoreCase("D")){
+							    DivisionMasterDto division = obj[6] !=null ? divisionMap.get(Long.parseLong(obj[6].toString())):null;
 							    if(division != null) {
 							    	divisionGroupCode = division.getDivisionCode();
 							    }
 
 					    	}else {
-							    DivisionGroupDto group = obj[7] !=null ? groupMap.get(Long.parseLong(obj[7].toString())):null;
+							    DivisionGroupDto group = obj[6] !=null ? groupMap.get(Long.parseLong(obj[6].toString())):null;
 							    
 							    if(group != null) {
 							    	divisionGroupCode = group.getGroupCode();
@@ -214,10 +211,9 @@ public class KpiServiceImpl implements KpiService{
 						    		.kpiTarget(obj[3]!=null?obj[3].toString():"")
 						    		.kpiUnitId(obj[4]!=null?Long.parseLong(obj[4].toString()):0L)
 						    		.kpiUnitName(obj[5]!=null?obj[5].toString():"")
-						    		.revisionRecordId(obj[6]!=null?obj[6].toString():"")
-						    		.groupDivisionId(obj[7]!=null?Long.parseLong(obj[7].toString()):0L)
-						    		.docType(obj[8]!=null?obj[8].toString():"")
-						    		.kpiNorms(obj[9]!=null?obj[9].toString():"")
+						    		.groupDivisionId(obj[6]!=null?Long.parseLong(obj[6].toString()):0L)
+						    		.kpiType(obj[7]!=null?obj[7].toString():"")
+						    		.kpiNorms(obj[8]!=null?obj[8].toString():"")
 						    		.groupDivisionCode(divisionGroupCode !=null ? divisionGroupCode:"")
 					    			.build();
 					    })
@@ -265,7 +261,7 @@ public class KpiServiceImpl implements KpiService{
 						    		.kpiValue(obj[2]!=null?obj[2].toString():"")
 						    		.kpiRating(obj[3]!=null?Long.parseLong(obj[3].toString()):0L)
 						    		.iqaId(obj[4]!=null?Long.parseLong(obj[4].toString()):0L)
-						    		.revisionRecordId(obj[5]!=null?Long.parseLong(obj[5].toString()):0L)
+						    		.groupDivisionId(obj[5]!=null?Long.parseLong(obj[5].toString()):0L)
 						    		.actEmpId(obj[6]!=null?Long.parseLong(obj[6].toString()):0L)
 						    		.kpiObjectives(obj[7]!=null?obj[7].toString():"")
 						    		.kpiMerics(obj[8]!=null?obj[8].toString():"")
@@ -274,6 +270,7 @@ public class KpiServiceImpl implements KpiService{
 						    		.kpiTarget(obj[11]!=null?obj[11].toString():"") 
 						    		.iqaNo(obj[12]!=null?obj[12].toString():"") 
 						    		.kpiNorms(obj[13]!=null?obj[13].toString():"") 
+						    		.kpiType(obj[14]!=null?obj[14].toString():"") 
 					    			.build();
 					    })
 					    .collect(Collectors.toList());
@@ -285,64 +282,38 @@ public class KpiServiceImpl implements KpiService{
 	}
 
 	@Override
-	public List<DwpRevisionRecordDto> getDwpRevisonList() throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getKpiUnitList()");
+	public List<GroupDivisionDto> getGroupDivisionList() throws Exception {
+		logger.info(new Date() + " AuditServiceImpl Inside method getGroupDivisionList()");
 		try {
 			List<DivisionMasterDto> divisionDtoList = masterClient.getDivisionMaster(xApiKey);
 			List<DivisionGroupDto> divisiongroupDtoList = masterClient.getDivisionGroupList(xApiKey);
+			List<GroupDivisionDto> groupDivisionList = new ArrayList<GroupDivisionDto>();
+			long i = 0;
+			for(DivisionMasterDto dto : divisionDtoList) {
+				GroupDivisionDto division = GroupDivisionDto.builder()
+											.groupDivisionMainId(++i)
+											.groupDivisionId(dto.getDivisionId())
+											.groupDivisionCode("D-"+dto.getDivisionCode())
+											.groupDivisionType("D")
+											.build();
+				groupDivisionList.add(division);
+			}
 			
-			List<DwpRevisionRecordDto> revisionRecordDtoList = new ArrayList<DwpRevisionRecordDto>();
+			for(DivisionGroupDto dto : divisiongroupDtoList) {
+				GroupDivisionDto group = GroupDivisionDto.builder()
+											.groupDivisionMainId(++i)
+											.groupDivisionId(dto.getGroupId())
+											.groupDivisionCode("G-"+dto.getGroupCode())
+											.groupDivisionType("G")
+											.build();
+				groupDivisionList.add(group);
+			}
+
 			
-			List<DwpRevisionRecord> revisionRecord = dwpRevisionRecordRepo.findAll();
-			revisionRecord = revisionRecord.stream().filter(data -> data.getRevisionNo() == 0).collect(Collectors.toList());			
-			revisionRecord.forEach(revison -> {
-				
-				DivisionMasterDto divisionDto = null;
-				DivisionGroupDto divisiongroupDto = null;
-				
-				if(revison.getDocType().equalsIgnoreCase("dwp")) {
-					
-					divisionDto = divisionDtoList.stream()
-			    	        .filter(division -> division.getDivisionId().equals(revison.getGroupDivisionId()))
-			    	        .findFirst()
-			    	        .orElse(null);
-					
-				} else if(revison.getDocType().equalsIgnoreCase("gwp")) {
-					
-					divisiongroupDto = divisiongroupDtoList.stream()
-			    	        .filter(obj -> obj.getGroupId().equals(revison.getGroupDivisionId()))
-			    	        .findFirst()
-			    	        .orElse(null);
-				}
-				
-				DwpRevisionRecordDto qmsQmRevisionRecordDto = DwpRevisionRecordDto.builder()
-						.RevisionRecordId(revison.getRevisionRecordId())
-						.DocType(revison.getDocType())
-						.GroupDivisionId(revison.getGroupDivisionId())
-						.divisionMasterDto(divisionDto)
-						.divisionGroupDto(divisiongroupDto)
-						.DocFileName(revison.getDocFileName())
-						.DocFilepath(revison.getDocFilepath())
-						.Description(revison.getDescription())
-						.IssueNo(revison.getIssueNo())
-						.RevisionNo(revison.getRevisionNo())
-						.DateOfRevision(revison.getDateOfRevision())
-						.StatusCode(revison.getStatusCode())
-						.AbbreviationIdNotReq(revison.getAbbreviationIdNotReq())
-						.CreatedBy(revison.getCreatedBy())
-						.CreatedDate(revison.getCreatedDate())
-						.ModifiedBy(revison.getModifiedBy())
-						.ModifiedDate(revison.getModifiedDate())
-						.IsActive(revison.getIsActive())
-						.build();
-				
-				revisionRecordDtoList.add(qmsQmRevisionRecordDto);
-			});
-			
-			return revisionRecordDtoList;
+			return groupDivisionList;
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.error("AuditServiceImpl Inside method getKpiUnitList()"+ e);
+			logger.error("AuditServiceImpl Inside method getGroupDivisionList()"+ e);
 			return Collections.emptyList();
 		}
 	}
@@ -360,9 +331,10 @@ public class KpiServiceImpl implements KpiService{
 				
 				objective.setKpiId(dto.getKpiId());
 				objective.setKpiValue(Long.parseLong(dto.getKpiValue()));
+				objective.setGroupDivisionId(kpiObjListDto.getGroupDivisionId());
+				objective.setKpiType(kpiObjListDto.getKpiType());
 				objective.setKpiRating(dto.getKpiRating());
 				objective.setIqaId(kpiObjListDto.getIqaId());
-				objective.setRevisionRecordId(kpiObjListDto.getRevisionRecordId());
 				objective.setActEmpId(login.getEmpId());
 				objective.setCreatedBy(username);
 				objective.setCreatedDate(LocalDateTime.now());
@@ -384,7 +356,6 @@ public class KpiServiceImpl implements KpiService{
 		logger.info(new Date() + " AuditServiceImpl Inside method updateKpiObjective()");
 		int result = 0;
 		try {
-			Login login = loginRepo.findByUsername(username);
 			
 			for(KpiObjDto dto : kpiObjListDto.getRatingList()) {
 				

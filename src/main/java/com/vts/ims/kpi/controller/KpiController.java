@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.vts.ims.kpi.dto.GroupDivisionDto;
 import com.vts.ims.kpi.dto.KpiMasterDto;
 import com.vts.ims.kpi.dto.KpiObjListDto;
 import com.vts.ims.kpi.dto.KpiObjRatingDto;
@@ -22,7 +23,6 @@ import com.vts.ims.kpi.dto.KpiObjectiveDto;
 import com.vts.ims.kpi.dto.KpiTargetRatingrDto;
 import com.vts.ims.kpi.modal.ImsKpiUnit;
 import com.vts.ims.kpi.service.KpiService;
-import com.vts.ims.qms.dto.DwpRevisionRecordDto;
 import com.vts.ims.util.Response;
 
 
@@ -159,15 +159,15 @@ public class KpiController {
 		}
 	}
 	
-	@PostMapping(value = "/get-dwp-revision-list", produces = "application/json")
-	public ResponseEntity<List<DwpRevisionRecordDto>> getDwpRevisonList(@RequestHeader String username) throws Exception {
+	@PostMapping(value = "/get-group-division-list", produces = "application/json")
+	public ResponseEntity<List<GroupDivisionDto>> getGroupDivisionList(@RequestHeader String username) throws Exception {
 		try {
-			logger.info(new Date() + " Inside getDwpRevisonList" );
-			List<DwpRevisionRecordDto> dto = kpiService.getDwpRevisonList();
-			return new ResponseEntity<List<DwpRevisionRecordDto>>( dto,HttpStatus.OK);
+			logger.info(new Date() + " Inside getGroupDivisionList" );
+			List<GroupDivisionDto> dto = kpiService.getGroupDivisionList();
+			return new ResponseEntity<List<GroupDivisionDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.error("Error fetching getDwpRevisonList: ", e);
+			logger.error("Error fetching getGroupDivisionList: ", e);
 			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
 		}
 	}
