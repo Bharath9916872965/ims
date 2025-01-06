@@ -8,6 +8,8 @@ import com.vts.ims.admin.dto.*;
 import com.vts.ims.admin.entity.FormRoleAccess;
 import com.vts.ims.admin.repository.*;
 import com.vts.ims.login.Login;
+import com.vts.ims.login.LoginRepository;
+
 import com.vts.ims.master.dto.DivisionMasterDto;
 import com.vts.ims.master.dto.EmpInfoDto;
 import org.slf4j.Logger;
@@ -23,7 +25,10 @@ import com.vts.ims.master.dao.MasterClient;
 import com.vts.ims.master.dto.EmployeeDto;
 import com.vts.ims.master.dto.LoginDetailsDto;
 import com.vts.ims.master.service.MasterService;
+import com.vts.ims.model.ImsNotification;
 import com.vts.ims.model.LoginStamping;
+import com.vts.ims.repository.NotificationRepository;
+
 
 
 @Service
@@ -57,6 +62,13 @@ public class AdminServiceImpl implements AdminService {
     
     @Autowired
     ApprovalAuthorityRepository approvalAuthorityRepo;
+    
+	
+	@Autowired
+	LoginRepository loginRepo;
+	
+	@Autowired
+	NotificationRepository notificationRepo;
 	
 	
 	@Value("${x_api_key}")
@@ -643,5 +655,71 @@ public class AdminServiceImpl implements AdminService {
 			return result;
 		}
 	}
+	
+	@Override
+	public List<NotificationDto> getNotifictionList(String username) throws Exception {
+		List<LoginDetailsDto> loginDetails = masterservice.loginDetailsList(username);
+	    LoginDetailsDto loginDetail =loginDetails.get(0); 
+	    
+	    
+	    List<Object[]> notificationList = notificationRepo.getNotifictionList(loginDetail.getEmpId());
+	    return notificationList.stream()
+	            .map(list -> {
+	         
+	                return NotificationDto.builder()
+	                        .notificationId(list[0] != null ? Long.parseLong(list[0].toString()) : 0)
+	                        .empName(loginDetail.getEmpName())
+	                        .empDesig(loginDetail.getEmpDesigCode())
+	                        .notificationMessage(list[5] != null ? list[5].toString() : "")
+	                        .notificationUrl(list[3] != null ? list[3].toString() : "")
+	                        .build();
+	            })
+	            .collect(Collectors.toList());
+	}
+	
+	@Override
+	public Integer getNotifictionCount(String username) throws Exception {
+		Login login=loginRepo.findByUsername(username);
+		int count = 0;
+		try {
+			count  = notificationRepo.getNotifictionCount(login.getEmpId());
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method notifictionCount()"+ e);
+		}
+		return count;
+	}
+	
+	@Override
+	public long updateNotification(String userName, String notificationId) throws Exception {
+	    logger.info(new Date() + " AdminServiceImpl Inside method updateNotification ");
+	    try {
+	        // Find the notification by ID
+	        Optional<ImsNotification> notifOptional = notificationRepo.findById(Long.parseLong(notificationId));
 
+	        if (notifOptional.isPresent()) {
+	            // Get the notification object from the Optional
+	            ImsNotification notification = notifOptional.get();
+
+	            // Update the necessary fields
+	            notification.setModifiedBy(userName);
+	            notification.setModifiedDate(LocalDateTime.now());
+	            notification.setIsActive(0); 
+
+	            // Save the updated entity back to the repository
+	            ImsNotification updatedNotification = notificationRepo.save(notification);
+
+	            // Return the ID of the updated notification
+	            return updatedNotification.getNotificationId();
+	        } else {
+	            logger.error("Notification with ID " + notificationId + " not found.");
+	            throw new Exception("Notification not found");
+	        }
+	    } catch (Exception e) {
+	        logger.error("Error in updateNotification: " + e.getMessage(), e);
+	        throw e;
+	    }
+	}
+
+	
 }
