@@ -258,25 +258,25 @@ public class MasterServiceImpl implements MasterService {
 	
 	
 	@Override
-	public List<CommitteeScheduleDto> GetQmrcList() throws Exception {
-		logger.info(new Date() + " MasterServiceImpl Inside method GetQmrcList");
+	public List<CommitteeScheduleDto> GetComitteeScheduleList(String committeeType) throws Exception {
+		logger.info(new Date() + " MasterServiceImpl Inside method GetComitteeScheduleList");
 		 try {
-			 List<CommitteeScheduleDto> getcommitteSchedule=masterClient.committeeScheduleList(xApiKey);
+			 List<CommitteeScheduleDto> getcommitteSchedule=masterClient.committeeScheduleList(xApiKey,committeeType);
 			 return getcommitteSchedule;
 		 } catch (Exception e) {
-			 logger.info(new Date() + " MasterServiceImpl Inside method GetQmrcList"+ e.getMessage());
+			 logger.info(new Date() + " MasterServiceImpl Inside method GetComitteeScheduleList"+ e.getMessage());
 	        return null;
 	    }
 	}
 	
 	@Override
-	public List<ActionAssignDto> GetQmrcActionAssignList() throws Exception {
-		logger.info(new Date() + " MasterServiceImpl Inside method GetQmrcList");
+	public List<ActionAssignDto> GetCommitteeScheduleActionAssignList(String committeeType) throws Exception {
+		logger.info(new Date() + " MasterServiceImpl Inside method GetCommitteeScheduleActionAssignList");
 		 try {
-			 List<ActionAssignDto> getQmrcactionAssignList=masterClient.actionAssignData(xApiKey);
-			 return getQmrcactionAssignList;
+			 List<ActionAssignDto> GetCommitteeScheduleActionAssignList=masterClient.actionAssignData(xApiKey,committeeType);
+			 return GetCommitteeScheduleActionAssignList;
 		 } catch (Exception e) {
-			 logger.info(new Date() + " MasterServiceImpl Inside method GetQmrcList"+ e.getMessage());
+			 logger.info(new Date() + " MasterServiceImpl Inside method GetCommitteeScheduleActionAssignList"+ e.getMessage());
 	        return null;
 	    }
 	}

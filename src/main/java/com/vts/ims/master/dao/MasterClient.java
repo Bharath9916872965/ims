@@ -68,10 +68,10 @@ public interface MasterClient {
 	    List<ProjectEmployeeDto> getProjectEmpDetailsById(@RequestHeader("X-API-KEY") String apiKey);
 	    
 	    @PostMapping("/committeeScheduleList")
-		List<CommitteeScheduleDto> committeeScheduleList(@RequestHeader("X-API-KEY") String apiKey);
+		List<CommitteeScheduleDto> committeeScheduleList(@RequestHeader("X-API-KEY") String apiKey, @RequestParam("committeeType") String committeeType);
 	    
 	    @PostMapping("/actionAssignData")
-		List<ActionAssignDto> actionAssignData(@RequestHeader("X-API-KEY") String apiKey);
+		List<ActionAssignDto> actionAssignData(@RequestHeader("X-API-KEY") String apiKey, @RequestParam("committeeType") String committeeType);
 
 
 
