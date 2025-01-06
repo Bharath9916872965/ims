@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.vts.ims.risk.dto.MitigationRiskRegisterDto;
+import com.vts.ims.risk.dto.RiskMitigationMergeDto;
 import com.vts.ims.risk.dto.RiskRegisterDto;
 import com.vts.ims.risk.model.MitigationRiskRegisterModel;
 import com.vts.ims.risk.model.RiskRegisterModel;
@@ -213,6 +214,75 @@ public class RiskServiceImpl implements RiskService{
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("RiskServiceImpl Inside method getMititgationRiskRegisterlist()"+ e);
+			return Collections.emptyList();
+		}
+	}
+	@Override
+	public List<RiskMitigationMergeDto> getRegMitigationList(Long groupDivisionId,String docType) throws Exception {
+		logger.info(new Date() + " RiskServiceImpl Inside method getRiskRegisterList()");
+		try {
+			List<Object[]> riskRegister = riskRepository.getRegMitigationList(groupDivisionId,docType);
+			List<RiskMitigationMergeDto> finalDto = Optional.ofNullable(riskRegister).orElse(Collections.emptyList()).stream()
+				    .map(obj -> {
+				    	RiskMitigationMergeDto dto = new RiskMitigationMergeDto();
+				    	dto.setRiskRegisterId(Long.parseLong(obj[0].toString()));
+				    	dto.setRevisionRecordId(Long.parseLong(obj[1].toString()));
+				    	dto.setRiskDescription(obj[2].toString());
+				    	dto.setProbability(Integer.parseInt(obj[3].toString()));
+				    	dto.setTechnicalPerformance(Integer.parseInt(obj[4].toString()));
+				    	dto.setTime(Integer.parseInt(obj[5].toString()));
+				    	dto.setCost(Integer.parseInt(obj[6].toString()));
+				    	dto.setAverage(Double.parseDouble(obj[7].toString()));
+				    	dto.setRiskNo(Double.parseDouble(obj[8].toString()));
+				    	dto.setDocType(obj[9].toString());
+				    	dto.setGroupDivisionId(Integer.parseInt(obj[10].toString()));
+				   		dto.setDescription(obj[11].toString());
+				   		if (obj[12] != null) {
+				   		    dto.setMitigationApproach(obj[12].toString());
+				   		} else {
+				   		    dto.setMitigationApproach("-"); 
+				   		}
+				   		if (obj[13] != null) {
+				   			dto.setMitigationProbability(Integer.parseInt(obj[13].toString()));
+				   		} else {
+				   		    dto.setMitigationApproach("-"); 
+				   		}
+				   		if (obj[14] != null) {
+				   			dto.setMitigationTp(Integer.parseInt(obj[14].toString()));
+				   		} else {
+				   		    dto.setMitigationApproach("-"); 
+				   		}
+				   		if (obj[15] != null) {
+				   			dto.setMitigationTime(Integer.parseInt(obj[15].toString()));
+				   		} else {
+				   		    dto.setMitigationApproach("-"); 
+				   		}
+				   		if (obj[16] != null) {
+				   			dto.setMitigationCost(Integer.parseInt(obj[16].toString()));
+				   		} else {
+				   		    dto.setMitigationApproach("-"); 
+				   		}
+				   		if (obj[17] != null) {
+				   			dto.setMitigationAverage(Double.parseDouble(obj[17].toString()));
+				   		} else {
+				   		    dto.setMitigationApproach("-"); 
+				   		}
+				   		
+				   		if (obj[18] != null) {
+				   	   		dto.setMitigationRiskNo(Double.parseDouble(obj[18].toString()));
+				   		} else {
+				   		    dto.setMitigationApproach("-"); 
+				   		}
+				   		
+				    					    	return dto;
+				    	
+				    })
+				    .sorted(Comparator.comparingLong(RiskMitigationMergeDto::getRiskRegisterId).reversed()) 
+				    .collect(Collectors.toList());
+			return finalDto;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("RiskServiceImpl Inside method getRiskRegisterList()"+ e);
 			return Collections.emptyList();
 		}
 	}

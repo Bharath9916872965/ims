@@ -148,7 +148,7 @@ ORDER BY COALESCE(totalNC, 0) DESC;
 	 		+ "GROUP BY a.MocId ORDER BY COUNT(a.MocId) DESC",nativeQuery = true)
 			public List<Object[]> getMostFrequentNC();
 			@Query(value = 
-				       "SELECT SectionNo, m.MocDescription,d.CarRefNo ,c.AuditObsId\r\n"
+				       "SELECT m.ClauseNo, m.MocDescription,d.CarRefNo ,c.AuditObsId\r\n"
 				       + "FROM ims_qms_qm_mapping_classes m \r\n"
 				       + "INNER JOIN ims_audit_check_list c ON c.MocId = m.MocId \r\n"
 				       + "AND c.AuditObsId =:auditObsId AND c.ScheduleId =:scheduleId AND c.IqaId =:iqaId\r\n"
