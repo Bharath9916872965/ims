@@ -24,6 +24,9 @@ public class AuditCorrectiveAction {
 	@Column(name = "IqaId")
 	private Long iqaId;
 	
+	@Column(name = "ScheduleId")
+	private Long scheduleId;
+	
 	@Column(name = "AuditCheckListId")
 	private Long auditCheckListId;
 	
@@ -33,6 +36,9 @@ public class AuditCorrectiveAction {
 	@Column(name = "CarRefNo")
 	private String carRefNo;
 	
+	@Column(name = "CarFlag")
+	private String carFlag;
+
 	@Column(name = "CarDescription")
 	private String carDescription;
 	

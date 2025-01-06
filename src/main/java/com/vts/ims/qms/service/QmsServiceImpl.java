@@ -23,14 +23,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
+import com.vts.ims.repository.NotificationRepository;
 import com.vts.ims.audit.repository.AuditeeRepository;
 import com.vts.ims.master.dao.MasterClient;
 import com.vts.ims.master.dto.DivisionEmployeeDto;
 import com.vts.ims.master.dto.DivisionGroupDto;
 import com.vts.ims.master.dto.DivisionMasterDto;
 import com.vts.ims.master.dto.EmployeeDto;
+import com.vts.ims.master.dto.LoginDetailsDto;
 import com.vts.ims.master.dto.ProjectEmployeeDto;
 import com.vts.ims.master.dto.ProjectMasterDto;
+import com.vts.ims.master.service.MasterService;
+import com.vts.ims.model.ImsNotification;
 import com.vts.ims.qms.model.DwpChapters;
 import com.vts.ims.qms.model.DwpGwpDocumentSummary;
 import com.vts.ims.qms.model.DwpRevisionRecord;
@@ -134,6 +138,14 @@ public class QmsServiceImpl implements QmsService {
 	
 	@Autowired
 	QmsQspRevisionTransactionRepo qmsqsprevisiontransactionrepo;
+	
+	
+	@Autowired
+	MasterService masterService;
+	
+	@Autowired
+	NotificationRepository notificationRepo;
+	
 
 	@Override
 	public List<QmsQmRevisionRecordDto> getQmVersionRecordDtoList() throws Exception {
@@ -726,6 +738,7 @@ public class QmsServiceImpl implements QmsService {
 					.revisionRecordId(entity.getRevisionRecordId())
 					.isForCheckList(entity.getIsForCheckList())
 					.isActive(entity.getIsActive())
+					.attachmentName("")
 					.build()).collect(Collectors.toList());
 
 		} catch (Exception e) {
@@ -1824,10 +1837,64 @@ public class QmsServiceImpl implements QmsService {
 				trans.setTransactionDate(LocalDateTime.now());
 				trans.setRemarks(qmsqmrevisionDto.getRemarks()!=null && !qmsqmrevisionDto.getRemarks().equalsIgnoreCase("") ? qmsqmrevisionDto.getRemarks():"");
 				qmsQmRevisionTransactionRepo.save(trans);
+				
+				//if res>0 then send notificationQM
+				if(res>0) {
+				ImsNotification notification = new ImsNotification();
+				List<LoginDetailsDto> loginDetails = masterService.loginDetailsList(username);
+				if (!loginDetails.isEmpty()) {
+			        LoginDetailsDto loginDetail = loginDetails.get(0);  // Assuming you want to use the first element
+
+			    
+			       
+			        notification.setNotificationby(loginDetail.getEmpId());  
+			        notification.setNotificationUrl("/quality-manual");
+			        notification.setNotificationDate(LocalDateTime.now());
+			        notification.setIsActive(1);	
+			        notification.setCreatedBy(username);
+			        notification.setCreatedDate(LocalDateTime.now());
+			        if(qmsqmrevision.getStatusCode().equalsIgnoreCase("FWD")) {
+                        //Forwarded notification should go to reviewer
+				        notification.setEmpId(qmsqmrevision.getReviewedBy()); 
+			            notification.setNotificationMessage("QM Forwarded by " + loginDetail.getEmpName()+", "+loginDetail.getEmpDesigCode());
+                  
+			        }else  if(qmsqmrevision.getStatusCode().equalsIgnoreCase("RFD")) {
+			            //Re Forwarded notification should go to reviewer
+			            notification.setEmpId(qmsqmrevision.getReviewedBy()); 
+			        	notification.setNotificationMessage("QM Re-Forwarded by " + loginDetail.getEmpName()+", "+loginDetail.getEmpDesigCode());	
+			      
+			        }else  if(qmsqmrevision.getStatusCode().equalsIgnoreCase("RWD")) {
+			        	 //Reviewed notification should go to Approver
+			            notification.setEmpId(qmsqmrevision.getApprovedBy()); 
+			        	notification.setNotificationMessage("QM Reviewed by " + loginDetail.getEmpName()+", "+loginDetail.getEmpDesigCode());	
+			      
+			        }else  if(qmsqmrevision.getStatusCode().equalsIgnoreCase("APD")) {
+			        	 //Approved notification should go to Initiator
+			            notification.setEmpId(qmsqmrevision.getInitiatedBy()); 
+			        	notification.setNotificationMessage("QM Approved by " + loginDetail.getEmpName()+", "+loginDetail.getEmpDesigCode());	
+			      
+			        }else  if(qmsqmrevision.getStatusCode().equalsIgnoreCase("RTM")) {
+			        	 //Return after forward message should go directly to initiator 
+			        	notification.setEmpId(qmsqmrevision.getInitiatedBy()); 
+				         notification.setNotificationMessage("QM Returned by " + loginDetail.getEmpName()+", "+loginDetail.getEmpDesigCode());	
+				        
+			        }else  if(qmsqmrevision.getStatusCode().equalsIgnoreCase("RTD")) {
+			        	//Return after forward message should go directly to initiator 
+			        	notification.setEmpId(qmsqmrevision.getInitiatedBy()); 
+				         notification.setNotificationMessage("QM Returned by " + loginDetail.getEmpName()+", "+loginDetail.getEmpDesigCode());	
+				        
+			        }
+			     
+			
+			        notificationRepo.save(notification);
+			    }
+				
+				}
 			}
 			if(res>0) {
 				result=1;
 			}
+			
 			return result;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1856,6 +1923,26 @@ public class QmsServiceImpl implements QmsService {
 			trans.setTransactionDate(LocalDateTime.now());
 			trans.setRemarks(qmsqmrevisionDto.getRemarks()!=null && !qmsqmrevisionDto.getRemarks().equalsIgnoreCase("") ? qmsqmrevisionDto.getRemarks():"");
 			qmsQmRevisionTransactionRepo.save(trans);
+			//if res>0 then send notificationRVM
+			if(res>0) {
+			ImsNotification notification = new ImsNotification();
+			List<LoginDetailsDto> loginDetails = masterService.loginDetailsList(username);
+			if (!loginDetails.isEmpty()) {
+		        LoginDetailsDto loginDetail = loginDetails.get(0);  
+		        notification.setNotificationby(loginDetail.getEmpId());  
+		        notification.setNotificationUrl("/quality-manual");
+		        notification.setNotificationDate(LocalDateTime.now());
+                    //Revoked notification should go to initiator
+			    notification.setEmpId(qmsqmrevisionDto.getInitiatedBy()); 
+		        notification.setNotificationMessage("QM Revoked by " + loginDetail.getEmpName()+", "+loginDetail.getEmpDesigCode());
+		        notification.setIsActive(1);	
+		        notification.setCreatedBy(username);
+		        notification.setCreatedDate(LocalDateTime.now());
+		    }
+		
+		        notificationRepo.save(notification);
+		    }
+			
 			return res;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1959,9 +2046,71 @@ public class QmsServiceImpl implements QmsService {
 				trans.setTransactionDate(LocalDateTime.now());
 				trans.setRemarks(dwprevisionDto.getRemarks()!=null && !dwprevisionDto.getRemarks().equalsIgnoreCase("") ? dwprevisionDto.getRemarks():"");
 				dwpTransactionrepo.save(trans);
+				
+				
+				//if res>0 then send notificationDWPGWP
+				if(res>0) {
+					String docType = dwpqmrevision.getDocType().toUpperCase();
+
+					
+				ImsNotification notification = new ImsNotification();
+				List<LoginDetailsDto> loginDetails = masterService.loginDetailsList(username);
+				if (!loginDetails.isEmpty()) {
+			        LoginDetailsDto loginDetail = loginDetails.get(0);  
+			        notification.setNotificationby(loginDetail.getEmpId());  
+			        notification.setNotificationUrl("/"+docType);
+			        notification.setNotificationDate(LocalDateTime.now());
+	              	notification.setIsActive(1);	
+			        notification.setCreatedBy(username);
+			        notification.setCreatedDate(LocalDateTime.now());
+			        
+			        
+			        if(dwpqmrevision.getStatusCode().equalsIgnoreCase("FWD")) {
+                        //Forwarded notification should go to reviewer
+				        notification.setEmpId(dwpqmrevision.getReviewedBy()); 
+			            notification.setNotificationMessage(docType+" Forwarded by " + loginDetail.getEmpName()+", "+loginDetail.getEmpDesigCode());
+                  
+			        }else  if(dwpqmrevision.getStatusCode().equalsIgnoreCase("RFD")) {
+			            //Re Forwarded notification should go to reviewer
+			            notification.setEmpId(dwpqmrevision.getReviewedBy()); 
+			        	notification.setNotificationMessage(docType+" Re-Forwarded by " + loginDetail.getEmpName()+", "+loginDetail.getEmpDesigCode());	
+			      
+			        }else  if(dwpqmrevision.getStatusCode().equalsIgnoreCase("RWD")) {
+			        	 //Reviewed notification should go to Approver
+			            notification.setEmpId(dwpqmrevision.getApprovedBy()); 
+			        	notification.setNotificationMessage(docType+" Reviewed by " + loginDetail.getEmpName()+", "+loginDetail.getEmpDesigCode());	
+			      
+			        }else  if(dwpqmrevision.getStatusCode().equalsIgnoreCase("APG")) {
+			        	 //Approved notification should go to Initiator
+			            notification.setEmpId(dwpqmrevision.getInitiatedBy()); 
+			        	notification.setNotificationMessage(docType+" Approved by " + loginDetail.getEmpName()+", "+loginDetail.getEmpDesigCode());	
+			      
+			        }else  if(dwpqmrevision.getStatusCode().equalsIgnoreCase("RTM")) {
+			        	 //Return after forward message should go directly to initiator 
+			        	notification.setEmpId(dwpqmrevision.getInitiatedBy()); 
+				         notification.setNotificationMessage(docType+" Returned by " + loginDetail.getEmpName()+", "+loginDetail.getEmpDesigCode());	
+				        
+			        }else  if(dwpqmrevision.getStatusCode().equalsIgnoreCase("RTG")) {
+			        	//Return after forward message should go directly to initiator 
+			        	notification.setEmpId(dwpqmrevision.getInitiatedBy()); 
+				         notification.setNotificationMessage(docType+" Returned by " + loginDetail.getEmpName()+", "+loginDetail.getEmpDesigCode());	
+				        
+			        }
+			        
+			        
+			        
+			    }
+			
+			        notificationRepo.save(notification);
+			    }
+				
+				
+				
+				
 			}
 			if(res>0) {
 				result=1;
+				
 			}
 			return result;
 		} catch (Exception e) {
@@ -2074,6 +2223,25 @@ public class QmsServiceImpl implements QmsService {
 			trans.setTransactionDate(LocalDateTime.now());
 			trans.setRemarks(dwprevisionRecordDto.getRemarks()!=null && !dwprevisionRecordDto.getRemarks().equalsIgnoreCase("") ? dwprevisionRecordDto.getRemarks():"");
 			dwpTransactionrepo.save(trans);
+			//if res>0 then send notificationRVD
+			if(res>0) {
+			ImsNotification notification = new ImsNotification();
+			List<LoginDetailsDto> loginDetails = masterService.loginDetailsList(username);
+			if (!loginDetails.isEmpty()) {
+		        LoginDetailsDto loginDetail = loginDetails.get(0);  
+		        notification.setNotificationby(loginDetail.getEmpId());  
+		        notification.setNotificationUrl("/"+dwprevisionRecordDto.getDocType());
+		        notification.setNotificationDate(LocalDateTime.now());
+                    //Revoked notification should go to initiator
+			    notification.setEmpId(dwprevisionRecordDto.getInitiatedBy()); 
+		        notification.setNotificationMessage( dwprevisionRecordDto.getDocType().toUpperCase()+" Revoked by " + loginDetail.getEmpName()+", "+loginDetail.getEmpDesigCode());
+		        notification.setIsActive(1);	
+		        notification.setCreatedBy(username);
+		        notification.setCreatedDate(LocalDateTime.now());
+		    }
+		
+		        notificationRepo.save(notification);
+		    }
 			return res;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -2232,6 +2400,67 @@ public class QmsServiceImpl implements QmsService {
 				trans.setTransactionDate(LocalDateTime.now());
 				trans.setRemarks(qsprevisionDto.getRemarks()!=null && !qsprevisionDto.getRemarks().equalsIgnoreCase("") ? qsprevisionDto.getRemarks():"");
 				qmsqsprevisiontransactionrepo.save(trans);
+				
+				
+				//if res>0 then send notificationQSP
+				if(res>0) {
+				ImsNotification notification = new ImsNotification();
+				List<LoginDetailsDto> loginDetails = masterService.loginDetailsList(username);
+				if (!loginDetails.isEmpty()) {
+			        LoginDetailsDto loginDetail = loginDetails.get(0);  // Assuming you want to use the first element
+
+			        String docName = qmsqsprevision.getDocName();
+			        String captalizeDocName = docName.toUpperCase();
+			       
+			        notification.setNotificationby(loginDetail.getEmpId());  
+			        notification.setNotificationUrl("/"+docName);
+			        notification.setNotificationDate(LocalDateTime.now());
+			        notification.setIsActive(1);	
+			        notification.setCreatedBy(username);
+			        notification.setCreatedDate(LocalDateTime.now());
+			        
+			        if(qmsqsprevision.getStatusCode().equalsIgnoreCase("FWD")) {
+                        //Forwarded notification should go to reviewer
+				        notification.setEmpId(qmsqsprevision.getReviewedBy()); 
+			            notification.setNotificationMessage(captalizeDocName+" Forwarded by " + loginDetail.getEmpName()+", "+loginDetail.getEmpDesigCode());
+                  
+			        }else  if(qmsqsprevision.getStatusCode().equalsIgnoreCase("RFD")) {
+			            //Re Forwarded notification should go to reviewer
+			            notification.setEmpId(qmsqsprevision.getReviewedBy()); 
+			        	notification.setNotificationMessage(captalizeDocName+" Re-Forwarded by " + loginDetail.getEmpName()+", "+loginDetail.getEmpDesigCode());	
+			      
+			        }else  if(qmsqsprevision.getStatusCode().equalsIgnoreCase("RWD")) {
+			        	 //Reviewed notification should go to Approver
+			            notification.setEmpId(qmsqsprevision.getApprovedBy()); 
+			        	notification.setNotificationMessage(captalizeDocName+" Reviewed by " + loginDetail.getEmpName()+", "+loginDetail.getEmpDesigCode());	
+			      
+			        }else  if(qmsqsprevision.getStatusCode().equalsIgnoreCase("APD")) {
+			        	 //Approved notification should go to Initiator
+			            notification.setEmpId(qmsqsprevision.getInitiatedBy()); 
+			        	notification.setNotificationMessage(captalizeDocName+" Approved by " + loginDetail.getEmpName()+", "+loginDetail.getEmpDesigCode());	
+			      
+			        }else  if(qmsqsprevision.getStatusCode().equalsIgnoreCase("RTM")) {
+			        	 //Return after forward message should go directly to initiator 
+			        	notification.setEmpId(qmsqsprevision.getInitiatedBy()); 
+				         notification.setNotificationMessage(captalizeDocName+" Returned by " + loginDetail.getEmpName()+", "+loginDetail.getEmpDesigCode());	
+				        
+			        }else  if(qmsqsprevision.getStatusCode().equalsIgnoreCase("RTD")) {
+			        	//Return after forward message should go directly to initiator 
+			        	notification.setEmpId(qmsqsprevision.getInitiatedBy()); 
+				         notification.setNotificationMessage(captalizeDocName+" Returned by " + loginDetail.getEmpName()+", "+loginDetail.getEmpDesigCode());	 
+			        }
+			     
+			
+			        notificationRepo.save(notification);
+			    }
+				
+				}
+				
+				
+				
+				
+				
+				
 			}
 			if(res>0) {
 				result=1;
@@ -2256,6 +2485,25 @@ public class QmsServiceImpl implements QmsService {
 			qmsqsprevision.setStatusCode("RVM");
 			qmsqsprevision.setStatusCodeNext("RFD");
 			res=qspRevisionRecordRepo.save(qmsqsprevision).getRevisionRecordId();
+			//if res>0 then send notificationRVM
+			if(res>0) {
+			ImsNotification notification = new ImsNotification();
+			List<LoginDetailsDto> loginDetails = masterService.loginDetailsList(username);
+			if (!loginDetails.isEmpty()) {
+		        LoginDetailsDto loginDetail = loginDetails.get(0);  
+		        notification.setNotificationby(loginDetail.getEmpId());  
+		        notification.setNotificationUrl("/"+qmsqsprevision.getDocName());
+		        notification.setNotificationDate(LocalDateTime.now());
+                    //Revoked notification should go to initiator
+			    notification.setEmpId(qmsqsprevision.getInitiatedBy()); 
+		        notification.setNotificationMessage(qmsqsprevision.getDocName().toUpperCase()+" Revoked by " + loginDetail.getEmpName()+", "+loginDetail.getEmpDesigCode());
+		        notification.setIsActive(1);	
+		        notification.setCreatedBy(username);
+		        notification.setCreatedDate(LocalDateTime.now());
+		    }
+		
+		        notificationRepo.save(notification);
+		    }
 			}
 			QmsQspRevisionTransaction trans = new QmsQspRevisionTransaction();
 			trans.setEmpId(qsprevisionRecordDto.getEmpId());
@@ -2264,7 +2512,15 @@ public class QmsServiceImpl implements QmsService {
 			trans.setTransactionDate(LocalDateTime.now());
 			trans.setRemarks(qsprevisionRecordDto.getRemarks()!=null && !qsprevisionRecordDto.getRemarks().equalsIgnoreCase("") ? qsprevisionRecordDto.getRemarks():"");
 			qmsqsprevisiontransactionrepo.save(trans);
+			
+
+			
+			
 			return res;
+			
+			
+			
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("Error in revokeQspRevision() ", e);

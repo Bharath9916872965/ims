@@ -1,10 +1,12 @@
 package com.vts.ims.audit.dto;
 
-import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
 
 @Data
-@Builder
+//@Builder
+@NoArgsConstructor
 public class AuditScheduleListDto {
 	
 	private Long scheduleId;
@@ -34,4 +36,5 @@ public class AuditScheduleListDto {
 	private String auditeeFlag; 
 	private Long fwdFlag; 
 	private String scope;
+	
 }

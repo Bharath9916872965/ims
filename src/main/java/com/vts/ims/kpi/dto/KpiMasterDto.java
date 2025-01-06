@@ -14,9 +14,8 @@ public class KpiMasterDto {
 	private String kpiTarget; 
 	private Long   kpiUnitId; 
 	private String kpiUnitName; 
-	private String revisionRecordId; 
 	private Long groupDivisionId; 
 	private String groupDivisionCode; 
-	private String docType; 
+	private String kpiType; 
 
 }

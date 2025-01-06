@@ -564,10 +564,10 @@ public class AuditController {
 	}
 	
 	@PostMapping(value = "/schedule-tran", produces = "application/json")
-	public ResponseEntity<List<AuditTranDto>> scheduleTran(@RequestHeader String username,@RequestBody String scheduleId) throws Exception {
+	public ResponseEntity<List<AuditTranDto>> scheduleTran(@RequestHeader String username,@RequestBody AuditTranDto auditTranDto) throws Exception {
 		try {
 			logger.info(" Inside scheduleTran"+username );
-			List<AuditTranDto> dto=auditService.scheduleTran(scheduleId);
+			List<AuditTranDto> dto=auditService.scheduleTran(auditTranDto);
 			return new ResponseEntity<List<AuditTranDto>>(dto,HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -637,11 +637,12 @@ public class AuditController {
 		}
 	}
 	
-	@PostMapping(value = "/add-auditee-remarks", produces = "application/json")
-	public ResponseEntity<Response> addAuditeeRemarks(@RequestHeader String username, @RequestBody AuditCheckListDTO auditCheckListDTO) throws Exception {
+	@PostMapping(value = "/add-auditee-remarks")
+	public ResponseEntity<Response> addAuditeeRemarks(@RequestHeader String username, @RequestParam("files") List<MultipartFile> files, @RequestParam("auditCheckListDTO") String auditCheckListDTO) throws Exception {
 		try {
 			logger.info( " Inside add-auditee-remarks" );
-			 long result=auditService.addAuditeeRemarks(auditCheckListDTO,username);
+			AuditCheckListDTO dto = new ObjectMapper().readValue(auditCheckListDTO, AuditCheckListDTO.class);
+			 long result=auditService.addAuditeeRemarks(files,dto,username);
 			 if(result > 0) {
 				 return ResponseEntity.status(HttpStatus.OK).body(new Response("Auditee Remarks Added Successfully","S"));
 			 }else {
@@ -654,11 +655,12 @@ public class AuditController {
 		}
 	}
 	
-	@PostMapping(value = "/update-auditee-remarks", produces = "application/json")
-	public ResponseEntity<Response> updateAuditeeRemarks(@RequestHeader String username, @RequestBody AuditCheckListDTO auditCheckListDTO) throws Exception {
+	@PostMapping(value = "/update-auditee-remarks")
+	public ResponseEntity<Response> updateAuditeeRemarks(@RequestHeader String username, @RequestParam("files") List<MultipartFile> files, @RequestParam("auditCheckListDTO") String auditCheckListDTO) throws Exception {
 		try {
 			logger.info( " Inside update-auditee-remarks" );
-			 int result=auditService.updateAuditeeRemarks(auditCheckListDTO,username);
+			AuditCheckListDTO dto = new ObjectMapper().readValue(auditCheckListDTO, AuditCheckListDTO.class);
+			 int result=auditService.updateAuditeeRemarks(files,dto,username);
 			 if(result > 0) {
 				 return ResponseEntity.status(HttpStatus.OK).body(new Response("Auditee Remarks Updated Successfully","S"));
 			 }else {
@@ -909,5 +911,59 @@ public class AuditController {
 			 e.printStackTrace();
 			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
 		}
+	}
+	
+	@PostMapping(value = "/car-approve-emp-data", produces = "application/json")
+	public ResponseEntity<List<AuditTranDto>> carApproveEmpData(@RequestHeader String username,@RequestBody String carId) throws Exception {
+		try {
+			logger.info(new Date() + " Inside carApproveEmpData" );
+			List<AuditTranDto> dto=auditService.carApproveEmpData(carId);
+			return new ResponseEntity<List<AuditTranDto>>( dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching carApproveEmpData: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST); 
+		}
+	}
+	
+	@PostMapping(value = "/return-car-report", produces = "application/json")
+	public ResponseEntity<Response> returnCarReport(@RequestHeader String username, @RequestBody AuditCorrectiveActionDTO auditCorrectiveActionDTO) throws Exception {
+		try {
+			logger.info( " Inside return-car-report" );
+			 long result=auditService.returnCarReport(auditCorrectiveActionDTO,username);
+			 if(result > 0) {
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("CAR Report Returned Successfully","S"));
+			 }else {
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("CAR Report Return Unsuccessful","F"));			 
+			 }
+		} catch (Exception e) {
+			 logger.error("error in return-car-report"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
+		}
+	}
+	
+	@GetMapping("/check-list-file-download")
+	public ResponseEntity<Resource> downloadCheckListFile(String fileName, String iqaNo,String scheduleId, @RequestHeader  String username,
+			HttpServletResponse res) throws Exception {
+		logger.info(new Date() + " check-list-file-download " + username);
+		Path filePath = null;
+		String iqaNoData = iqaNo.replace("/", "_")+" - "+scheduleId;
+		filePath = Paths.get(storageDrive,"CheckListUploads",iqaNoData,fileName);
+		File file = filePath.toFile();
+
+		HttpHeaders header = new HttpHeaders();
+		header.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=img.jpg");
+		header.add("Cache-Control", "no-cache, no-store, must-revalidate");
+		header.add("Pragma", "no-cache");
+		header.add("Expires", "0");
+
+		Path path = Paths.get(file.getAbsolutePath());
+
+		ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(path));
+
+		return ResponseEntity.ok().headers(header).contentLength(file.length())
+				.contentType(MediaType.parseMediaType("application/octet-stream")).body(resource);
+
 	}
 }

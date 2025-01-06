@@ -16,5 +16,6 @@ public class QmsQmMappingDto {
 	private Long documentId;
 	private Long revisionRecordId;
 	private Integer isActive;
+	private String attachmentName;
 	
 }

@@ -29,4 +29,8 @@ public interface AdminService {
 	public long insertApprovalAuthority(ApprovalAuthorityDto approvalAuthorityDto, String username) throws Exception;
 	public long approvalAuthorityInactive(ApprovalAuthorityDto approvalAuthorityDto, String username) throws Exception;
 	public Long UpdateApprovalAuthority(ApprovalAuthorityDto approvalAuthorityDto, String username) throws Exception;
+
+    public Integer getNotifictionCount(String username)throws Exception;
+    public List<NotificationDto> getNotifictionList(String username)throws Exception;
+    public long updateNotification(String Username, String notificationId) throws Exception;
 }

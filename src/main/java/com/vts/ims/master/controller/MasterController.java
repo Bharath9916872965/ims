@@ -2,8 +2,8 @@ package com.vts.ims.master.controller;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
-import com.vts.ims.master.dto.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +19,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.vts.ims.master.dto.ActionAssignDto;
+import com.vts.ims.master.dto.CommitteeScheduleDto;
+import com.vts.ims.master.dto.DivisionGroupDto;
+import com.vts.ims.master.dto.DivisionMasterDto;
+import com.vts.ims.master.dto.DocTemplateAttributesDto;
+import com.vts.ims.master.dto.EmployeeDto;
+import com.vts.ims.master.dto.LabMasterDto;
+import com.vts.ims.master.dto.ProjectMasterDto;
+import com.vts.ims.master.dto.UserDetailsDto;
 import com.vts.ims.master.service.MasterService;
 
 
@@ -107,29 +116,31 @@ public class MasterController {
 	}
 
     
-    @PostMapping(value = "/get-qmrc-list" , produces = "application/json")
-    public ResponseEntity<List<CommitteeScheduleDto>> GetQmrcList( @RequestHeader String username)throws Exception {			    	
+    @PostMapping(value = "/get-committee-schedule-list" , produces = "application/json")
+    public ResponseEntity<List<CommitteeScheduleDto>> GetComitteeScheduleList( @RequestHeader String username,@RequestBody Map<String, String> requestBody)throws Exception {		
+    	logger.info(new Date() + " Inside get-committee-schedule-list" );
     	try {
-			logger.info(new Date() + " Inside iqalist" );
-			List<CommitteeScheduleDto> result=service.GetQmrcList();
+			String committeeType = requestBody.get("committeeType");
+			List<CommitteeScheduleDto> result=service.GetComitteeScheduleList(committeeType);
 			return new ResponseEntity<List<CommitteeScheduleDto>>( result,HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.error("Error fetching iqalist: ", e);
+			logger.error("Error fetching get-committee-schedule-list: ", e);
 			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
 		}
     }
     
     
-    @PostMapping(value = "/get-qmrc-action-assign-list" , produces = "application/json")
-    public ResponseEntity<List<ActionAssignDto>> GetQmrcActionAssignList( @RequestHeader String username)throws Exception {			    	
+    @PostMapping(value = "/get-schedule-action-assign-list" , produces = "application/json")
+    public ResponseEntity<List<ActionAssignDto>> GetCommitteeScheduleActionAssignList( @RequestHeader String username,@RequestBody Map<String, String> requestBody)throws Exception {			    	
     	try {
-			logger.info(new Date() + " Inside iqalist" );
-			List<ActionAssignDto> result=service.GetQmrcActionAssignList();
+    		String committeeType = requestBody.get("committeeType");
+			logger.info(new Date() + " Inside GetCommitteeScheduleActionAssignList" );
+			List<ActionAssignDto> result=service.GetCommitteeScheduleActionAssignList(committeeType);
 			return new ResponseEntity<List<ActionAssignDto>>( result,HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.error("Error fetching iqalist: ", e);
+			logger.error("Error fetching GetCommitteeScheduleActionAssignList: ", e);
 			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
 		}
     }

@@ -14,12 +14,13 @@ public class KpiObjRatingDto {
 	private Long iqaId; 
 	private String iqaNo; 
 	private Long actEmpId; 
-	private Long revisionRecordId; 
+	private Long groupDivisionId; 
 	private String kpiObjectives; 
 	private String kpiMerics; 
 	private Long kpiUnitId; 
 	private String kpiUnitName; 
 	private String kpiNorms; 
 	private String kpiTarget; 
+	private String kpiType; 
 
 }
