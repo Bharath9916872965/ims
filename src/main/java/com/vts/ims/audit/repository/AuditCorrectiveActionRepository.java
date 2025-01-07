@@ -20,7 +20,7 @@ public interface AuditCorrectiveActionRepository extends JpaRepository<AuditCorr
 	
 	@Query(value = "SELECT a.CorrectiveActionId,a.AuditCheckListId,a.IqaId,a.CarRefNo,a.CarDescription,a.ActionPlan,a.Responsibility,a.TargetDate,b.ScheduleId,c.AuditeeId,a.CarAttachment, a.RootCause,\r\n"
 			+ "a.CarCompletionDate,a.CarDate,a.CorrectiveActionTaken,a.CarStatus,(SELECT d.StatusName FROM ims_audit_status d WHERE d.AuditStatus = a.CarStatus) AS 'statusName',e.EmpId\r\n"
-			+ "FROM ims_audit_corrective_action a,ims_audit_check_list b,ims_audit_schedule c,ims_audit_auditee e WHERE b.AuditCheckListId = a.AuditCheckListId AND b.ScheduleId = c.ScheduleId AND e.AuditeeId = c.AuditeeId",nativeQuery = true)
+			+ "FROM ims_audit_corrective_action a,ims_audit_check_list b,ims_audit_schedule c,ims_audit_auditee e WHERE b.AuditCheckListId = a.AuditCheckListId AND b.ScheduleId = c.ScheduleId AND e.AuditeeId = c.AuditeeId AND CarFlag = 'N'",nativeQuery = true)
 	public List<Object[]> getActionTotalList();
 	
 	@Modifying
