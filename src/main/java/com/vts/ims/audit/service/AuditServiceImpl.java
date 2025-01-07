@@ -1192,7 +1192,7 @@ public class AuditServiceImpl implements AuditService{
 	    try {
 	        MimeMessage message = emailSender.createMimeMessage();
 	        MimeMessageHelper helper = new MimeMessageHelper(message, true);
-	        System.out.println("to--------- "+to);
+	        logger.info("to--------------------- ",to);
 	        helper.setTo(to);
 	        helper.setSubject(subject);
 
@@ -1207,7 +1207,7 @@ public class AuditServiceImpl implements AuditService{
 	        helper.setText(htmlMessage, true); // Set `true` to enable HTML
 
 	        emailSender.send(message);
-	        System.out.println("to---------1111111111 "+to);
+	        logger.info("to--------------------- after --- ",to);
 
 	    } catch (Exception e) {
 	        e.printStackTrace();
