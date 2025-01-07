@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.vts.ims.audit.dto.AuditorDto;
 import com.vts.ims.audit.dto.IqaDto;
 import com.vts.ims.risk.dto.MitigationRiskRegisterDto;
+import com.vts.ims.risk.dto.RiskMitigationMergeDto;
 import com.vts.ims.risk.dto.RiskRegisterDto;
 import com.vts.ims.risk.service.RiskService;
 
@@ -95,6 +97,18 @@ public class RiskRegisterController {
 			 logger.error(new Date() +"error in insert-mititgation-risk-register"+ e.getMessage());
 			 e.printStackTrace();
 			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
+		}
+	}
+	@PostMapping(value = "/risk-RegMitigation-List/{groupDivisionId}/{docType}", produces = "application/json")
+	public ResponseEntity<List<RiskMitigationMergeDto>> riskRegMitigationList(@PathVariable("groupDivisionId") Long groupDivisionId,   @PathVariable("docType") String docType, @RequestHeader String username) throws Exception {
+		try {
+			logger.info(new Date() + " Inside riskRegMitigationList" );
+			List<RiskMitigationMergeDto> dto=service.getRegMitigationList(groupDivisionId,docType);
+			return new ResponseEntity<List<RiskMitigationMergeDto>>( dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching riskRegMitigationList: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
 		}
 	}
 	
