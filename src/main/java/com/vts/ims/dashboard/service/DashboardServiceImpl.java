@@ -1,6 +1,8 @@
 package com.vts.ims.dashboard.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -22,13 +24,16 @@ import com.vts.ims.audit.dto.AuditorTeamDto;
 import com.vts.ims.audit.dto.IqaDto;
 import com.vts.ims.audit.model.Iqa;
 import com.vts.ims.audit.repository.AuditCheckListRepository;
+import com.vts.ims.audit.repository.AuditeeRepository;
 import com.vts.ims.audit.repository.IqaRepository;
 import com.vts.ims.audit.service.AuditService;
 import com.vts.ims.dashboard.dto.CheckListObsCountDto;
 import com.vts.ims.master.dao.MasterClient;
+import com.vts.ims.master.dto.DivisionEmployeeDto;
 import com.vts.ims.master.dto.DivisionGroupDto;
 import com.vts.ims.master.dto.DivisionMasterDto;
 import com.vts.ims.master.dto.EmployeeDto;
+import com.vts.ims.master.dto.ProjectEmployeeDto;
 import com.vts.ims.master.dto.ProjectMasterDto;
 import com.vts.ims.qms.dto.DwpRevisionRecordDto;
 import com.vts.ims.qms.dto.QmsDocTypeDto;
@@ -61,6 +66,9 @@ public class DashboardServiceImpl implements DashboardService {
 	
 	@Autowired
 	private DwpRevisionRecordRepo dwpRevisionRecordRepo;
+	
+	@Autowired
+	private AuditeeRepository auditeeRepository;
 	
 	
 	
@@ -438,5 +446,315 @@ public class DashboardServiceImpl implements DashboardService {
 			return new ArrayList<DwpRevisionRecordDto>();
 		}
 	}
+	
+	
+	
+	@Override
+	public List<ProjectMasterDto> getProjectListOfPrjEmps(Integer imsFormRoleId, Long empId) throws Exception{
+		logger.info("Inside getDwpProjectMaster()");
+		try {
+			List<Integer> isAllList = Arrays.asList(1, 2, 3, 4);
+			List<ProjectMasterDto> projectDto = masterClient.getProjectMasterList(xApiKey);
+			List<ProjectMasterDto> activeAllProjectDto = projectDto.stream()
+					.filter(dto -> dto.getIsActive() == 1)
+					.collect(Collectors.toList());
+
+			if (isAllList.contains(imsFormRoleId)) {
+				return activeAllProjectDto;
+			}
+			
+			
+
+			// Fetch project employee data
+			List<ProjectEmployeeDto> projectEmployeeDtoList = masterClient.getProjectEmpDetailsById(xApiKey);
+			
+	    
+	        //  Filter the employee list for active project employees matching empId
+			List<ProjectEmployeeDto> projectEmployeeDtoListByEmpId = projectEmployeeDtoList.stream()
+					.filter(dto -> dto.getEmpId().equals(empId) && dto.getIsActive() == 1)
+					.collect(Collectors.toList());
+	    
+	        //  Collect project IDs from the filtered project employee list
+	        List<Long> projectFromPrjEmps = projectEmployeeDtoListByEmpId.stream()
+	                .map(ProjectEmployeeDto::getProjectId)
+	                .collect(Collectors.toList());
+
+	        //  Filter activeAllProjectDto by the collected project IDs from project employees
+	        List<ProjectMasterDto> returnProjectList = activeAllProjectDto.stream()
+	                .filter(obj -> projectFromPrjEmps.contains(obj.getProjectId())
+	                		)
+	                .collect(Collectors.toList());
+	     
+
+			
+			//List<Long> auditeeProjectIds = auditeeRepository.findProjectIdsByEmpId(empId);
+
+		
+			return returnProjectList;
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error in getProjectListOfPrjEmps() ", e);
+			return Collections.emptyList();
+		}
+	}
+	
+	@Override
+	public List<DivisionGroupDto> getGroupListOfDivEmps(Integer imsFormRoleId, Long empId) throws Exception {
+		logger.info("Inside getGroupListOfDivEmps()");
+		try {
+
+			List<Integer> isAllList = Arrays.asList(1, 2, 3, 4);
+
+			List<DivisionGroupDto> divisiongroupdto = masterClient.getDivisionGroupList(xApiKey);
+			List<DivisionGroupDto> activeDivisiongroupdto = divisiongroupdto.stream()
+					.filter(dto -> dto.getIsActive()== 1)
+					.collect(Collectors.toList());
+
+
+			if (isAllList.contains(imsFormRoleId)) {
+				return activeDivisiongroupdto;
+			}
+
+			List<DivisionMasterDto> divisionDto = masterClient.getDivisionMaster(xApiKey);
+			List<DivisionMasterDto> activeAllDivisionDto = divisionDto.stream()
+					.filter(dto -> dto.getIsActive() == 1)
+					.collect(Collectors.toList());
+			
+
+			// Fetch division employee data
+	        List<DivisionEmployeeDto> divisionEmployeeDtoList = masterClient.getDivisionEmpDetailsById(xApiKey);
+	    
+	        //  Filter the employee list for active division employees matching empId
+	      List<DivisionEmployeeDto> divisionEmployeeDtoListByEmpId = divisionEmployeeDtoList.stream()
+	                .filter(dto -> dto.getEmpId().equals(empId) && dto.getIsActive() == 1)
+	                .collect(Collectors.toList());
+
+
+	        //  Collect division IDs from the filtered division employee list
+	        List<Long> divisionIdsFromDivEmps = divisionEmployeeDtoListByEmpId.stream()
+	                .map(DivisionEmployeeDto::getDivisionId)
+	                .collect(Collectors.toList());
+
+	        //  Filter activeAllDivisionDto by the collected division IDs from division employees
+	        List<DivisionMasterDto> divisionListFiltered = activeAllDivisionDto.stream()
+	                .filter(obj -> divisionIdsFromDivEmps.contains(obj.getDivisionId()))
+	                .collect(Collectors.toList());
+	     
+			List<DivisionGroupDto> returnDivisiongroupdto =  activeDivisiongroupdto.stream().filter(obj -> divisionListFiltered.stream()
+					.anyMatch(dto -> dto.getGroupId().equals(obj.getGroupId()))).collect(Collectors.toList());
+
+
+
+			return returnDivisiongroupdto;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error in getGroupListOfDivEmps() ", e);
+			return Collections.emptyList();
+		}
+	}
+	
+	
+	@Override
+	public List<DivisionMasterDto> getAllActiveDivisionList(String username) throws Exception {
+		logger.info("Inside getAllActiveDivisionList()");
+		try {
+
+			
+			List<DivisionMasterDto> divisionDto = masterClient.getDivisionMaster(xApiKey);
+			List<DivisionMasterDto> activeAllDivisionDto = divisionDto.stream()
+					.filter(dto -> dto.getIsActive() == 1)
+					.collect(Collectors.toList());
+
+
+			return activeAllDivisionDto;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error in getAllActiveDivisionList() ", e);
+			return Collections.emptyList();
+		}
+	}
+	
+	
+	
+	@Override
+	public List<DivisionMasterDto> getDivisionListOfDivEmps(Integer imsFormRoleId, Long empId) throws Exception {
+		logger.info("Inside getDivisionListOfDivEmps()");
+		try {
+
+			List<Integer> isAllList = Arrays.asList(1, 2, 3, 4);
+			List<DivisionMasterDto> divisionDto = masterClient.getDivisionMaster(xApiKey);
+
+			List<DivisionMasterDto> activeAllDivisionDto = divisionDto.stream()
+					.filter(dto -> dto.getIsActive() == 1)
+					.collect(Collectors.toList());
+
+			if (isAllList.contains(imsFormRoleId)) {
+				return activeAllDivisionDto;
+			}
+
+	
+			// Fetch division employee data
+	        List<DivisionEmployeeDto> divisionEmployeeDtoList = masterClient.getDivisionEmpDetailsById(xApiKey);
+	    
+	        //  Filter the employee list for active division employees matching empId
+	      List<DivisionEmployeeDto> divisionEmployeeDtoListByEmpId = divisionEmployeeDtoList.stream()
+	                .filter(dto -> dto.getEmpId().equals(empId) && dto.getIsActive() == 1)
+	                .collect(Collectors.toList());
+	    
+	        //  Collect division IDs from the filtered division employee list
+	        List<Long> divisionIdsFromDivEmps = divisionEmployeeDtoListByEmpId.stream()
+	                .map(DivisionEmployeeDto::getDivisionId)
+	                .collect(Collectors.toList());
+
+	        //  Filter activeAllDivisionDto by the collected division IDs from division employees
+	        List<DivisionMasterDto> returnDivisionList = activeAllDivisionDto.stream()
+	                .filter(obj -> divisionIdsFromDivEmps.contains(obj.getDivisionId()))
+	                .collect(Collectors.toList());
+	     
+
+
+			
+			
+			//List<Long> auditeeDivisionIds = auditeeRepository.findDivisionIdsByEmpId(empId);
+			//|| (auditeeDivisionIds.contains(obj.getDivisionId()))
+			//List<EmployeeDto> emp = masterClient.getEmployee(xApiKey, empId);
+			//EmployeeDto empDto = emp.size() > 0 ? emp.get(0) : EmployeeDto.builder().build();
+			//|| empDto.getDivisionId().equals(obj.getDivisionId())
+
+
+
+			return returnDivisionList;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error in getDwpDivisionMaster() ", e);
+			return Collections.emptyList();
+		}
+	}
+
+	@Override
+	public List<DivisionMasterDto> getDivisionListOfDH(Integer imsFormRoleId, Long empId) throws Exception {
+		logger.info("Inside getDivisionListOfDH()");
+		try {
+
+			 // Fetch the division data
+	        List<DivisionMasterDto> divisionDto = masterClient.getDivisionMaster(xApiKey);
+
+	        // Filter active divisions where isActive == 1
+	        List<DivisionMasterDto> activeAllDivisionDto = divisionDto.stream()
+	                .filter(dto -> dto.getIsActive() == 1)
+	                .collect(Collectors.toList());
+
+	        // Further filter to find divisions where DivisionHeadId matches empId
+	        List<DivisionMasterDto> returnDivisionList = activeAllDivisionDto.stream()
+	                .filter(dto -> dto.getDivisionHeadId() != null && dto.getDivisionHeadId().equals(empId))
+	                .collect(Collectors.toList());
+
+	        // Return the filtered list
+	        return returnDivisionList;
+	        
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error in getDwpDivisionMaster() ", e);
+			return Collections.emptyList();
+		}
+	}
+	
+	
+	@Override
+	public List<DivisionMasterDto> getDivisionListOfGH(Integer imsFormRoleId, Long empId) throws Exception {
+		logger.info("Inside getDivisionListOfDH()");
+		try {
+
+			 // Fetch the division data
+	        List<DivisionMasterDto> divisionDto = masterClient.getDivisionMaster(xApiKey);
+
+	        // Filter active divisions where isActive == 1
+	        List<DivisionMasterDto> activeAllDivisionDto = divisionDto.stream()
+	                .filter(dto -> dto.getIsActive() == 1)
+	                .collect(Collectors.toList());
+
+	       //Fetch the Group data 
+			List<DivisionGroupDto> divisiongroupdto = masterClient.getDivisionGroupList(xApiKey);
+
+	        
+	       // Filter active groups  where isActive == 1
+			List<DivisionGroupDto> activeDivisiongroupdto = divisiongroupdto.stream()
+					.filter(dto -> dto.getIsActive()== 1)
+					.collect(Collectors.toList());
+			
+		     // Further filter to find group where GroupHeadId matches empId
+	        List<DivisionGroupDto> filteredGroupList = activeDivisiongroupdto.stream()
+	                .filter(dto -> dto.getGroupHeadId() != null && dto.getGroupHeadId().equals(empId))
+	                .collect(Collectors.toList());
+	        
+	     // Collect the group IDs from filteredGroupList
+	        List<Long> groupIds = filteredGroupList.stream()
+	                .map(DivisionGroupDto::getGroupId) 
+	                .collect(Collectors.toList());
+	        
+	     // Filter the activeAllDivisionDto list based on groupIds so you will get divisions which belong 
+	        List<DivisionMasterDto> filteredDivisionsOfGH = activeAllDivisionDto.stream()
+	                .filter(division -> groupIds.contains(division.getGroupId())) 
+	                .collect(Collectors.toList());
+
+
+	        // Return the filtered list
+	        return filteredDivisionsOfGH;
+	        
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error in getDwpDivisionMaster() ", e);
+			return Collections.emptyList();
+		}
+	}
+	
+	
+	@Override
+	public List<CheckListObsCountDto> getTrendNcObsList() throws Exception {
+	    logger.info("Inside getTrendNcObsList()");
+
+	    try {
+	        List<Object[]> rawData = checkListRepo.getCheckListObsByIqa();
+
+	        // Group by iqaId and aggregate counts
+	        Map<Long, CheckListObsCountDto> aggregatedData = Optional.ofNullable(rawData)
+	            .orElse(Collections.emptyList())
+	            .stream()
+	            .collect(Collectors.groupingBy(
+	                row -> parseLong(row[0]), // Group by iqaId
+	                Collectors.collectingAndThen(
+	                    Collectors.toList(),
+	                    rows -> {
+	                        // Aggregate counts
+	                        Long totalCountNC = rows.stream().mapToLong(r -> parseLong(r[10])).sum();
+	                        Long totalCountOBS = rows.stream().mapToLong(r -> parseLong(r[11])).sum();
+	                        Long totalCountOFI = rows.stream().mapToLong(r -> parseLong(r[12])).sum();
+
+	                        // Extract data from first row of each group
+	                        Object[] firstRow = rows.get(0);
+	                        return CheckListObsCountDto.builder()
+	                            .iqaId(parseLong(firstRow[0]))
+	                            .iqaNo(firstRow[1] != null ? firstRow[1].toString() : null)
+	                            .fromDate(firstRow[2] != null ? firstRow[2].toString() : null)
+	                            .toDate(firstRow[3] != null ? firstRow[3].toString() : null)
+	                            .totalCountNC(totalCountNC)
+	                            .totalCountOBS(totalCountOBS)
+	                            .totalCountOFI(totalCountOFI)
+	                            .build();
+	                    }
+	                )
+	            ));
+
+	        // Return the aggregated data as a list
+	        return new ArrayList<>(aggregatedData.values());
+
+	    } catch (Exception e) {
+	        logger.error("Error in getTrendNcObsList()", e);
+	        return new ArrayList<>();
+	    }
+	}
+
+
 	
 }

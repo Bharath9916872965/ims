@@ -2,6 +2,7 @@ package com.vts.ims.dashboard.dto;
 
 
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import lombok.Builder;
@@ -33,6 +34,10 @@ public class CheckListObsCountDto {
     private String projectName;
     private String auditeeEmpName;
     
+    //extra fields for trend report
+    private String iqaNo;
+    private String fromDate;
+    private String toDate;
     
 
 	
