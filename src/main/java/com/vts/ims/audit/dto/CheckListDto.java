@@ -22,6 +22,7 @@ public class CheckListDto {
     private String scheduleStatus;
     private String carRefNo;
     private Long ncCount;
+    private String obsName;
     private String attachmentName;
 }
 

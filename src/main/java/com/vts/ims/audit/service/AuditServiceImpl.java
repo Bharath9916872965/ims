@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -25,16 +26,10 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vts.ims.admin.dto.UserManagerListDto;
-import com.vts.ims.admin.service.AdminService;
 import com.vts.ims.audit.dto.AuditCarDTO;
 import com.vts.ims.audit.dto.AuditCheckListDTO;
 import com.vts.ims.audit.dto.AuditCorrectiveActionDTO;
@@ -93,6 +88,12 @@ import com.vts.ims.util.DLocalConvertion;
 import com.vts.ims.util.FormatConverter;
 import com.vts.ims.util.NFormatConvertion;
 
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.PasswordAuthentication;
+import jakarta.mail.Session;
+import jakarta.mail.Transport;
+import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 
 
@@ -134,8 +135,8 @@ public class AuditServiceImpl implements AuditService{
 	@Autowired
 	LoginRepository loginRepo;
 	
-	@Autowired
-	private JavaMailSender emailSender;
+//	@Autowired
+//	private JavaMailSender emailSender;
 	
 	@Autowired
 	private NotificationRepository notificationRepo;
@@ -158,6 +159,24 @@ public class AuditServiceImpl implements AuditService{
 
 	@Autowired
 	private AuditCorrectiveActionRepository auditCorrectiveActionRepository;
+	
+	@Value("${starttls}")
+	private String starttls;
+	
+	@Value("${host}")
+	private String host;
+	
+	@Value("${port}")
+	private String port;
+	
+	@Value("${auth}")
+	private String auth;
+	
+	@Value("${password}")
+	private String password;
+	
+	@Value("${username1}")
+	private String username1;
 	
 	@Override
 	public List<AuditorDto> getAuditorList() throws Exception {
@@ -1190,45 +1209,58 @@ public class AuditServiceImpl implements AuditService{
 	
 	public void sendHtmlMessage(String to, String subject, String tableContent, String heading, String note) {
 	    try {
-	        MimeMessage message = emailSender.createMimeMessage();
-	        MimeMessageHelper helper = new MimeMessageHelper(message, true);
-	        logger.info("to--------------------- ",to);
-	        helper.setTo(to);
-	        helper.setSubject(subject);
-
+	    	
 	        String htmlMessage = "<html>"
-	                + "<body>"
-	                + heading
-	                + tableContent 
-	                + note
-	                + "</body>"
-	                + "</html>";
+            + "<body>"
+            + heading
+            + tableContent 
+            + note
+            + "</body>"
+            + "</html>";
+	        
+			Properties properties = System.getProperties();
+			properties.setProperty("mail.smtp.host", host);
+			properties.put("mail.smtp.starttls.enable", "true");
+			properties.put("mail.smtp.port", port);
+			properties.put("mail.smtp.auth", "true");
+			properties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
 
-	        helper.setText(htmlMessage, true); // Set `true` to enable HTML
+			
+			Session session = Session.getInstance(properties,new jakarta.mail.Authenticator() {
+					    							protected PasswordAuthentication getPasswordAuthentication() {
+					    							return new PasswordAuthentication(username1, password);
+					                               }});
 
-	        emailSender.send(message);
-	        logger.info("to--------------------- after --- ",to);
-
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        logger.error("Inside sendHtmlMessage Service", e);
-	    }
+			MimeMessage message = new MimeMessage(session);
+			message.setFrom(new InternetAddress(username1));
+			message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+			message.setSubject(subject);
+			message.setText(htmlMessage);
+			message.setContent(htmlMessage, "text/html");
+		
+		Transport.send(message);
+		
+		Thread.sleep(10000);
+	    }catch (MessagingException | InterruptedException mex) {
+				mex.printStackTrace();
+		        logger.error("Inside sendHtmlMessage Service", mex);
+		}
 	}
 
 	
-	public void sendSimpleMessage(String to, String subject, String text) {
-	    try {
-		 SimpleMailMessage message = new SimpleMailMessage(); 
-		        message.setTo(to); 
-		        message.setSubject(subject); 
-		        message.setText(text);
-		    emailSender.send(message);
-		       
-		} catch (Exception e) {
-			e.printStackTrace();
-			logger.error( " Inside sendSimpleMessage Service " );
-		}	        
-	}
+//	public void sendSimpleMessage(String to, String subject, String text) {
+//	    try {
+//		 SimpleMailMessage message = new SimpleMailMessage(); 
+//		        message.setTo(to); 
+//		        message.setSubject(subject); 
+//		        message.setText(text);
+//		    emailSender.send(message);
+//		       
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			logger.error( " Inside sendSimpleMessage Service " );
+//		}	        
+//	}
 	
 	public long insertScheduleNomination(Long id,Long LoginEmpId  , String username, String url, String message) {
 		try {			
@@ -2040,6 +2072,8 @@ public class AuditServiceImpl implements AuditService{
 		try {
 			 List<Object[]> result = auditCheckListRepository.getAuditCheckList(scheduleId);
 			 
+			 System.out.println("result---------- "+result.size());
+			 
 			return Optional.ofNullable(result).orElse(Collections.emptyList()).stream()
 					    .map(obj -> {
 						    	return CheckListDto.builder()
@@ -2056,7 +2090,7 @@ public class AuditServiceImpl implements AuditService{
 					    			.description(obj[10]!=null?obj[10].toString():"")
 					    			.auditeeRemarks(obj[11]!=null?obj[11].toString():"")
 					    			.scheduleStatus(obj[12]!=null?obj[12].toString():"")
-					    			.ncCount(obj[13]!=null?Long.parseLong(obj[13].toString()):0L)
+					    			.obsName(obj[13]!=null?obj[13].toString():"")
 					    			.attachmentName(obj[14]!=null?obj[14].toString():"")
 					    			.build();
 					    })
