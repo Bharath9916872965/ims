@@ -46,9 +46,9 @@ public interface AuditCheckListRepository extends JpaRepository<AuditCheckList, 
 		      SELECT
               a.IqaId,
 
-              COUNT(IF(a.AuditObsId = '2' AND a.IsActive = '1', 1, NULL)) AS totalNC,
-              COUNT(IF(a.AuditObsId = '3' AND a.IsActive = '1', 1, NULL)) AS totalOBS,
-              COUNT(IF(a.AuditObsId = '4' AND a.IsActive = '1', 1, NULL)) AS totalOFI
+              COUNT(IF(a.AuditObsId = '2' AND a.IsActive = '1'  AND a.ScheduleStatus='ABA', 1, NULL)) AS totalNC,
+              COUNT(IF(a.AuditObsId = '3' AND a.IsActive = '1'  AND a.ScheduleStatus='ABA', 1, NULL)) AS totalOBS,
+              COUNT(IF(a.AuditObsId = '4' AND a.IsActive = '1'  AND a.ScheduleStatus='ABA', 1, NULL)) AS totalOFI
 
               FROM ims_audit_check_list a 
               GROUP BY a.IqaId;
@@ -103,7 +103,39 @@ public interface AuditCheckListRepository extends JpaRepository<AuditCheckList, 
 				    
 				    
 					
+		    @Query(value = """
+		    		 SELECT 
+		    		    a.IqaId,
+		    		    f.IqaNo,
+                        f.FromDate,
+                        f.ToDate,
+		    		    a.ScheduleId,
+		    		    a.AuditeeId,
+		    		    d.EmpId,
+		    		    d.DivisionId,
+		    		    d.GroupId,
+		    		    d.ProjectId,
+		    		  
 
+		    		    COUNT(CASE WHEN cl.AuditObsId = '2' AND cl.IsActive = '1'  AND a.ScheduleStatus='ABA'  THEN 1 END) AS totalNC,
+		    		    COUNT(CASE WHEN cl.AuditObsId = '3' AND cl.IsActive = '1'  AND a.ScheduleStatus='ABA' THEN 1 END) AS totalOBS,
+		    		    COUNT(CASE WHEN cl.AuditObsId = '4' AND cl.IsActive = '1'  AND a.ScheduleStatus='ABA' THEN 1 END) AS totalOFI
+		    		FROM 
+		    		    ims_audit_schedule a
+		    		JOIN 
+		    		    ims_audit_auditee d ON d.AuditeeId = a.AuditeeId
+		    		JOIN 
+		    		    ims_audit_iqa f ON a.IqaId = f.IqaId
+		    		LEFT JOIN
+		    		    ims_audit_check_list cl ON cl.ScheduleId = a.ScheduleId AND cl.IqaId = a.IqaId
+		    		WHERE 
+		    		    a.IsActive = 1 
+		    		    AND d.IsActive = 1
+		    		GROUP BY 
+		    		    a.ScheduleId, a.AuditeeId, d.EmpId, d.DivisionId, d.GroupId, d.ProjectId, a.IqaId
+		    		ORDER BY COALESCE(totalNC, 0) DESC;
+		    		 """, nativeQuery = true)
+		    		 List<Object[]> getCheckListObsByIqa();
 						    
 							
 @Query(value = """
@@ -117,9 +149,9 @@ public interface AuditCheckListRepository extends JpaRepository<AuditCheckList, 
     d.ProjectId,
   
 
-    COUNT(CASE WHEN cl.AuditObsId = '2' AND cl.IsActive = '1' THEN 1 END) AS totalNC,
-    COUNT(CASE WHEN cl.AuditObsId = '3' AND cl.IsActive = '1' THEN 1 END) AS totalOBS,
-    COUNT(CASE WHEN cl.AuditObsId = '4' AND cl.IsActive = '1' THEN 1 END) AS totalOFI
+    COUNT(CASE WHEN cl.AuditObsId = '2' AND cl.IsActive = '1' AND a.ScheduleStatus='ABA' THEN 1 END) AS totalNC,
+    COUNT(CASE WHEN cl.AuditObsId = '3' AND cl.IsActive = '1' AND a.ScheduleStatus='ABA' THEN 1 END) AS totalOBS,
+    COUNT(CASE WHEN cl.AuditObsId = '4' AND cl.IsActive = '1' AND a.ScheduleStatus='ABA' THEN 1 END) AS totalOFI
 FROM 
     ims_audit_schedule a
 JOIN 

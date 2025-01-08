@@ -10,15 +10,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vts.ims.audit.dto.AuditorTeamDto;
 import com.vts.ims.audit.dto.IqaDto;
 import com.vts.ims.dashboard.dto.CheckListObsCountDto;
 import com.vts.ims.dashboard.service.DashboardService;
+import com.vts.ims.master.dto.DivisionGroupDto;
+import com.vts.ims.master.dto.DivisionMasterDto;
+import com.vts.ims.master.dto.ProjectMasterDto;
 import com.vts.ims.qms.dto.DwpRevisionRecordDto;
 import com.vts.ims.qms.dto.QmsDocTypeDto;
 import com.vts.ims.qms.dto.QmsQmRevisionRecordDto;
@@ -131,6 +138,8 @@ public class DashboardController {
 	    return records;
 	}
 	
+
+	
 	
 
 	@PostMapping(value = "/get-all-version-record-list", produces = "application/json")
@@ -140,11 +149,69 @@ public class DashboardController {
 	}
 	
 
+	
+	@PostMapping(value = "/get-project-list-of-prj-emps/{imsFormRoleId}/{empId}", produces = "application/json")
+	public ResponseEntity<List<ProjectMasterDto>> getProjectListOfPrjEmps(@PathVariable("imsFormRoleId") Integer imsFormRoleId, @PathVariable("empId") Long empId, @RequestHeader String username) throws Exception {
+		logger.info(new Date() + " Inside getProjectListOfPrjEmps()" );
+		List<ProjectMasterDto> dto = service.getProjectListOfPrjEmps(imsFormRoleId, empId);
+		return new ResponseEntity<List<ProjectMasterDto>>( dto,HttpStatus.OK);
+	}
 
 	
+	
+
+	@PostMapping(value = "/get-div-group-list-of-div-emps/{imsFormRoleId}/{empId}", produces = "application/json")
+	public ResponseEntity<List<DivisionGroupDto>> getGroupListOfDivGroupEmps(@PathVariable("imsFormRoleId") Integer imsFormRoleId, @PathVariable("empId") Long empId, @RequestHeader String username) throws Exception {
+		logger.info(new Date() + " Inside getGroupListOfDivGroupEmps()" );
+		List<DivisionGroupDto> dto = service.getGroupListOfDivEmps(imsFormRoleId, empId);
+		return new ResponseEntity<List<DivisionGroupDto>>( dto,HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/get-all-active-division-list", method = RequestMethod.GET, produces="application/json")
+	public ResponseEntity<List<DivisionMasterDto>> getAllActiveDivisionList(@RequestHeader  String username) throws Exception {
+		logger.info("{} Inside division-master-list", new Date());
+		List<DivisionMasterDto> list = null;
+		try {
+			list = service.getAllActiveDivisionList(username);
+		} catch (Exception e) {
+			logger.error(new Date() +" error in  division-master-list ");
+			e.printStackTrace();
+		}
+		return new ResponseEntity<>(list, HttpStatus.OK);
+	}
 
 	
 	
+
+
+	@PostMapping(value = "/get-division-list-of-div-emps/{imsFormRoleId}/{empId}", produces = "application/json")
+	public ResponseEntity<List<DivisionMasterDto>> getDivisionlistOfDivEmps(@PathVariable("imsFormRoleId") Integer imsFormRoleId, @PathVariable("empId") Long empId, @RequestHeader String username) throws Exception {
+		logger.info(new Date() + " Inside getDivisionlistOfDivEmps()" );
+		List<DivisionMasterDto> dto = service.getDivisionListOfDivEmps(imsFormRoleId, empId);
+		return new ResponseEntity<List<DivisionMasterDto>>( dto,HttpStatus.OK);
+	}
+	
+	@PostMapping(value = "/get-division-list-of-div-head/{imsFormRoleId}/{empId}", produces = "application/json")
+	public ResponseEntity<List<DivisionMasterDto>> getDivisionListOfDH(@PathVariable("imsFormRoleId") Integer imsFormRoleId, @PathVariable("empId") Long empId, @RequestHeader String username) throws Exception {
+		logger.info(new Date() + " Inside getDivisionListOfDH()" );
+		List<DivisionMasterDto> dto = service.getDivisionListOfDH(imsFormRoleId, empId);
+		return new ResponseEntity<List<DivisionMasterDto>>( dto,HttpStatus.OK);
+	}
+	
+	@PostMapping(value = "/get-division-list-of-group-head/{imsFormRoleId}/{empId}", produces = "application/json")
+	public ResponseEntity<List<DivisionMasterDto>> getDivisionListOfGH(@PathVariable("imsFormRoleId") Integer imsFormRoleId, @PathVariable("empId") Long empId, @RequestHeader String username) throws Exception {
+		logger.info(new Date() + " Inside getDivisionListOfGH()" );
+		List<DivisionMasterDto> dto = service.getDivisionListOfGH(imsFormRoleId, empId);
+		return new ResponseEntity<List<DivisionMasterDto>>( dto,HttpStatus.OK);
+	}
+	
+	
+	@PostMapping(value = "/get-trend-nc-obs-list", produces = "application/json")
+	public List<CheckListObsCountDto> getTrendNcObsList(@RequestHeader  String username) throws Exception {
+		logger.info("get-trend-nc-obs-list" + username);
+	    List<CheckListObsCountDto> records = service.getTrendNcObsList();
+	    return records;
+	}
 	
 	
 	
