@@ -18,8 +18,8 @@ public interface RiskRegisterRepository extends JpaRepository<RiskRegisterModel,
 			+ "JOIN ims_qms_dwp_revision_record b  ON a.RevisionRecordId = b.RevisionRecordId\r\n"
 			+ "LEFT JOIN  ims_mitigation_risk_register c ON a.RiskRegisterId = c.RiskRegisterId\r\n"
 			+ "AND c.MitigationRiskRegisterId = (SELECT MAX(MitigationRiskRegisterId) FROM ims_mitigation_risk_register WHERE RiskRegisterId = a.RiskRegisterId )\r\n"
-			+ "WHERE  b.GroupDivisionId = :groupDivisionId AND b.DocType = :docType ORDER BY a.RiskRegisterId DESC",nativeQuery = true)
-	public List<Object[]> getRegMitigationList(@Param("groupDivisionId") Long groupDivisionId, @Param("docType") String docType);
+			+ "WHERE  b.GroupDivisionId = :groupDivisionId AND a.RevisionRecordId=:revisionRecordId AND b.DocType = :docType ORDER BY a.RiskRegisterId ASC",nativeQuery = true)
+	public List<Object[]> getRegMitigationList(@Param("groupDivisionId") Long groupDivisionId, @Param("docType") String docType,@Param("revisionRecordId") Long revisionRecordId);
 	
 
 }

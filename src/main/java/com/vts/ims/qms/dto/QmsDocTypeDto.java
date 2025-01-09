@@ -9,5 +9,7 @@ public class QmsDocTypeDto {
 
 	private String docType;
 	private Long groupDivisionId;
+	private Long revisionRecordId;
+	private String statusCode;
 	
 }

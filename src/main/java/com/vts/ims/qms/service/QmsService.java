@@ -14,6 +14,7 @@ import com.vts.ims.qms.dto.DwpRevisionRecordDto;
 import com.vts.ims.qms.dto.DwpSectionDto;
 import com.vts.ims.qms.dto.DwpTransactionDto;
 import com.vts.ims.qms.dto.MRMastersDto;
+import com.vts.ims.qms.dto.QmsAddAbbreviationDto;
 import com.vts.ims.qms.dto.QmsDocTypeDto;
 import com.vts.ims.qms.dto.QmsIssueDto;
 import com.vts.ims.qms.dto.QmsQmChaptersDto;
@@ -25,6 +26,7 @@ import com.vts.ims.qms.dto.QmsQmSectionsDto;
 import com.vts.ims.qms.dto.QmsQspRevisionRecordDto;
 import com.vts.ims.qms.dto.QmsQspRevisionTransactionDto;
 import com.vts.ims.qms.model.DwpChapters;
+import com.vts.ims.qms.model.DwpChaptersRev;
 import com.vts.ims.qms.model.DwpGwpDocumentSummary;
 import com.vts.ims.qms.model.DwpRevisionRecord;
 import com.vts.ims.qms.model.DwpSections;
@@ -32,6 +34,7 @@ import com.vts.ims.qms.model.QmsAbbreviations;
 import com.vts.ims.qms.model.QmsQmDocumentSummary;
 import com.vts.ims.qms.model.QmsQmRevisionRecord;
 import com.vts.ims.qms.model.QmsQspChapters;
+import com.vts.ims.qms.model.QmsQspChaptersRev;
 import com.vts.ims.qms.model.QmsQspDocumentSummary;
 import com.vts.ims.qms.model.QmsQspRevisionRecord;
 
@@ -40,7 +43,7 @@ public interface QmsService {
 	
 	
 	public List<QmsQmRevisionRecordDto> getQmVersionRecordDtoList() throws Exception;
-	public List<QmsQmChaptersDto> getAllQMChapters() throws Exception;
+	public List<QmsQmChaptersDto> getAllQMChapters(Long revisionRecordId,String statusCode) throws Exception;
 	public List<QmsQmSectionsDto> getUnAddedQmSectionList() throws Exception;
 	public Long addNewQmSection(String sectionName, String username) throws Exception;
 	public Long qmUnAddListToAddList(long[] selectedSections, String username) throws Exception;
@@ -60,7 +63,7 @@ public interface QmsService {
 	public long updateNotReqQmAbbreviationIds(Long revisionRecordId, String AbbreviationIds, String username) throws Exception;
 	public QmsQmDocumentSummary getQmDocSummarybyRevisionRecordId(long revisionRecordId) throws Exception;
 	public Long addMappingOfClasses(Long revisionRecordId, List<String[]> mocList, String username) throws Exception;
-	public List<Object[]> getMocList(Long revisionRecordId) throws Exception;
+	public List<Object[]> getMocList(Long revisionRecordId,String statusCode) throws Exception;
 	public List<QmsQmMappingDto> getMoctotalList() throws Exception; 
 	//public List<DwpRevisionRecordDto> getDwpVersionRecordDtoList(Long divisionId) throws Exception;
 	//public List<DwpChapters> getAllDwpChapters(Long divisionId) throws Exception;
@@ -120,6 +123,9 @@ public interface QmsService {
 	public List<QmsQspRevisionTransactionDto> qspRevisionTran(String revisionRecordId) throws Exception;
 	public Long addNewQspRevision(QmsQspRevisionRecordDto qmsQspRevisionRecordDto, String username) throws Exception;
 	public Long updateQspDescription(QmsQspRevisionRecordDto qsprevisionDto, String username) throws Exception;
+	public List<QmsQspChaptersRev> getAllQspRevChapters(QmsDocTypeDto qmsDocTypeDto) throws Exception;
+	public List<DwpChaptersRev> getAllDwpChaptersrev(QmsDocTypeDto qmsDocTypeDto) throws Exception;
+	public Long addNewAbbreviations(QmsAddAbbreviationDto addAbbreviationDto, String username) throws Exception;
 	
 	
 }

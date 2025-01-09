@@ -83,6 +83,8 @@ public class RiskRegisterController {
 			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
 		}
 	}
+	
+	
 	@PostMapping(value = "/insert-mititgation-risk-register", produces = "application/json")
 	public ResponseEntity<String> insertMitigationRiskRegister(@RequestHeader String username, @RequestBody MitigationRiskRegisterDto dto) throws Exception {
 		try {
@@ -99,11 +101,14 @@ public class RiskRegisterController {
 			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
 		}
 	}
-	@PostMapping(value = "/risk-RegMitigation-List/{groupDivisionId}/{docType}", produces = "application/json")
-	public ResponseEntity<List<RiskMitigationMergeDto>> riskRegMitigationList(@PathVariable("groupDivisionId") Long groupDivisionId,   @PathVariable("docType") String docType, @RequestHeader String username) throws Exception {
+	
+	
+	@PostMapping(value = "/risk-RegMitigation-List/{groupDivisionId}/{docType}/{revisionRecordId}", produces = "application/json")
+	public ResponseEntity<List<RiskMitigationMergeDto>> riskRegMitigationList(@PathVariable("groupDivisionId") Long groupDivisionId,   @PathVariable("docType") String docType,@PathVariable("revisionRecordId") Long revisionRecordId, @RequestHeader String username) throws Exception {
 		try {
 			logger.info(new Date() + " Inside riskRegMitigationList" );
-			List<RiskMitigationMergeDto> dto=service.getRegMitigationList(groupDivisionId,docType);
+			System.out.println("revisionRecordId"+revisionRecordId);
+			List<RiskMitigationMergeDto> dto=service.getRegMitigationList(groupDivisionId,docType,revisionRecordId);
 			return new ResponseEntity<List<RiskMitigationMergeDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -113,4 +118,17 @@ public class RiskRegisterController {
 	}
 	
 	
+	
+	@PostMapping(value = "/get-all-mitigation-risk-list", produces = "application/json")
+	public ResponseEntity<List<MitigationRiskRegisterDto>> allMititgationRiskRegisterlist(@RequestHeader String username,@RequestBody String riskRegisterId) throws Exception {
+		try {
+			logger.info(new Date() + " Inside allMititgationRiskRegisterlist" );
+			List<MitigationRiskRegisterDto> dto=service.getAllMititgationRiskRegisterlist();
+			return new ResponseEntity<List<MitigationRiskRegisterDto>>( dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching allMititgationRiskRegisterlist: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
+	}
 }

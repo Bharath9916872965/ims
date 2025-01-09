@@ -36,6 +36,7 @@ import com.vts.ims.qms.dto.DwpRevisionRecordDto;
 import com.vts.ims.qms.dto.DwpSectionDto;
 import com.vts.ims.qms.dto.DwpTransactionDto;
 import com.vts.ims.qms.dto.MRMastersDto;
+import com.vts.ims.qms.dto.QmsAddAbbreviationDto;
 import com.vts.ims.qms.dto.QmsDocTypeDto;
 import com.vts.ims.qms.dto.QmsIssueDto;
 import com.vts.ims.qms.dto.QmsQmChaptersDto;
@@ -47,6 +48,7 @@ import com.vts.ims.qms.dto.QmsQmSectionsDto;
 import com.vts.ims.qms.dto.QmsQspRevisionRecordDto;
 import com.vts.ims.qms.dto.QmsQspRevisionTransactionDto;
 import com.vts.ims.qms.model.DwpChapters;
+import com.vts.ims.qms.model.DwpChaptersRev;
 import com.vts.ims.qms.model.DwpGwpDocumentSummary;
 import com.vts.ims.qms.model.DwpRevisionRecord;
 import com.vts.ims.qms.model.DwpSections;
@@ -54,6 +56,7 @@ import com.vts.ims.qms.model.QmsAbbreviations;
 import com.vts.ims.qms.model.QmsQmDocumentSummary;
 import com.vts.ims.qms.model.QmsQmRevisionRecord;
 import com.vts.ims.qms.model.QmsQspChapters;
+import com.vts.ims.qms.model.QmsQspChaptersRev;
 import com.vts.ims.qms.model.QmsQspDocumentSummary;
 import com.vts.ims.qms.model.QmsQspRevisionRecord;
 import com.vts.ims.qms.service.QmsService;
@@ -80,11 +83,12 @@ public class QmsController {
 		logger.info(" Inside get-qm-version-record-list " + username);
 		return service.getQmVersionRecordDtoList();
 	}
+	
 
-	@PostMapping(value = "/get-all-qm-chapters", produces = "application/json")
-	public List<QmsQmChaptersDto> getAllQMChapters(@RequestHeader String username) throws Exception {
+	@PostMapping(value = "/get-all-qm-chapters/{revisionRecordId}", produces = "application/json")
+	public List<QmsQmChaptersDto> getAllQMChapters(@PathVariable("revisionRecordId") Long revisionRecordId, @RequestBody String statusCode,@RequestHeader String username) throws Exception {
 		logger.info(" Inside get-all-qm-chapters " + username);
-		return service.getAllQMChapters();
+		return service.getAllQMChapters(revisionRecordId,statusCode);
 	}
 
 	@PostMapping(value = "/un-added-qm-section-list", produces = "application/json")
@@ -250,10 +254,10 @@ public class QmsController {
 	}
 
 
-	@PostMapping(value = "/get-moclist", produces = "application/json")
-	public  List<Object[]> getMocList(@RequestBody Long revisionRecordId, @RequestHeader  String username) throws Exception {
+	@PostMapping(value = "get-moclist/{revisionRecordId}" , produces = "application/json")
+	public  List<Object[]> getMocList(@PathVariable("revisionRecordId") Long revisionRecordId, @RequestBody String statusCode, @RequestHeader  String username) throws Exception {
 		logger.info(" Inside add-moc " + username);
-		return service.getMocList(revisionRecordId);
+		return service.getMocList(revisionRecordId,statusCode);
 	}
 
 	@PostMapping(value = "/get-moc-total-list", produces = "application/json")
@@ -272,6 +276,8 @@ public class QmsController {
 	@PostMapping(value = "/get-all-dwp-chapters", produces = "application/json")
 	public List<DwpChapters> getAllDwpChapters(@RequestBody QmsDocTypeDto qmsDocTypeDto, @RequestHeader String username) throws Exception {
 		logger.info(" Inside get-all-dwp-chapters " + username);
+		System.out.println("qmsDocTypeDto"+qmsDocTypeDto);
+		System.out.println("coming inside the master");
 		return service.getAllDwpChapters(qmsDocTypeDto);
 	}
 
@@ -812,5 +818,23 @@ public class QmsController {
 			 e.printStackTrace();
 			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
 		}
+	}
+	
+	@PostMapping(value = "/get-all-qsp-chapters-rev", produces = "application/json")
+	public List<QmsQspChaptersRev> getAllQsppChaptersrev(@RequestBody QmsDocTypeDto qmsDocTypeDto, @RequestHeader String username) throws Exception {
+		logger.info(" Inside get-all-qsp-chapters " + username);
+		return service.getAllQspRevChapters(qmsDocTypeDto);
+	}
+	
+	@PostMapping(value = "/get-all-dwp-chapters-rev", produces = "application/json")
+	public List<DwpChaptersRev> getAllDwpChaptersrev(@RequestBody QmsDocTypeDto qmsDocTypeDto, @RequestHeader String username) throws Exception {
+		logger.info(" Inside get-all-dwp-chapters-rev " + username);
+		return service.getAllDwpChaptersrev(qmsDocTypeDto);
+	}
+	
+	@PostMapping(value = "/add-new-abbreviation", produces = "application/json")
+	public Long addNewAbbreviations(@RequestBody QmsAddAbbreviationDto addAbbreviationDto, @RequestHeader  String username) throws Exception {
+		logger.info(" Inside addNewAbbreviations " + username);
+		return service.addNewAbbreviations(addAbbreviationDto,username);
 	}
 }
