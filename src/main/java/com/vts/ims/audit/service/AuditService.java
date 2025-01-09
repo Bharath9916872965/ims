@@ -7,6 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.vts.ims.audit.dto.AuditCarDTO;
 import com.vts.ims.audit.dto.AuditCheckListDTO;
+import com.vts.ims.audit.dto.AuditClosureDTO;
 import com.vts.ims.audit.dto.AuditCorrectiveActionDTO;
 import com.vts.ims.audit.dto.AuditRescheduleDto;
 import com.vts.ims.audit.dto.AuditScheduleDto;
@@ -23,6 +24,8 @@ import com.vts.ims.audit.dto.CheckListDto;
 import com.vts.ims.audit.dto.IqaAuditeeDto;
 import com.vts.ims.audit.dto.IqaAuditeeListDto;
 import com.vts.ims.audit.dto.IqaDto;
+import com.vts.ims.audit.dto.IqaScheduleDto;
+import com.vts.ims.audit.model.AuditClosure;
 import com.vts.ims.audit.model.AuditObservation;
 import com.vts.ims.audit.model.AuditTeam;
 import com.vts.ims.master.dto.DivisionGroupDto;
@@ -138,6 +141,14 @@ public interface AuditService {
 	public long returnCarReport(AuditCorrectiveActionDTO auditCorrectiveActionDTO, String username)throws Exception;
 	
 	public List<CheckListDto> getMostFqNCMocDes(Long scheduleId, Integer auditObsId, Long iqaId)throws Exception;
+	
+	public List<IqaScheduleDto> getIqaScheduleList() throws Exception;
+
+	public long addAuditClosure(AuditClosureDTO auditClosureDTO, String username)throws Exception;
+
+	public List<AuditClosure> getAuditClosureList()throws Exception;
+	
+	public long updateAuditClosure(AuditClosureDTO auditClosureDTO, String username)throws Exception;
 
 
 
