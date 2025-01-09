@@ -139,6 +139,8 @@ public interface AuditService {
 	
 	public List<CheckListDto> getMostFqNCMocDes(Long scheduleId, Integer auditObsId, Long iqaId)throws Exception;
 
+	public List<CheckListDto> getMostFreqNCDetails(Long mocId)throws Exception;
+
 
 
 }
