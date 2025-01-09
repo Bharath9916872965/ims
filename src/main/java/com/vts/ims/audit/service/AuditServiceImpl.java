@@ -32,6 +32,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.vts.ims.audit.dto.AuditCarDTO;
 import com.vts.ims.audit.dto.AuditCheckListDTO;
+import com.vts.ims.audit.dto.AuditClosureDTO;
 import com.vts.ims.audit.dto.AuditCorrectiveActionDTO;
 import com.vts.ims.audit.dto.AuditRescheduleDto;
 import com.vts.ims.audit.dto.AuditScheduleDto;
@@ -49,7 +50,9 @@ import com.vts.ims.audit.dto.CheckListItem;
 import com.vts.ims.audit.dto.IqaAuditeeDto;
 import com.vts.ims.audit.dto.IqaAuditeeListDto;
 import com.vts.ims.audit.dto.IqaDto;
+import com.vts.ims.audit.dto.IqaScheduleDto;
 import com.vts.ims.audit.model.AuditCheckList;
+import com.vts.ims.audit.model.AuditClosure;
 import com.vts.ims.audit.model.AuditCorrectiveAction;
 import com.vts.ims.audit.model.AuditObservation;
 import com.vts.ims.audit.model.AuditSchedule;
@@ -62,6 +65,7 @@ import com.vts.ims.audit.model.Auditor;
 import com.vts.ims.audit.model.Iqa;
 import com.vts.ims.audit.model.IqaAuditee;
 import com.vts.ims.audit.repository.AuditCheckListRepository;
+import com.vts.ims.audit.repository.AuditClosureRepository;
 import com.vts.ims.audit.repository.AuditCorrectiveActionRepository;
 import com.vts.ims.audit.repository.AuditObservationRepository;
 import com.vts.ims.audit.repository.AuditScheduleRepository;
@@ -177,6 +181,9 @@ public class AuditServiceImpl implements AuditService{
 	
 	@Value("${username1}")
 	private String username1;
+	
+	@Autowired
+	private AuditClosureRepository auditClosureRepository;
 	
 	@Override
 	public List<AuditorDto> getAuditorList() throws Exception {
@@ -1064,7 +1071,7 @@ public class AuditServiceImpl implements AuditService{
 				    tableContent.append("</table>");
 
 					EmployeeDto employee =	NFormatConvertion.getEmployeeDetails(key,totalEmployee);
-					if(employee!=null && employee.getEmail() !=null) {	
+					if(employee!=null && employee.getEmail() !=null && !(employee.getEmail().equalsIgnoreCase("a@lrde.com"))) {	
 			            sendHtmlMessage(employee.getEmail(), "Audit Schedule of " + iqaNo, tableContent.toString(), heading, note);
 					}
 		            insertScheduleNomination(key,login.getEmpId(),username,url,NotiMsg);
@@ -1111,7 +1118,7 @@ public class AuditServiceImpl implements AuditService{
 				    for (Object[] obj : auditorsByIqa) {
 				        if (key.equals(Long.parseLong(obj[1].toString()))) {
 							EmployeeDto employee =	NFormatConvertion.getEmployeeDetails(Long.parseLong(obj[0].toString()),totalEmployee);
-							if(employee!=null && employee.getEmail() !=null) {	
+							if(employee!=null && employee.getEmail() !=null && !(employee.getEmail().equalsIgnoreCase("a@lrde.com"))) {	
 					            sendHtmlMessage(employee.getEmail(), "Audit Schedule of " + iqaNo, tableContent.toString(), heading, note);
 							}
 				            insertScheduleNomination(Long.parseLong(obj[0].toString()),login.getEmpId(),username,url,NotiMsg);
@@ -1189,14 +1196,14 @@ public class AuditServiceImpl implements AuditService{
 	    	Auditee auditee = auditeeRepository.findById(dto.getAuditeeId()).get();
 	    	result = insertScheduleNomination(auditee.getEmpId(),login.getEmpId(),username,url,NotiMsg);
 			EmployeeDto auditeeDetails =	NFormatConvertion.getEmployeeDetails(auditee.getEmpId(),totalEmployee);
-			if(auditeeDetails!=null && auditeeDetails.getEmail() !=null) {	
+			if(auditeeDetails!=null && auditeeDetails.getEmail() !=null && !(auditeeDetails.getEmail().equalsIgnoreCase("a@lrde.com"))) {	
 				sendHtmlMessage(auditeeDetails.getEmail(),"Audit Schedule of "+dto.getIqaNo(), AuditeetableContent.toString(), heading, note);
 			}
     	
 			for(Object[] obj : teamMemberDetails) {
 				result = insertScheduleNomination(Long.parseLong(obj[1].toString()),login.getEmpId(),username,url,NotiMsg);
 				EmployeeDto employee =	NFormatConvertion.getEmployeeDetails(Long.parseLong(obj[1].toString()),totalEmployee);
-				if(employee!=null && employee.getEmail() !=null) {	
+				if(employee!=null && employee.getEmail() !=null && !(employee.getEmail().equalsIgnoreCase("a@lrde.com"))) {	
 					sendHtmlMessage(employee.getEmail(),"Audit Schedule of "+dto.getIqaNo(), tableContent.toString(), heading, note);
 				}
 			}
@@ -2071,9 +2078,7 @@ public class AuditServiceImpl implements AuditService{
 		logger.info(new Date() + " AuditServiceImpl Inside method getAuditCheckList()");
 		try {
 			 List<Object[]> result = auditCheckListRepository.getAuditCheckList(scheduleId);
-			 
-			 System.out.println("result---------- "+result.size());
-			 
+			 			 
 			return Optional.ofNullable(result).orElse(Collections.emptyList()).stream()
 					    .map(obj -> {
 						    	return CheckListDto.builder()
@@ -2427,7 +2432,7 @@ public class AuditServiceImpl implements AuditService{
 	    long result = 0;
 	    try {
 	    	Login login = loginRepo.findByUsername(username);
-			String url= "/schedule-list";
+			String url= "/car-report";
 			EmployeeDto employeeLogIn = masterClient.getEmployee(xApiKey,login.getEmpId()).get(0);
 	    		if(auditCorrectiveActionDTO.getAuditStatus().equalsIgnoreCase("FWD")){
 	    			
@@ -2596,6 +2601,108 @@ public class AuditServiceImpl implements AuditService{
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("AuditServiceImpl Inside method saveDocFilesUpload()"+ e);
+		}
+		return result;
+	}
+	
+	@Override
+	public List<IqaScheduleDto> getIqaScheduleList() throws Exception {
+		logger.info(new Date() + " AuditServiceImpl Inside method getIqaScheduleList()");
+		try {
+			List<Object[]> result = iqaRepository.getIqaScdList();
+			
+			result = result.stream().filter(data -> !data[4].toString().equalsIgnoreCase("0")).collect(Collectors.toList());			
+			
+			
+			List<IqaScheduleDto> finalIqaDtoList = Optional.ofNullable(result).orElse(Collections.emptyList()).stream().map(rowData ->
+			IqaScheduleDto.builder()
+			.iqaId(rowData[0]!=null?Long.parseLong(rowData[0].toString()):0L)
+			.iqaNo(rowData[1]!=null?rowData[1].toString():"")
+			.fromDate(rowData[2]!=null?rowData[2].toString():"")
+			.toDate(rowData[3]!=null?rowData[3].toString():"")
+			.auditees(rowData[4]!=null?Long.parseLong(rowData[4].toString()):0L)
+			.auditeeSub(rowData[5]!=null?Long.parseLong(rowData[5].toString()):0L)
+			.auditorSub(rowData[6]!=null?Long.parseLong(rowData[6].toString()):0L)
+			.auditeeAcp(rowData[7]!=null?Long.parseLong(rowData[7].toString()):0L)
+			.build()
+			).collect(Collectors.toList());
+			return finalIqaDtoList;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method getIqaScheduleList()"+ e);
+			 return Collections.emptyList();
+		}
+	}
+
+
+	@Override
+	public long addAuditClosure(AuditClosureDTO auditClosureDTO, String username) throws Exception {
+		long result = 0;
+		logger.info(new Date() + " AuditServiceImpl Inside method addAuditClosure()");
+		try {
+			String content = auditClosureDTO.getContent().replace("\\", "");
+			if(content.startsWith("\"") && content.endsWith("\"")) {
+				content = content.substring(1,content.length()-1);			
+			}
+			Login login = loginRepo.findByUsername(username);
+			AuditClosure closure = new AuditClosure();
+			
+			closure.setClosureDate(DLocalConvertion.converLocalTime(auditClosureDTO.getCompletionDate()));
+			closure.setIqaId(auditClosureDTO.getIqaId());
+			closure.setRemarks(content);
+			closure.setActEmpId(login.getEmpId());
+			closure.setCreatedBy(username);
+			closure.setCreatedDate(LocalDateTime.now());
+			closure.setIsActive(1);
+			
+			result = auditClosureRepository.save(closure).getClosureId();
+			} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method addAuditClosure()"+ e);
+			
+		}
+		return result;
+	}
+
+
+	@Override
+	public List<AuditClosure> getAuditClosureList() throws Exception {
+		logger.info(new Date() + " AuditServiceImpl Inside method getAuditClosureList()");
+		try {
+			return auditClosureRepository.findByIsActive(1);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method getAuditClosureList()"+ e);
+			 return Collections.emptyList();
+		}
+	}
+	
+	@Override
+	public long updateAuditClosure(AuditClosureDTO auditClosureDTO, String username) throws Exception {
+		long result = 0;
+		logger.info(new Date() + " AuditServiceImpl Inside method updateAuditClosure()");
+		try {
+			String content = auditClosureDTO.getContent().replace("\\", "");
+			if(content.startsWith("\"") && content.endsWith("\"")) {
+				content = content.substring(1,content.length()-1);			
+			}
+			AuditClosure closure =  null;
+			Optional<AuditClosure> closureOptional = auditClosureRepository.findById(auditClosureDTO.getClosureId());
+			if(closureOptional.isPresent()) {
+				closure = closureOptional.get();
+				closure.setClosureDate(DLocalConvertion.converLocalTime(auditClosureDTO.getCompletionDate()));
+				closure.setRemarks(content);
+				closure.setModifiedBy(username);
+				closure.setModifiedDate(LocalDateTime.now());
+				
+				result = auditClosureRepository.save(closure).getClosureId();
+			}
+			
+			} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method updateAuditClosure()"+ e);
+			
 		}
 		return result;
 	}
