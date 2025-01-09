@@ -17,6 +17,8 @@ public interface RiskService {
 	public List<MitigationRiskRegisterDto> getMititgationRiskRegisterlist(long riskRegisterId) throws Exception;
 
 
-	public List<RiskMitigationMergeDto> getRegMitigationList(Long groupDivisionId, String docType) throws Exception;
+	public List<RiskMitigationMergeDto> getRegMitigationList(Long groupDivisionId, String docType,Long revisionRecordId) throws Exception;
+
+	public List<MitigationRiskRegisterDto> getAllMititgationRiskRegisterlist() throws Exception;
 
 }

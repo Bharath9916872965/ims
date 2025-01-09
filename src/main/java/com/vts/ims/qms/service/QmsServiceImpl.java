@@ -35,20 +35,6 @@ import com.vts.ims.master.dto.ProjectEmployeeDto;
 import com.vts.ims.master.dto.ProjectMasterDto;
 import com.vts.ims.master.service.MasterService;
 import com.vts.ims.model.ImsNotification;
-import com.vts.ims.qms.model.DwpChapters;
-import com.vts.ims.qms.model.DwpGwpDocumentSummary;
-import com.vts.ims.qms.model.DwpRevisionRecord;
-import com.vts.ims.qms.model.DwpSections;
-import com.vts.ims.qms.model.DwpSectionsMaster;
-import com.vts.ims.qms.model.DwpTransaction;
-import com.vts.ims.qms.model.QmsAbbreviations;
-import com.vts.ims.qms.model.QmsDocStatus;
-import com.vts.ims.qms.model.QmsQmChapters;
-import com.vts.ims.qms.model.QmsQmDocumentSummary;
-import com.vts.ims.qms.model.QmsQmMappingOfClasses;
-import com.vts.ims.qms.model.QmsQmRevisionRecord;
-import com.vts.ims.qms.model.QmsQmRevisionTransaction;
-import com.vts.ims.qms.model.QmsQmSections;
 import com.vts.ims.qms.repository.DwpChaptersRepo;
 import com.vts.ims.qms.repository.DwpGwpDocumentSummaryRepo;
 import com.vts.ims.qms.repository.DwpRevisionRecordRepo;
@@ -146,13 +132,27 @@ public class QmsServiceImpl implements QmsService {
 	@Autowired
 	NotificationRepository notificationRepo;
 	
+	
+	@Autowired
+	QmsQmChaptersRevRepo qmsqmchaptersrevrepo;
+	
+	
+	@Autowired
+	QmsQmMappingOfClassesRevRepo qmsqmmappingrevrepo;
+	
+	@Autowired
+	QmsQspChaptersRevRepo qmsqspchaptersrevrepo;
+	
+	@Autowired
+	DwpChaptersRevRepo dwpchaptersrevrepo;
+	
 
 	@Override
 	public List<QmsQmRevisionRecordDto> getQmVersionRecordDtoList() throws Exception {
 		logger.info( " Inside getQmVersionRecordDtoList() " );
 		try {
 
-
+			
 			List<QmsQmRevisionRecordDto> qmsQmRevisionRecordDtoList = new ArrayList<QmsQmRevisionRecordDto>();
 			List<QmsQmRevisionRecord> qmRevisionRecord = qmsQmRevisionRecordRepo.findAllActiveQmRecords();
 			List<QmsDocStatus> qmsdocStatus=qmsdocstatusrepo.findAll();
@@ -205,37 +205,62 @@ public class QmsServiceImpl implements QmsService {
 	}
 
 	@Override
-	public List<QmsQmChaptersDto> getAllQMChapters() throws Exception {
+	public List<QmsQmChaptersDto> getAllQMChapters(Long revisionRecordId,String statusCode) throws Exception {
 		logger.info( " Inside qmUnAddListToAddList() " );
 		try {
 			List<QmsQmChaptersDto> qmsQmChaptersDtoList = new ArrayList<QmsQmChaptersDto>();
 //			long startTime = System.currentTimeMillis();
 			List<QmsQmChapters> qmChapters = qmsQmChaptersRepo.findAllActiveQmChapters();
+			List<QmsQmChaptersRev> qmChaptersrev = qmsqmchaptersrevrepo.findAllActiveQmChapters(revisionRecordId);
 //	        long endTime = System.currentTimeMillis();
 //	        System.out.println("Execution time: " + (endTime - startTime) + " ms");
 //	        long startTime1 = System.currentTimeMillis();
 //	        qmsQmChaptersRepo.findAllActiveQmChaptersss();
 //	        long endTime1 = System.currentTimeMillis();
 //	        System.out.println("Execution time: 1 " + (endTime1 - startTime1) + " ms");
-			qmChapters.forEach(chapter -> {
+			if(statusCode.equalsIgnoreCase("APD")) {
+			qmChaptersrev.forEach(chapterrev -> {
 				QmsQmChaptersDto qmsQmChaptersDto = QmsQmChaptersDto.builder()
-						.ChapterId(chapter.getChapterId())
-						.ChapterParentId(chapter.getChapterParentId())
-						.SectionId(chapter.getSectionId())
-						.ChapterName(chapter.getChapterName())
-						.ChapterContent(chapter.getChapterContent())
-						.IsPagebreakAfter(chapter.getIsPagebreakAfter())
-						.IsLandscape(chapter.getIsLandscape())
-						.CreatedBy(chapter.getCreatedBy())
-						.CreatedDate(chapter.getCreatedDate())
-						.ModifiedBy(chapter.getModifiedBy())
-						.ModifiedDate(chapter.getModifiedDate())
-						.IsActive(chapter.getIsActive())
+						.ChapterRevId(chapterrev.getChapterRevId())
+						.ChapterId(chapterrev.getChapterId())
+						.RevisionRecordId(chapterrev.getRevisionRecordId())
+						.ChapterParentId(chapterrev.getChapterParentId())
+						.SectionId(chapterrev.getSectionId())
+						.ChapterName(chapterrev.getChapterName())
+						.ChapterContent(chapterrev.getChapterContent())
+						.IsPagebreakAfter(chapterrev.getIsPagebreakAfter())
+						.IsLandscape(chapterrev.getIsLandscape())
+						.CreatedBy(chapterrev.getCreatedBy())
+						.CreatedDate(chapterrev.getCreatedDate())
+						.ModifiedBy(chapterrev.getModifiedBy())
+						.ModifiedDate(chapterrev.getModifiedDate())
+						.IsActive(chapterrev.getIsActive())
 						.build();
-
+				
 				qmsQmChaptersDtoList.add(qmsQmChaptersDto);
 			});
 			return qmsQmChaptersDtoList;
+			}else{
+				qmChapters.forEach(chapter -> {
+					QmsQmChaptersDto qmsQmChaptersDto = QmsQmChaptersDto.builder()
+							.ChapterId(chapter.getChapterId())
+							.ChapterParentId(chapter.getChapterParentId())
+							.SectionId(chapter.getSectionId())
+							.ChapterName(chapter.getChapterName())
+							.ChapterContent(chapter.getChapterContent())
+							.IsPagebreakAfter(chapter.getIsPagebreakAfter())
+							.IsLandscape(chapter.getIsLandscape())
+							.CreatedBy(chapter.getCreatedBy())
+							.CreatedDate(chapter.getCreatedDate())
+							.ModifiedBy(chapter.getModifiedBy())
+							.ModifiedDate(chapter.getModifiedDate())
+							.IsActive(chapter.getIsActive())
+							.build();
+
+					qmsQmChaptersDtoList.add(qmsQmChaptersDto);
+				});
+				return qmsQmChaptersDtoList;
+			}
 		} catch (Exception e) {
 			logger.info( " Inside getAllQMChapters() "+ e );
 			e.printStackTrace();
@@ -713,10 +738,14 @@ public class QmsServiceImpl implements QmsService {
 	}
 
 	@Override
-	public List<Object[]> getMocList(Long revisionRecordId) throws Exception {
+	public List<Object[]> getMocList(Long revisionRecordId,String statusCode) throws Exception {
 		logger.info( " Inside getMocList() " );
 		try {
-			return qmsQmMappingOfClassesRepo.findAllByRevisionRecordId(revisionRecordId);
+			if(statusCode.equalsIgnoreCase("APD")) {
+			    return qmsqmmappingrevrepo.findAllByRevisionRecordId(revisionRecordId);
+			}else {
+				return qmsQmMappingOfClassesRepo.findAllByRevisionRecordId(revisionRecordId);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error( "Inside service getMocList() " + e);
@@ -836,6 +865,7 @@ public class QmsServiceImpl implements QmsService {
 		logger.info( " Inside getAllDwpChapters() " );
 		try {
 			List<DwpChapters> chapters = dwpChaptersRepo.findAllActiveDwpChapters(qmsDocTypeDto.getDocType(), qmsDocTypeDto.getGroupDivisionId());
+			System.out.println("chapters:"+chapters);
 			return chapters;
 		} catch (Exception e) {
 			logger.error( " Inside getAllDwpChapters() "+ e );
@@ -1814,7 +1844,54 @@ public class QmsServiceImpl implements QmsService {
 						if(RevisionStatusCodeNext.equalsIgnoreCase("RWD")) {
 							if(qmsqmrevision.getApprovedBy()!=null) {
 								qmsqmrevision.setStatusCodeNext("APD");
-							}
+								
+								List<QmsQmChapters> data=  qmsQmChaptersRepo.findAllActiveQmChapters();
+								
+								
+								 List<QmsQmChaptersRev> entities = data.stream()
+						            .map(qmsQmChapter -> {
+						            	QmsQmChaptersRev modal = new QmsQmChaptersRev();
+						            	modal.setRevisionRecordId(revisionRecordId);
+						            	modal.setChapterId(qmsQmChapter.getChapterId()); 
+						            	modal.setSectionId(qmsQmChapter.getSectionId());
+						            	modal.setChapterParentId(qmsQmChapter.getChapterParentId());
+						            	modal.setChapterName(qmsQmChapter.getChapterName());
+						            	modal.setChapterContent(qmsQmChapter.getChapterContent());
+						            	modal.setIsPagebreakAfter(qmsQmChapter.getIsPagebreakAfter());
+						            	modal.setIsLandscape(qmsQmChapter.getIsLandscape());
+						            	modal.setCreatedBy(qmsQmChapter.getCreatedBy());
+						            	modal.setCreatedDate(qmsQmChapter.getCreatedDate());
+						            	modal.setModifiedBy(qmsQmChapter.getModifiedBy());
+						            	modal.setModifiedDate(qmsQmChapter.getModifiedDate());
+						            	modal.setIsActive(qmsQmChapter.getIsActive());
+						               
+						                return modal;
+						            }) .toList(); 
+								 qmsqmchaptersrevrepo.saveAll(entities);
+							
+							List<QmsQmMappingOfClasses> mapping=  qmsQmMappingOfClassesRepo.findAllActiveQmMappingClasses();
+							
+							
+							List<QmsQmMappingOfClassesRev> mappingentities = mapping.stream()
+									.map(qmsQmmapping -> {
+										QmsQmMappingOfClassesRev modal = new QmsQmMappingOfClassesRev();
+										modal.setRevisionRecordId(revisionRecordId);
+										modal.setMocId(qmsQmmapping.getMocId()); 
+										modal.setClauseNo(qmsQmmapping.getClauseNo());
+										modal.setSectionNo(qmsQmmapping.getSectionNo());
+										modal.setMocParentId(qmsQmmapping.getMocParentId());
+										modal.setIsForCheckList(qmsQmmapping.getIsForCheckList());
+										modal.setDescription(qmsQmmapping.getDescription());
+										modal.setCreatedBy(qmsQmmapping.getCreatedBy());
+										modal.setCreatedDate(qmsQmmapping.getCreatedDate());
+										modal.setModifiedBy(qmsQmmapping.getModifiedBy());
+										modal.setModifiedDate(qmsQmmapping.getModifiedDate());
+										modal.setIsActive(qmsQmmapping.getIsActive());
+										
+										return modal;
+									}) .toList(); 
+							qmsqmmappingrevrepo.saveAll(mappingentities);
+						}
 
 						}
 					}
@@ -2023,6 +2100,30 @@ public class QmsServiceImpl implements QmsService {
 						if(RevisionStatusCodeNext.equalsIgnoreCase("RWD")) {
 							if(dwpqmrevision.getApprovedBy()!=null) {
 								dwpqmrevision.setStatusCodeNext("APG");
+								
+								List<DwpChapters> data=  dwpChaptersRepo.findAllActiveDwpChapters(dwpqmrevision.getDocType(),dwpqmrevision.getGroupDivisionId());
+								
+								
+								 List<DwpChaptersRev> entities = data.stream()
+						            .map(qmsQspChapter -> {
+						            	DwpChaptersRev modal = new DwpChaptersRev();
+						            	modal.setRevisionRecordId(revisionRecordId);
+						            	modal.setChapterId(qmsQspChapter.getChapterId()); 
+						            	modal.setSectionId(qmsQspChapter.getSectionId());
+						            	modal.setChapterParentId(qmsQspChapter.getChapterParentId());
+						            	modal.setChapterName(qmsQspChapter.getChapterName());
+						            	modal.setChapterContent(qmsQspChapter.getChapterContent());
+						            	modal.setIsPagebreakAfter(qmsQspChapter.getIsPagebreakAfter());
+						            	modal.setIsLandscape(qmsQspChapter.getIsLandscape());
+						            	modal.setCreatedBy(qmsQspChapter.getCreatedBy());
+						            	modal.setCreatedDate(qmsQspChapter.getCreatedDate());
+						            	modal.setModifiedBy(qmsQspChapter.getModifiedBy());
+						            	modal.setModifiedDate(qmsQspChapter.getModifiedDate());
+						            	modal.setIsActive(qmsQspChapter.getIsActive());
+						               
+						                return modal;
+						            }) .toList(); 
+								 dwpchaptersrevrepo.saveAll(entities);
 							}
 
 						}
@@ -2377,6 +2478,29 @@ public class QmsServiceImpl implements QmsService {
 						if(RevisionStatusCodeNext.equalsIgnoreCase("RWD")) {
 							if(qmsqsprevision.getApprovedBy()!=null) {
 								qmsqsprevision.setStatusCodeNext("APD");
+								List<QmsQspChapters> data=  qspChaptersRepo.findAllActiveQspChapters(qmsqsprevision.getDocName());
+								
+								
+								 List<QmsQspChaptersRev> entities = data.stream()
+						            .map(qmsQspChapter -> {
+						            	QmsQspChaptersRev modal = new QmsQspChaptersRev();
+						            	modal.setRevisionRecordId(revisionRecordId);
+						            	modal.setChapterId(qmsQspChapter.getChapterId()); 
+						            	modal.setSectionId(qmsQspChapter.getSectionId());
+						            	modal.setChapterParentId(qmsQspChapter.getChapterParentId());
+						            	modal.setChapterName(qmsQspChapter.getChapterName());
+						            	modal.setChapterContent(qmsQspChapter.getChapterContent());
+						            	modal.setIsPagebreakAfter(qmsQspChapter.getIsPagebreakAfter());
+						            	modal.setIsLandscape(qmsQspChapter.getIsLandscape());
+						            	modal.setCreatedBy(qmsQspChapter.getCreatedBy());
+						            	modal.setCreatedDate(qmsQspChapter.getCreatedDate());
+						            	modal.setModifiedBy(qmsQspChapter.getModifiedBy());
+						            	modal.setModifiedDate(qmsQspChapter.getModifiedDate());
+						            	modal.setIsActive(qmsQspChapter.getIsActive());
+						               
+						                return modal;
+						            }) .toList(); 
+								 qmsqspchaptersrevrepo.saveAll(entities);
 							}
 
 						}
@@ -2455,12 +2579,6 @@ public class QmsServiceImpl implements QmsService {
 			    }
 				
 				}
-				
-				
-				
-				
-				
-				
 			}
 			if(res>0) {
 				result=1;
@@ -2610,11 +2728,51 @@ public class QmsServiceImpl implements QmsService {
 				return res;
 		}
 	}
-//	@Override
-//	public List<DwpRevisionRecordDto> getDwpVersionRecordDtoList(Long divisionId) throws Exception {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
+	
+	@Override
+	public List<QmsQspChaptersRev> getAllQspRevChapters(QmsDocTypeDto qmsDocTypeDto) {
+		logger.info( " Inside getAllQspRevChapters() " );
+		try {
+			List<QmsQspChaptersRev> chaptersrev = qmsqspchaptersrevrepo.findAllActiveQspChapters(qmsDocTypeDto.getDocType(),qmsDocTypeDto.getRevisionRecordId());
+			return chaptersrev;
+		} catch (Exception e) {
+			logger.error( " Inside getAllQspRevChapters() "+ e );
+			e.printStackTrace();
+			return new ArrayList<QmsQspChaptersRev>();
+		}
+	}
+	
+	
+	@Override
+	public List<DwpChaptersRev> getAllDwpChaptersrev(QmsDocTypeDto qmsDocTypeDto) throws Exception {
+		logger.info( " Inside getAllDwpChapters() " );
+		try {
+			List<DwpChaptersRev> chaptersrev = dwpchaptersrevrepo.findAllActiveDwpChapters(qmsDocTypeDto.getDocType(), qmsDocTypeDto.getGroupDivisionId(),qmsDocTypeDto.getRevisionRecordId());
+			return chaptersrev;
+		} catch (Exception e) {
+			logger.error( " Inside getAllDwpChapters() "+ e );
+			e.printStackTrace();
+			return new ArrayList<DwpChaptersRev>();
+		}
+	}
+	
+	
+	@Override
+	public Long addNewAbbreviations(QmsAddAbbreviationDto addAbbreviationDto, String username) throws Exception {
+		try {
+			for (QmsAbbreviationDto dto : addAbbreviationDto.getAbbreviationDetails()) {
+				QmsAbbreviations abbreviations = new QmsAbbreviations();
+				abbreviations.setAbbreviation(dto.getAbbreviation());
+				abbreviations.setMeaning(dto.getMeaning());
+				qmsAbbreviationsRepo.save(abbreviations);
+			}
+			return 1L;
+		}catch (Exception e){
+			e.printStackTrace();
+		}
+		return 0L;
+	}
+	
 
 
 }

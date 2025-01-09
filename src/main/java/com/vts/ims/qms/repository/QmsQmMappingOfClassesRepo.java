@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.vts.ims.qms.model.QmsQmChapters;
 import com.vts.ims.qms.model.QmsQmMappingOfClasses;
 
 import jakarta.transaction.Transactional;
@@ -17,7 +18,7 @@ public interface QmsQmMappingOfClassesRepo extends JpaRepository<QmsQmMappingOfC
 
 	void deleteByRevisionRecordId(Long revisionRecordId);
 	
-	@Query(value = "SELECT t1.SectionNo, t1.ClauseNo, t1.MocDescription FROM ims_qms_qm_mapping_classes t1 WHERE t1.revisionRecordId = :revisionRecordId AND MocParentId = 0", nativeQuery = true)
+	@Query(value = "SELECT t1.SectionNo, t1.ClauseNo, t1.MocDescription FROM ims_qms_qm_mapping_classes t1 WHERE MocParentId = 0", nativeQuery = true)
 	List<Object[]> findAllByRevisionRecordId(@Param("revisionRecordId") Long revisionRecordId);
 	
 	@Modifying
@@ -43,5 +44,10 @@ public interface QmsQmMappingOfClassesRepo extends JpaRepository<QmsQmMappingOfC
 	@Modifying
 	@Query(value = "UPDATE ims_qms_qm_mapping_classes SET IsForCheckList = 'N'",nativeQuery = true)
 	public Integer deleteCheckListChapters();
+
+	
+	@Query("SELECT a FROM QmsQmMappingOfClasses a WHERE a.isActive = 1 ORDER BY a.mocId ASC")
+	List<QmsQmMappingOfClasses> findAllActiveQmMappingClasses();
+	
 	
 }
