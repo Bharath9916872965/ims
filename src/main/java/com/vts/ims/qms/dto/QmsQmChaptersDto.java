@@ -10,6 +10,8 @@ import lombok.Data;
 public class QmsQmChaptersDto {
 
 	private long ChapterId;
+	private long RevisionRecordId;
+	private long ChapterRevId;
 	private long ChapterParentId;
 	private long SectionId;
 	private String ChapterName;

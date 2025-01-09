@@ -20,8 +20,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -34,6 +34,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vts.ims.audit.dto.AuditCarDTO;
 import com.vts.ims.audit.dto.AuditCheckListDTO;
+import com.vts.ims.audit.dto.AuditClosureDTO;
 import com.vts.ims.audit.dto.AuditCorrectiveActionDTO;
 import com.vts.ims.audit.dto.AuditRescheduleDto;
 import com.vts.ims.audit.dto.AuditScheduleDto;
@@ -50,6 +51,8 @@ import com.vts.ims.audit.dto.CheckListDto;
 import com.vts.ims.audit.dto.IqaAuditeeDto;
 import com.vts.ims.audit.dto.IqaAuditeeListDto;
 import com.vts.ims.audit.dto.IqaDto;
+import com.vts.ims.audit.dto.IqaScheduleDto;
+import com.vts.ims.audit.model.AuditClosure;
 import com.vts.ims.audit.model.AuditObservation;
 import com.vts.ims.audit.model.AuditTeam;
 import com.vts.ims.audit.service.AuditService;
@@ -980,5 +983,65 @@ public class AuditController {
 		return ResponseEntity.ok().headers(header).contentLength(file.length())
 				.contentType(MediaType.parseMediaType("application/octet-stream")).body(resource);
 
+	}
+	
+	@PostMapping(value = "/get-iqa-schedule-list", produces = "application/json")
+	public ResponseEntity<List<IqaScheduleDto>> getIqaScheduleList(@RequestHeader String username) throws Exception {
+		try {
+			logger.info(new Date() + " Inside getIqaScheduleList" );
+			List<IqaScheduleDto> dto=auditService.getIqaScheduleList();
+			return new ResponseEntity<List<IqaScheduleDto>>( dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching getIqaScheduleList: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	@PostMapping(value = "/add-audit-closure", produces = "application/json")
+	public ResponseEntity<Response> addAuditClosure( @RequestBody AuditClosureDTO auditClosureDTO, @RequestHeader String username) throws Exception {
+		
+		logger.info(new Date() + " Inside add-audit-closure " + username);
+		long result = 0;
+		try {
+			result = auditService.addAuditClosure(auditClosureDTO, username);
+		} catch (Exception e) {
+			logger.info(new Date() + " Inside add-audit-closure " + e);
+		}
+		if (result > 0) {
+			return ResponseEntity.status(HttpStatus.OK).body(new Response("Audit Closure Added Successfully","S"));
+		} else {
+			return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new Response("Audit Closure Add Unsuccessful","F"));
+		}
+	}
+	
+	@PostMapping(value = "/get-audit-closure-list", produces = "application/json")
+	public ResponseEntity<List<AuditClosure>> getAuditClosureList(@RequestHeader String username) throws Exception {
+		try {
+			logger.info(new Date() + " Inside getAuditClosureList" );
+			List<AuditClosure> dto=auditService.getAuditClosureList();
+			return new ResponseEntity<List<AuditClosure>>( dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching getAuditClosureList: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	@PostMapping(value = "/update-audit-closure", produces = "application/json")
+	public ResponseEntity<Response> updateAuditClosure( @RequestBody AuditClosureDTO auditClosureDTO, @RequestHeader String username) throws Exception {
+		
+		logger.info(new Date() + " Inside update-audit-closure " + username);
+		long result = 0;
+		try {
+			result = auditService.updateAuditClosure(auditClosureDTO, username);
+		} catch (Exception e) {
+			logger.info(new Date() + " Inside update-audit-closure " + e);
+		}
+		if (result > 0) {
+			return ResponseEntity.status(HttpStatus.OK).body(new Response("Audit Closure Updated Successfully","S"));
+		} else {
+			return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new Response("Audit Closure Update Unsuccessful","F"));
+		}
 	}
 }

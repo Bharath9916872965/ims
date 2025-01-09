@@ -218,10 +218,10 @@ public class RiskServiceImpl implements RiskService{
 		}
 	}
 	@Override
-	public List<RiskMitigationMergeDto> getRegMitigationList(Long groupDivisionId,String docType) throws Exception {
+	public List<RiskMitigationMergeDto> getRegMitigationList(Long groupDivisionId,String docType,Long revisionRecordId) throws Exception {
 		logger.info(new Date() + " RiskServiceImpl Inside method getRiskRegisterList()");
 		try {
-			List<Object[]> riskRegister = riskRepository.getRegMitigationList(groupDivisionId,docType);
+			List<Object[]> riskRegister = riskRepository.getRegMitigationList(groupDivisionId,docType,revisionRecordId);
 			List<RiskMitigationMergeDto> finalDto = Optional.ofNullable(riskRegister).orElse(Collections.emptyList()).stream()
 				    .map(obj -> {
 				    	RiskMitigationMergeDto dto = new RiskMitigationMergeDto();
@@ -277,12 +277,44 @@ public class RiskServiceImpl implements RiskService{
 				    					    	return dto;
 				    	
 				    })
-				    .sorted(Comparator.comparingLong(RiskMitigationMergeDto::getRiskRegisterId).reversed()) 
+				    .sorted(Comparator.comparingLong(RiskMitigationMergeDto::getRiskRegisterId)) 
 				    .collect(Collectors.toList());
 			return finalDto;
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("RiskServiceImpl Inside method getRiskRegisterList()"+ e);
+			return Collections.emptyList();
+		}
+	}
+	
+	
+	@Override
+	public List<MitigationRiskRegisterDto> getAllMititgationRiskRegisterlist() throws Exception {
+		logger.info(new Date() + " RiskServiceImpl Inside method getMititgationRiskRegisterlist()");
+		try {
+			List<Object[]> mitigationRiskRegister = mitigationriskRepository.getAllMititgationRiskRegisterlist();
+			List<MitigationRiskRegisterDto> finalDto = Optional.ofNullable(mitigationRiskRegister).orElse(Collections.emptyList()).stream()
+				    .map(obj -> {
+				    	MitigationRiskRegisterDto dto = new MitigationRiskRegisterDto();
+				    	dto.setMitigationRiskRegisterId(Long.parseLong(obj[0].toString()));
+				    	dto.setRiskRegisterId(Long.parseLong(obj[1].toString()));
+				    	dto.setMitigationApproach(obj[2].toString());
+				    	dto.setProbability(Integer.parseInt(obj[3].toString()));
+				    	dto.setTechnicalPerformance(Integer.parseInt(obj[4].toString()));
+				    	dto.setTime(Integer.parseInt(obj[5].toString()));
+				    	dto.setCost(Integer.parseInt(obj[6].toString()));
+				    	dto.setAverage(Double.parseDouble(obj[7].toString()));
+				    	dto.setRiskNo(Double.parseDouble(obj[8].toString()));
+				    	dto.setRevisionNo(Integer.parseInt(obj[9].toString()));
+				    	return dto;
+				    	
+				    })
+				    .sorted(Comparator.comparingLong(MitigationRiskRegisterDto::getMitigationRiskRegisterId).reversed()) 
+				    .collect(Collectors.toList());
+			return finalDto;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("RiskServiceImpl Inside method getMititgationRiskRegisterlist()"+ e);
 			return Collections.emptyList();
 		}
 	}
