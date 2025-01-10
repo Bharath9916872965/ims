@@ -3,6 +3,7 @@ package com.vts.ims.admin.service;
 import java.util.List;
 
 import com.vts.ims.admin.dto.*;
+import com.vts.ims.audit.dto.AuditPatchDto;
 import com.vts.ims.master.dto.EmployeeDto;
 import com.vts.ims.master.dto.LoginDetailsDto;
 import com.vts.ims.model.LoginStamping;
@@ -33,4 +34,5 @@ public interface AdminService {
     public Integer getNotifictionCount(String username)throws Exception;
     public List<NotificationDto> getNotifictionList(String username)throws Exception;
     public long updateNotification(String Username, String notificationId) throws Exception;
+	public List<AuditPatchDto> getAuditPatchList() throws Exception;
 }

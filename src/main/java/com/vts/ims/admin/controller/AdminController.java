@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vts.ims.admin.service.AdminService;
+import com.vts.ims.audit.dto.AuditPatchDto;
 import com.vts.ims.master.dto.EmployeeDto;
 import com.vts.ims.master.dto.LoginDetailsDto;
 import com.vts.ims.login.Login;
@@ -419,7 +420,18 @@ public class AdminController {
 			}
 		}
 	    
-	    	
 	    
+	    
+	    	
+	    @GetMapping(value = "/get-audit-patch-list", produces="application/json")
+		public ResponseEntity<List<AuditPatchDto>> getAuditPatchList(@RequestHeader  String username) throws Exception {
+			logger.info(new Date() +" Inside get-audit-patch-list " +username);
+			List<AuditPatchDto> result = service.getAuditPatchList();
+			if (result != null) {
+				return new ResponseEntity<>(result, HttpStatus.OK);
+			} else {
+				return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+			}
+		}
 	
 }

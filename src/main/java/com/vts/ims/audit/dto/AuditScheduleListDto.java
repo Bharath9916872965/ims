@@ -28,6 +28,9 @@ public class AuditScheduleListDto {
 	private String divisionName;
 	private String groupName;  
 	private String projectName;  
+	private String divisionCode;
+	private String groupCode;  
+	private String projectCode; 
 	private String projectShortName; 
 	private String scheduleStatus;  
 	private String statusName;  

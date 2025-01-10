@@ -1,26 +1,46 @@
 package com.vts.ims.admin.service;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.vts.ims.admin.dto.*;
-import com.vts.ims.admin.entity.FormRoleAccess;
-import com.vts.ims.admin.repository.*;
-import com.vts.ims.login.Login;
-import com.vts.ims.login.LoginRepository;
-
-import com.vts.ims.master.dto.DivisionMasterDto;
-import com.vts.ims.master.dto.EmpInfoDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.vts.ims.admin.dto.ApprovalAuthorityDto;
+import com.vts.ims.admin.dto.AuditStampingDto;
+import com.vts.ims.admin.dto.FormDetailDto;
+import com.vts.ims.admin.dto.FormModuleDto;
+import com.vts.ims.admin.dto.FormRoleDto;
+import com.vts.ims.admin.dto.FormroleAccessDto;
+import com.vts.ims.admin.dto.NotificationDto;
+import com.vts.ims.admin.dto.UserManageAddEditDto;
+import com.vts.ims.admin.dto.UserManagerListDto;
 import com.vts.ims.admin.entity.ApprovalAuthority;
+import com.vts.ims.admin.entity.AuditPatch;
 import com.vts.ims.admin.entity.FormDetail;
 import com.vts.ims.admin.entity.FormModule;
+import com.vts.ims.admin.entity.FormRoleAccess;
+import com.vts.ims.admin.repository.ApprovalAuthorityRepository;
+import com.vts.ims.admin.repository.AuditStampingRepo;
+import com.vts.ims.admin.repository.FormDetailRepo;
+import com.vts.ims.admin.repository.FormModuleRepo;
+import com.vts.ims.admin.repository.FormRoleAccessRepo;
+import com.vts.ims.admin.repository.ImsFormRoleRepo;
+import com.vts.ims.admin.repository.UserManagerRepo;
+import com.vts.ims.audit.dto.AuditPatchDto;
+import com.vts.ims.audit.repository.AuditPatchRepository;
+import com.vts.ims.login.Login;
+import com.vts.ims.login.LoginRepository;
 import com.vts.ims.master.dao.MasterClient;
 import com.vts.ims.master.dto.EmployeeDto;
 import com.vts.ims.master.dto.LoginDetailsDto;
@@ -69,6 +89,10 @@ public class AdminServiceImpl implements AdminService {
 	
 	@Autowired
 	NotificationRepository notificationRepo;
+	
+	
+	@Autowired
+	AuditPatchRepository auditPatchRepo;
 	
 	
 	@Value("${x_api_key}")
@@ -721,5 +745,37 @@ public class AdminServiceImpl implements AdminService {
 	    }
 	}
 
+	
+	@Override
+	public List<AuditPatchDto> getAuditPatchList() throws Exception {
+		logger.info(new Date() + " AdminServiceImpl Inside method getAuditPatchList ");
+		try {
+			List<AuditPatchDto> auditPatchListDto = new ArrayList<AuditPatchDto>();
+			List<AuditPatch> auditpatch = auditPatchRepo.findAll();
+			
+			auditpatch.forEach(data -> {
+				AuditPatchDto formModuleDto = AuditPatchDto.builder()
+						.auditPatchesId(data.getAuditPatchesId())
+						.versionNo(data.getVersionNo())
+						.patchDate(data.getPatchDate())
+						.description(data.getDescription())
+						.createdDate(data.getCreatedDate())
+						.attachment(data.getAttachment())
+						.modifiedBy(data.getModifiedBy())
+						.modifiedDate(data.getModifiedDate())
+						.build();
+				
+				auditPatchListDto.add(formModuleDto);
+			});
+			
+			return auditPatchListDto;
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error(new Date() +" error in AdminServiceImpl Inside method getAuditPatchList "+ e.getMessage());
+			return List.of();
+			
+		}
+	}
 	
 }
