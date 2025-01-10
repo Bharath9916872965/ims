@@ -24,5 +24,6 @@ public class CheckListDto {
     private Long ncCount;
     private String obsName;
     private String attachmentName;
+    private String carStatus;
 }
 

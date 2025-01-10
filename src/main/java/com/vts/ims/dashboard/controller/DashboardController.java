@@ -181,7 +181,6 @@ public class DashboardController {
 	}
 
 	
-	
 
 
 	@PostMapping(value = "/get-division-list-of-div-emps/{imsFormRoleId}/{empId}", produces = "application/json")
@@ -205,6 +204,14 @@ public class DashboardController {
 		return new ResponseEntity<List<DivisionMasterDto>>( dto,HttpStatus.OK);
 	}
 	
+	
+	@PostMapping(value = "/get-project-list-of-prj-director/{imsFormRoleId}/{empId}", produces = "application/json")
+	public ResponseEntity<List<ProjectMasterDto>> getProjectListOfPrjDir(@PathVariable("imsFormRoleId") Integer imsFormRoleId, @PathVariable("empId") Long empId, @RequestHeader String username) throws Exception {
+		logger.info(new Date() + " Inside getProjectListOfPrjDir()" );
+		List<ProjectMasterDto> dto = service.getProjectListOfPrjDir(imsFormRoleId, empId);
+		return new ResponseEntity<List<ProjectMasterDto>>( dto,HttpStatus.OK);
+	}
+
 	
 	@PostMapping(value = "/get-trend-nc-obs-list", produces = "application/json")
 	public List<CheckListObsCountDto> getTrendNcObsList(@RequestHeader  String username) throws Exception {

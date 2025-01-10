@@ -174,9 +174,9 @@ ORDER BY COALESCE(totalNC, 0) DESC;
  		+ "FROM\r\n"
  		+ "ims_audit_check_list a\r\n"
  		+ "LEFT JOIN ims_qms_qm_mapping_classes b ON b.MocId = a.MocId AND b.IsActive = 1\r\n"
- 		+ "LEFT JOIN ims_audit_schedule c ON c.ScheduleId = a.ScheduleId\r\n"
+ 		+ "LEFT JOIN ims_audit_schedule c ON c.ScheduleId = a.ScheduleId \r\n"
  		+ "LEFT JOIN ims_audit_corrective_action d ON d.AuditCheckListId=a.AuditCheckListId\r\n"
- 		+ "WHERE a.AuditObsId IN (2,3,4) AND a.IsActive = 1",nativeQuery = true)
+ 		+ "WHERE a.AuditObsId IN (2,3,4) AND a.IsActive = 1 AND  c.ScheduleStatus='ABA' ",nativeQuery = true)
 	public List<Object[]> getAuditCheckListbyObsIds();
 	 @Query(value = "SELECT a.MocId,b.MocDescription,COUNT(a.MocId) AS QuestionCount,b.ClauseNo,b.SectionNo,b.MocParentId,b.IsForCheckList\r\n"
 	 		+ "FROM ims_audit_check_list a\r\n"
@@ -192,6 +192,12 @@ ORDER BY COALESCE(totalNC, 0) DESC;
 				List<Object[]> getMostFqNCMocDes(@Param("scheduleId") Long scheduleId, 
 				                                 @Param("auditObsId") Integer auditObsId, 
 				                                 @Param("iqaId") Long iqaId);
+				@Query(value = "SELECT a.AuditCheckListId,a.MocId,a.AuditorRemarks,b.MocDescription,b.ClauseNo,b.SectionNo,c.CarRefNo, c.CarStatus,b.MocParentId,b.IsForCheckList\r\n"
+						+ "FROM ims_audit_check_list a\r\n"
+						+ "LEFT JOIN ims_qms_qm_mapping_classes b ON a.MocId = b.MocId AND b.IsActive = 1  \r\n"
+						+ "LEFT JOIN  ims_audit_corrective_action c ON c.AuditCheckListId=a.AuditCheckListId\r\n"
+						+ "WHERE a.IsActive = 1 AND a.AuditObsId='2' AND a.MocId=:mocId", nativeQuery = true)
+			public List<Object[]> getMostFreqNCDetails(@Param("mocId") Long mocId);
 
 
 
