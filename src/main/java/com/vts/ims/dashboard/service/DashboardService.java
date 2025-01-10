@@ -39,6 +39,8 @@ public interface DashboardService {
 	public List<DivisionMasterDto> getDivisionListOfDivEmps(Integer imsFormRoleId, Long empId) throws Exception;
 	public List<DivisionMasterDto> getDivisionListOfDH(Integer imsFormRoleId, Long empId) throws Exception;
 	public List<DivisionMasterDto> getDivisionListOfGH(Integer imsFormRoleId, Long empId) throws Exception;
+	public List<ProjectMasterDto> getProjectListOfPrjDir(Integer imsFormRoleId, Long empId) throws Exception;
+	
 	
 	public List<CheckListObsCountDto> getTrendNcObsList() throws Exception;
 }

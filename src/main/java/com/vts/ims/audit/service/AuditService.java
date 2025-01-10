@@ -155,6 +155,8 @@ public interface AuditService {
 	
 	public List<AuditClosureDateDTO> getClosureDate()throws Exception;
 
+	public List<CheckListDto> getMostFreqNCDetails(Long mocId)throws Exception;
+
 
 
 }

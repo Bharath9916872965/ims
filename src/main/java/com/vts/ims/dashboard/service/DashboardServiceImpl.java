@@ -711,6 +711,36 @@ public class DashboardServiceImpl implements DashboardService {
 	
 	
 	@Override
+	public List<ProjectMasterDto> getProjectListOfPrjDir(Integer imsFormRoleId, Long empId) throws Exception {
+		logger.info("Inside getProjectListOfPrjDir()");
+		try {
+
+			List<ProjectMasterDto> projectDto = masterClient.getProjectMasterList(xApiKey);
+
+	        // Filter active projects where isActive == 1
+			List<ProjectMasterDto> activeAllProjectDto = projectDto.stream()
+					.filter(dto -> dto.getIsActive() == 1)
+					.collect(Collectors.toList());
+
+
+
+	        // Further filter to find projects where ProjectDirector matches empId
+	        List<ProjectMasterDto> returnProjectList = activeAllProjectDto.stream()
+	                .filter(dto -> dto.getProjectDirector() != null && dto.getProjectDirector().equals(empId))
+	                .collect(Collectors.toList());
+
+	        // Return the filtered list
+	        return returnProjectList;
+	        
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error in getProjectListOfPrjDir() ", e);
+			return Collections.emptyList();
+		}
+	}
+	
+	
+	@Override
 	public List<CheckListObsCountDto> getTrendNcObsList() throws Exception {
 	    logger.info("Inside getTrendNcObsList()");
 
