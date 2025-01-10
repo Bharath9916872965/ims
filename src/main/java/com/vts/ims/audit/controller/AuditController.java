@@ -818,6 +818,21 @@ public class AuditController {
 			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST); 
 		}
 	}
+
+	@PostMapping(value = "/mostFreq-NcDetails-list/{mocId}", produces = "application/json")
+	public ResponseEntity<List<CheckListDto>> getMostFreqNCDetails(@PathVariable("mocId") Long mocId, @RequestHeader String username) throws Exception {
+		System.out.println("mocId: " + mocId);
+
+		try {
+			logger.info(new Date() + " Inside getMostFreqNCDetails" );
+		List<CheckListDto> dto=auditService.getMostFreqNCDetails(mocId);
+			return new ResponseEntity<List<CheckListDto>>( dto,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error fetching getMostFreqNCDetails: ", e);
+			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST); 
+		}
+	}
 	
 
 

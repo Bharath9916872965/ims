@@ -150,6 +150,8 @@ public interface AuditService {
 	
 	public long updateAuditClosure(AuditClosureDTO auditClosureDTO, String username)throws Exception;
 
+	public List<CheckListDto> getMostFreqNCDetails(Long mocId)throws Exception;
+
 
 
 }
