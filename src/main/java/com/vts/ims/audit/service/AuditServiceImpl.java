@@ -1622,6 +1622,9 @@ public class AuditServiceImpl implements AuditService{
 					    dto.setDivisionName(division != null ? division.getDivisionName() : "");
 					    dto.setGroupName(group != null ? group.getGroupName() : "");
 					    dto.setProjectName(project != null ? project.getProjectName() : "");
+					    dto.setDivisionCode(division != null ? division.getDivisionCode() : "");
+					    dto.setGroupCode(group != null ? group.getGroupCode() : "");
+					    dto.setProjectCode(project != null ? project.getProjectCode() : "");
 					    dto.setProjectShortName(project != null ? project.getProjectShortName() : "");
 					    dto.setScope(obj[20] != null ? obj[20].toString() : "");
 
