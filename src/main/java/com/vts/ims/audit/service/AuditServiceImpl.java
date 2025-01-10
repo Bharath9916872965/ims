@@ -33,6 +33,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.vts.ims.audit.dto.AuditCarDTO;
 import com.vts.ims.audit.dto.AuditCheckListDTO;
 import com.vts.ims.audit.dto.AuditClosureDTO;
+import com.vts.ims.audit.dto.AuditClosureDateDTO;
 import com.vts.ims.audit.dto.AuditCorrectiveActionDTO;
 import com.vts.ims.audit.dto.AuditRescheduleDto;
 import com.vts.ims.audit.dto.AuditScheduleDto;
@@ -1622,6 +1623,9 @@ public class AuditServiceImpl implements AuditService{
 					    dto.setDivisionName(division != null ? division.getDivisionName() : "");
 					    dto.setGroupName(group != null ? group.getGroupName() : "");
 					    dto.setProjectName(project != null ? project.getProjectName() : "");
+					    dto.setDivisionCode(division != null ? division.getDivisionCode() : "");
+					    dto.setGroupCode(group != null ? group.getGroupCode() : "");
+					    dto.setProjectCode(project != null ? project.getProjectCode() : "");
 					    dto.setProjectShortName(project != null ? project.getProjectShortName() : "");
 					    dto.setScope(obj[20] != null ? obj[20].toString() : "");
 
@@ -1708,7 +1712,7 @@ public class AuditServiceImpl implements AuditService{
 	
 	@Override
 	public List<IqaAuditeeDto> getIqaAuditeeList(Long iqaId) throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getAuditeeList()");
+		logger.info( " AuditServiceImpl Inside method getAuditeeList()");
 		try {
 			List<Object[]> iqaAuditeeList = iqaAuditeeRepository.iqaAuditeeList(iqaId); 
 			List<EmployeeDto> totalEmployee = masterClient.getEmployeeMasterList(xApiKey);
@@ -1759,7 +1763,7 @@ public class AuditServiceImpl implements AuditService{
 	
 	@Override
 	public long insertIqaAuditee(IqaAuditeeDto iqaAuditeeDto, String username) throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method insertIqaAuditee()");
+		logger.info(" AuditServiceImpl Inside method insertIqaAuditee()");
 		long result=0;
 		try {
 			if(iqaAuditeeDto!=null) {
@@ -1793,7 +1797,7 @@ public class AuditServiceImpl implements AuditService{
 	
 	@Override
 	public List<IqaAuditeeListDto> getIqaAuditeelist() throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getAuditeeList()");
+		logger.info(" AuditServiceImpl Inside method getAuditeeList()");
 		try {
 			List<Object[]> result = auditeeRepository.getIqaAuditeeList(); 
 			List<EmployeeDto> totalEmployee = masterClient.getEmployeeMasterList(xApiKey);
@@ -1823,7 +1827,6 @@ public class AuditServiceImpl implements AuditService{
 					    DivisionMasterDto division =	(obj[2] != null && !obj[2].toString().equalsIgnoreCase("0"))?divisionMap.get(Long.parseLong(obj[2].toString())):null;
 					    DivisionGroupDto group     =	(obj[3] != null && !obj[3].toString().equalsIgnoreCase("0"))?groupMap.get(Long.parseLong(obj[3].toString())):null;
 					    ProjectMasterDto project   =	(obj[4] != null && !obj[4].toString().equalsIgnoreCase("0"))?projectMap.get(Long.parseLong(obj[4].toString())):null;
-
 				    
 					   return  IqaAuditeeListDto.builder()
 					    	  .auditeeId(obj[0] != null?Long.parseLong(obj[0].toString()):0L)
@@ -1862,7 +1865,7 @@ public class AuditServiceImpl implements AuditService{
 
 	@Override
 	public List<AuditObservation> getObservation() throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getObservation()");
+		logger.info( " AuditServiceImpl Inside method getObservation()");
 		try {
 
 			return auditObservationRepository.findByIsActive(1);
@@ -1876,7 +1879,7 @@ public class AuditServiceImpl implements AuditService{
 	@Override
 	public int addAuditCheckList(AuditCheckListDTO auditCheckListDTO, String username) throws Exception {
 		int result = 1;
-		logger.info(new Date() + " AuditServiceImpl Inside method addAuditCheckList()");
+		logger.info(" AuditServiceImpl Inside method addAuditCheckList()");
 		try {
 
 			for(CheckListItem item  : auditCheckListDTO.getCheckListMap()){
@@ -1901,7 +1904,7 @@ public class AuditServiceImpl implements AuditService{
 	@Override
 	public long addAuditeeRemarks(List<MultipartFile> files,AuditCheckListDTO auditCheckListDTO, String username) throws Exception {
 		long result = 1;
-		logger.info(new Date() + " AuditServiceImpl Inside method addAuditeeRemarks()");
+		logger.info( " AuditServiceImpl Inside method addAuditeeRemarks()");
 		try {
 
 			Timestamp instant = Timestamp.from(Instant.now());
@@ -1912,6 +1915,7 @@ public class AuditServiceImpl implements AuditService{
 				checkList.setIqaId((long)auditCheckListDTO.getIqaId());			
 				checkList.setMocId((long)item.getMocId());			
 				checkList.setAuditeeRemarks(item.getAuditeeRemarks());
+				checkList.setMocDescription(item.getMocDescription());
 				if(item.getAttachment().equalsIgnoreCase("")){
 					checkList.setAttachment(item.getAttachment());
 				}else {
@@ -1967,7 +1971,7 @@ public class AuditServiceImpl implements AuditService{
 	@Override
 	public long updateAuditCheckList(AuditCheckListDTO auditCheckListDTO, String username) throws Exception {
 		long result = 1;
-		logger.info(new Date() + " AuditServiceImpl Inside method updateAuditCheckList()");
+		logger.info( " AuditServiceImpl Inside method updateAuditCheckList()");
 		try {
 
 			for(CheckListItem item  : auditCheckListDTO.getCheckListMap()){
@@ -1990,7 +1994,7 @@ public class AuditServiceImpl implements AuditService{
 	@Override
 	public int updateAuditeeRemarks(List<MultipartFile> files,AuditCheckListDTO auditCheckListDTO, String username) throws Exception {
 		int result = 1;
-		logger.info(new Date() + " AuditServiceImpl Inside method updateAuditeeRemarks()");
+		logger.info( " AuditServiceImpl Inside method updateAuditeeRemarks()");
 		try {
 			Timestamp instant = Timestamp.from(Instant.now());
 			String timestampstr = instant.toString().replace(" ", "").replace(":", "").replace("-", "").replace(".", "");
@@ -2040,7 +2044,7 @@ public class AuditServiceImpl implements AuditService{
 	
 	public long saveEachFilesUpload(MultipartFile file, AuditCheckListDTO auditCheckListDTO, String timestamp,String oldFile)throws Exception {
 		long result = 1;
-		logger.info(new Date() + " AuditServiceImpl Inside method saveDocFilesUpload()");
+		logger.info( " AuditServiceImpl Inside method saveDocFilesUpload()");
 		try {
 				
 				String orgNameExtension = FilenameUtils.getExtension(file.getOriginalFilename());
@@ -2075,7 +2079,7 @@ public class AuditServiceImpl implements AuditService{
 
 	@Override
 	public List<CheckListDto> getAuditCheckList(String scheduleId) throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getAuditCheckList()");
+		logger.info( " AuditServiceImpl Inside method getAuditCheckList()");
 		try {
 			 List<Object[]> result = auditCheckListRepository.getAuditCheckList(scheduleId);
 			 			 
@@ -2109,7 +2113,7 @@ public class AuditServiceImpl implements AuditService{
 	
 	@Override
 	public List<AuditCorrectiveActionDTO> getCarList() throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getCarList()");
+		logger.info( " AuditServiceImpl Inside method getCarList()");
 		try {
 			 List<Object[]> result = auditCorrectiveActionRepository.getActionTotalList();
 			 List<EmployeeDto> totalEmployee = masterClient.getEmployeeMasterList(xApiKey);
@@ -2155,7 +2159,7 @@ public class AuditServiceImpl implements AuditService{
 	public long uploadCheckListImage(MultipartFile file, Map<String, Object> response, String username)
 			throws Exception {
 		long result = 1;
-		logger.info(new Date() + " AuditServiceImpl Inside method uploadCheckListImage()");
+		logger.info( " AuditServiceImpl Inside method uploadCheckListImage()");
 		try {
 			String orgNameExtension = FilenameUtils.getExtension(file.getOriginalFilename());
 			String Attachmentname = FilenameUtils.removeExtension(response.get("checkListAttachementName").toString());
@@ -2173,6 +2177,7 @@ public class AuditServiceImpl implements AuditService{
 				checkList.setScheduleId(Long.parseLong(response.get("scheduleId").toString()));			
 				checkList.setIqaId(Long.parseLong(response.get("iqaId").toString()));			
 				checkList.setMocId(Long.parseLong(response.get("mocId").toString()));			
+				checkList.setMocDescription(response.get("mocDescription").toString());			
 				checkList.setAttachment(response.get("checkListAttachementName").toString());			
 				checkList.setAuditObsId(0L);
 				checkList.setAuditorRemarks("NA"); 
@@ -2205,7 +2210,7 @@ public class AuditServiceImpl implements AuditService{
 	@Override
 	public String getCheckListimg(AuditScheduleListDto auditScheduleListDto) throws Exception {
 		String result = null;
-		logger.info(new Date() + " AuditServiceImpl Inside method getCheckListimg()");
+		logger.info( " AuditServiceImpl Inside method getCheckListimg()");
 		try {
 			List<Object[]> checkListUpload = auditCheckListRepository.getCheckListUpload(auditScheduleListDto.getScheduleId().toString());
 			if(checkListUpload.size() > 0) {
@@ -2227,7 +2232,7 @@ public class AuditServiceImpl implements AuditService{
 	@Override
 	public Long checkAuditorPresent(String auditorId) throws Exception {
 		Long result = null;
-		logger.info(new Date() + " AuditServiceImpl Inside method checkAuditorPresent()");
+		logger.info( " AuditServiceImpl Inside method checkAuditorPresent()");
 		try {
 			result = teamMemberRepository.countTeamMembersByAuditorId(auditorId);
 		} catch (Exception e) {
@@ -2241,7 +2246,7 @@ public class AuditServiceImpl implements AuditService{
 	@Override
 	public int deleteAuditor(String auditorId) throws Exception {
 		int result = 0;
-		logger.info(new Date() + " AuditServiceImpl Inside method deleteAuditor()");
+		logger.info( " AuditServiceImpl Inside method deleteAuditor()");
 		try {
 			auditRepository.deleteById(Long.parseLong(auditorId));
 			result = 1;
@@ -2338,7 +2343,7 @@ public class AuditServiceImpl implements AuditService{
 	@Override
 	public int insertCorrectiveAction(List<AuditCarDTO> auditCarDTO, String username) throws Exception {
 		int result = 0;
-		logger.info(new Date() + " AuditServiceImpl Inside method insertCorrectiveAction()");
+		logger.info( " AuditServiceImpl Inside method insertCorrectiveAction()");
 		try {
 			Login login = loginRepo.findByUsername(username);
 			for(AuditCarDTO dto : auditCarDTO) {
@@ -2353,7 +2358,7 @@ public class AuditServiceImpl implements AuditService{
 	@Override
 	public int updateCorrectiveAction(AuditCarDTO auditCarDTO, String username) throws Exception {
 		int result = 0;
-		logger.info(new Date() + " AuditServiceImpl Inside method updateCorrectiveAction()");
+		logger.info( " AuditServiceImpl Inside method updateCorrectiveAction()");
 		try {
 	
 			  result = auditCorrectiveActionRepository.updateCarReport(auditCarDTO.getRootCause(),auditCarDTO.getCorrectiveActionTaken(),DLocalConvertion.converLocalTime(auditCarDTO.getCompletionDate()),username,LocalDateTime.now(),auditCarDTO.getCorrectiveActionId());	
@@ -2367,7 +2372,7 @@ public class AuditServiceImpl implements AuditService{
 
 
 	public long uploadCarAttachment(MultipartFile file, Map<String, Object> response, String username)throws Exception {
-		logger.info(new Date() +" Inside uploadCarAttachment ");
+		logger.info(" Inside uploadCarAttachment ");
 		Long count= 0L;
 
 		try{
@@ -2408,7 +2413,7 @@ public class AuditServiceImpl implements AuditService{
 	
 				filePath = Paths.get( storageDrive,"CAR",refNo);
 				
-			logger.info(new Date() +" Inside uploadCarAttachment " +filePath);
+			logger.info(" Inside uploadCarAttachment " +filePath);
 	        File theDir = filePath.toFile();
 	        if (!theDir.exists()){
 			     theDir.mkdirs();
@@ -2420,7 +2425,7 @@ public class AuditServiceImpl implements AuditService{
 
 		   } 
 		catch(Exception e){
-			logger.error(new Date() +" Inside uploadCarAttachment " +e);
+			logger.error(" Inside uploadCarAttachment " +e);
 		}
 		
 		return count;
@@ -2575,7 +2580,7 @@ public class AuditServiceImpl implements AuditService{
 	
 	public long saveDocFilesUpload(List<MultipartFile> files, AuditCheckListDTO auditCheckListDTO, String timestamp)throws Exception {
 		long result = 1;
-		logger.info(new Date() + " AuditServiceImpl Inside method saveDocFilesUpload()");
+		logger.info( " AuditServiceImpl Inside method saveDocFilesUpload()");
 		try {
 			for(int i=0; i<files.size(); i++) {
 				
@@ -2607,7 +2612,7 @@ public class AuditServiceImpl implements AuditService{
 	
 	@Override
 	public List<IqaScheduleDto> getIqaScheduleList() throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getIqaScheduleList()");
+		logger.info(" AuditServiceImpl Inside method getIqaScheduleList()");
 		try {
 			List<Object[]> result = iqaRepository.getIqaScdList();
 			
@@ -2638,7 +2643,7 @@ public class AuditServiceImpl implements AuditService{
 	@Override
 	public long addAuditClosure(AuditClosureDTO auditClosureDTO, String username) throws Exception {
 		long result = 0;
-		logger.info(new Date() + " AuditServiceImpl Inside method addAuditClosure()");
+		logger.info( " AuditServiceImpl Inside method addAuditClosure()");
 		try {
 			String content = auditClosureDTO.getContent().replace("\\", "");
 			if(content.startsWith("\"") && content.endsWith("\"")) {
@@ -2651,6 +2656,7 @@ public class AuditServiceImpl implements AuditService{
 			closure.setIqaId(auditClosureDTO.getIqaId());
 			closure.setRemarks(content);
 			closure.setActEmpId(login.getEmpId());
+			closure.setAttachmentName(auditClosureDTO.getAttchmentName());
 			closure.setCreatedBy(username);
 			closure.setCreatedDate(LocalDateTime.now());
 			closure.setIsActive(1);
@@ -2667,7 +2673,7 @@ public class AuditServiceImpl implements AuditService{
 
 	@Override
 	public List<AuditClosure> getAuditClosureList() throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getAuditClosureList()");
+		logger.info( " AuditServiceImpl Inside method getAuditClosureList()");
 		try {
 			return auditClosureRepository.findByIsActive(1);
 			
@@ -2681,7 +2687,7 @@ public class AuditServiceImpl implements AuditService{
 	@Override
 	public long updateAuditClosure(AuditClosureDTO auditClosureDTO, String username) throws Exception {
 		long result = 0;
-		logger.info(new Date() + " AuditServiceImpl Inside method updateAuditClosure()");
+		logger.info( " AuditServiceImpl Inside method updateAuditClosure()");
 		try {
 			String content = auditClosureDTO.getContent().replace("\\", "");
 			if(content.startsWith("\"") && content.endsWith("\"")) {
@@ -2693,6 +2699,7 @@ public class AuditServiceImpl implements AuditService{
 				closure = closureOptional.get();
 				closure.setClosureDate(DLocalConvertion.converLocalTime(auditClosureDTO.getCompletionDate()));
 				closure.setRemarks(content);
+				closure.setAttachmentName(auditClosureDTO.getAttchmentName());
 				closure.setModifiedBy(username);
 				closure.setModifiedDate(LocalDateTime.now());
 				
@@ -2705,6 +2712,65 @@ public class AuditServiceImpl implements AuditService{
 			
 		}
 		return result;
+	}
+	
+	@Override
+	public long uploadAuditClosureFile(MultipartFile file, Map<String, Object> response)
+			throws Exception {
+		long result = 0;
+		logger.info(" AuditServiceImpl Inside method uploadAuditClosureFile()");
+		try {
+			String orgNameExtension = FilenameUtils.getExtension(file.getOriginalFilename());
+			String Attachmentname = FilenameUtils.removeExtension(response.get("attchmentName").toString());
+			String iqaNo= response.get("iqaNo").toString().replace("/", "_");
+			
+			if(!response.get("closureId").toString().equalsIgnoreCase("0")) {
+				 if(!response.get("oldAttchmentName").toString().equalsIgnoreCase("")) {
+					 File fileR = Paths.get(storageDrive,"AuditClosure",iqaNo,response.get("oldAttchmentName").toString()).toFile();
+					 if(fileR.delete()) {
+						 result = 1;
+					 }
+				 }
+			 }
+				
+				Path filePath = null;
+				filePath = Paths.get(storageDrive,"AuditClosure",iqaNo);
+				
+				logger.info(" Inside uploadAuditClosureFile " +filePath);
+		        File theDir = filePath.toFile();
+		        if (!theDir.exists()){
+				     theDir.mkdirs();
+				 }
+		        Path fileToSave = filePath.resolve(Attachmentname + "." + orgNameExtension);
+		        file.transferTo(fileToSave.toFile());
+		        result = 1;
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method uploadAuditClosureFile()"+ e);
+		}
+		return result;
+	}
+	
+	@Override
+	public List<AuditClosureDateDTO> getClosureDate() throws Exception {
+		logger.info( " AuditServiceImpl Inside method getClosureDate()");
+		try {
+			List<Object[]> result = auditClosureRepository.getClosureDate();
+			
+			List<AuditClosureDateDTO> finalIqaDtoList = Optional.ofNullable(result).orElse(Collections.emptyList()).stream().map(rowData ->
+			AuditClosureDateDTO.builder()
+			.iqaId(rowData[0]!=null?Long.parseLong(rowData[0].toString()):0L)
+			.completionDate(rowData[1]!=null?rowData[1].toString():"")
+			.fromDate(rowData[2]!=null?rowData[2].toString():"")
+			.build()
+			).collect(Collectors.toList());
+			return finalIqaDtoList;
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method getClosureDate()"+ e);
+			 return Collections.emptyList();
+		}
 	}
 
 }
