@@ -2278,6 +2278,8 @@ public class AuditServiceImpl implements AuditService{
 					    			.auditeeRemarks(obj[11]!=null?obj[11].toString():"")
 					    			.scheduleStatus(obj[12]!=null?obj[12].toString():"")
 					    			.carRefNo(obj[13]!=null?obj[13].toString():"")
+					    			.carStatus(obj[14]!=null?obj[14].toString():"")
+					    			
 					    			.build();
 					    })
 					    .collect(Collectors.toList());
