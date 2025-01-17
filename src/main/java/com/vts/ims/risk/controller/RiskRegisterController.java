@@ -41,7 +41,7 @@ public class RiskRegisterController {
 	@PostMapping(value = "/risk-register-list", produces = "application/json")
 	public ResponseEntity<List<RiskRegisterDto>> riskRegisterList(@RequestHeader String username,@RequestBody String revisionRecordId) throws Exception {
 		try {
-			logger.info(new Date() + " Inside riskRegisterList" );
+			logger.info( " Inside riskRegisterList" );
 			List<RiskRegisterDto> dto=service.getRiskRegisterList(Long.parseLong(revisionRecordId));
 			return new ResponseEntity<List<RiskRegisterDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
@@ -55,7 +55,7 @@ public class RiskRegisterController {
 	@PostMapping(value = "/insert-risk-register", produces = "application/json")
 	public ResponseEntity<String> insertriskregister(@RequestHeader String username, @RequestBody RiskRegisterDto dto) throws Exception {
 		try {
-			logger.info(new Date() + " Inside insert-risk-register" );
+			logger.info( " Inside insert-risk-register" );
 			 long insertRiskRegister=service.insertRiskRegister(dto,username);
 			 if(insertRiskRegister > 0) {
 				 return new ResponseEntity<String>("200" , HttpStatus.OK);
@@ -63,7 +63,7 @@ public class RiskRegisterController {
 				 return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
 			 }
 		} catch (Exception e) {
-			 logger.error(new Date() +"error in insert-risk-register"+ e.getMessage());
+			 logger.error("error in insert-risk-register"+ e.getMessage());
 			 e.printStackTrace();
 			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
 		}
@@ -74,7 +74,7 @@ public class RiskRegisterController {
 	@PostMapping(value = "/mititgation-risk-register-list", produces = "application/json")
 	public ResponseEntity<List<MitigationRiskRegisterDto>> mititgationRiskRegisterlist(@RequestHeader String username,@RequestBody String riskRegisterId) throws Exception {
 		try {
-			logger.info(new Date() + " Inside mititgationRiskRegisterlist" );
+			logger.info( " Inside mititgationRiskRegisterlist" );
 			List<MitigationRiskRegisterDto> dto=service.getMititgationRiskRegisterlist(Long.parseLong(riskRegisterId));
 			return new ResponseEntity<List<MitigationRiskRegisterDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
@@ -88,7 +88,7 @@ public class RiskRegisterController {
 	@PostMapping(value = "/insert-mititgation-risk-register", produces = "application/json")
 	public ResponseEntity<String> insertMitigationRiskRegister(@RequestHeader String username, @RequestBody MitigationRiskRegisterDto dto) throws Exception {
 		try {
-			logger.info(new Date() + " Inside insert-mititgation-risk-register" );
+			logger.info( " Inside insert-mititgation-risk-register" );
 			 long insertMitigationRiskRegister=service.insertMititgationRiskRegister(dto,username);
 			 if(insertMitigationRiskRegister > 0) {
 				 return new ResponseEntity<String>("200" , HttpStatus.OK);
@@ -96,7 +96,7 @@ public class RiskRegisterController {
 				 return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
 			 }
 		} catch (Exception e) {
-			 logger.error(new Date() +"error in insert-mititgation-risk-register"+ e.getMessage());
+			 logger.error("error in insert-mititgation-risk-register"+ e.getMessage());
 			 e.printStackTrace();
 			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
 		}
@@ -106,7 +106,7 @@ public class RiskRegisterController {
 	@PostMapping(value = "/risk-RegMitigation-List/{groupDivisionId}/{docType}/{revisionRecordId}", produces = "application/json")
 	public ResponseEntity<List<RiskMitigationMergeDto>> riskRegMitigationList(@PathVariable("groupDivisionId") Long groupDivisionId,   @PathVariable("docType") String docType,@PathVariable("revisionRecordId") Long revisionRecordId, @RequestHeader String username) throws Exception {
 		try {
-			logger.info(new Date() + " Inside riskRegMitigationList" );
+			logger.info( " Inside riskRegMitigationList" );
 			System.out.println("revisionRecordId"+revisionRecordId);
 			List<RiskMitigationMergeDto> dto=service.getRegMitigationList(groupDivisionId,docType,revisionRecordId);
 			return new ResponseEntity<List<RiskMitigationMergeDto>>( dto,HttpStatus.OK);
@@ -122,7 +122,7 @@ public class RiskRegisterController {
 	@PostMapping(value = "/get-all-mitigation-risk-list", produces = "application/json")
 	public ResponseEntity<List<MitigationRiskRegisterDto>> allMititgationRiskRegisterlist(@RequestHeader String username,@RequestBody String riskRegisterId) throws Exception {
 		try {
-			logger.info(new Date() + " Inside allMititgationRiskRegisterlist" );
+			logger.info( " Inside allMititgationRiskRegisterlist" );
 			List<MitigationRiskRegisterDto> dto=service.getAllMititgationRiskRegisterlist();
 			return new ResponseEntity<List<MitigationRiskRegisterDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {

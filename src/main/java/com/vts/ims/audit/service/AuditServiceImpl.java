@@ -8,10 +8,10 @@ import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -25,9 +25,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.vts.ims.audit.dto.AuditCarDTO;
@@ -63,6 +61,8 @@ import com.vts.ims.audit.model.AuditTeamMembers;
 import com.vts.ims.audit.model.AuditTransaction;
 import com.vts.ims.audit.model.Auditee;
 import com.vts.ims.audit.model.Auditor;
+import com.vts.ims.audit.model.ImsAuditMailTrack;
+import com.vts.ims.audit.model.ImsAuditMailTrackInsights;
 import com.vts.ims.audit.model.Iqa;
 import com.vts.ims.audit.model.IqaAuditee;
 import com.vts.ims.audit.repository.AuditCheckListRepository;
@@ -74,6 +74,8 @@ import com.vts.ims.audit.repository.AuditScheduleRevRepository;
 import com.vts.ims.audit.repository.AuditTransactionRepository;
 import com.vts.ims.audit.repository.AuditeeRepository;
 import com.vts.ims.audit.repository.AuditorRepository;
+import com.vts.ims.audit.repository.ImsMailTrackInsightRepository;
+import com.vts.ims.audit.repository.ImsMailTrackRepository;
 import com.vts.ims.audit.repository.IqaAuditeeRepository;
 import com.vts.ims.audit.repository.IqaRepository;
 import com.vts.ims.audit.repository.TeamMemberRepository;
@@ -140,9 +142,6 @@ public class AuditServiceImpl implements AuditService{
 	@Autowired
 	LoginRepository loginRepo;
 	
-//	@Autowired
-//	private JavaMailSender emailSender;
-	
 	@Autowired
 	private NotificationRepository notificationRepo;
 	
@@ -164,6 +163,12 @@ public class AuditServiceImpl implements AuditService{
 
 	@Autowired
 	private AuditCorrectiveActionRepository auditCorrectiveActionRepository;
+	
+	@Autowired
+	private ImsMailTrackRepository imsMailTrackRepository;
+	
+	@Autowired
+	private ImsMailTrackInsightRepository imsMailTrackInsightRepository;
 	
 	@Value("${starttls}")
 	private String starttls;
@@ -188,7 +193,7 @@ public class AuditServiceImpl implements AuditService{
 	
 	@Override
 	public List<AuditorDto> getAuditorList() throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getAuditorList()");
+		logger.info( " AuditServiceImpl Inside method getAuditorList()");
 		try {
 			List<Auditor> auditors = auditRepository.findAll();
 			List<EmployeeDto> employeeList=masterClient.getEmployeeList(xApiKey);
@@ -198,7 +203,6 @@ public class AuditServiceImpl implements AuditService{
 			List<AuditorDto> finalDto = auditors.stream()
 				    .map(obj -> {
 				        AuditorDto auditorDto = new AuditorDto();
-				       // EmployeeDto employeeDto = masterClient.getEmployee(xApiKey, obj.getEmpId()).get(0);
 				        EmployeeDto employeeDto =  employeeMap.get(obj.getEmpId());
 				        auditorDto.setEmpId(obj.getEmpId());
 				        auditorDto.setEmpName(employeeDto.getEmpName());
@@ -221,7 +225,7 @@ public class AuditServiceImpl implements AuditService{
 	
 	@Override
 	public List<EmployeeDto> getEmployelist() throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getEmployelist()");
+		logger.info( " AuditServiceImpl Inside method getEmployelist()");
 		try {
 
 			List<EmployeeDto> empdto=masterClient.getEmployeeList(xApiKey);
@@ -243,7 +247,7 @@ public class AuditServiceImpl implements AuditService{
 	
 	@Override
 	public long insertAuditor(String[] empIds, String username) throws Exception {
-	    logger.info(new Date() + " AuditServiceImpl Inside method insertAuditor()");
+	    logger.info( " AuditServiceImpl Inside method insertAuditor()");
 	    long result = 0;
 	    try {
 	        if (empIds != null && empIds.length > 0) {
@@ -283,7 +287,7 @@ public class AuditServiceImpl implements AuditService{
 	
 	@Override
 	public long updateAuditor(AuditorDto auditordto, String username) throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method updateAuditor()");
+		logger.info( " AuditServiceImpl Inside method updateAuditor()");
 		long result=0;
 		try {
 			Optional<Auditor> model =auditRepository.findById(auditordto.getAuditorId());
@@ -304,7 +308,7 @@ public class AuditServiceImpl implements AuditService{
 	
 	@Override
 	public List<IqaDto> getIqaList() throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getIqaList()");
+		logger.info( " AuditServiceImpl Inside method getIqaList()");
 		try {
 			List<Iqa> iqalist = iqaRepository.findAll();
 			List<IqaDto> finalIqaDtoList = iqalist.stream()
@@ -330,7 +334,7 @@ public class AuditServiceImpl implements AuditService{
 	
 	@Override
 	public long insertIqa(IqaDto iqadto, String username) throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method insertIqa()");
+		logger.info( " AuditServiceImpl Inside method insertIqa()");
 		long result=0;
 		try {
 			if(iqadto!=null && iqadto.getIqaId()!=null) {
@@ -376,7 +380,7 @@ public class AuditServiceImpl implements AuditService{
 	
 	@Override
 	public List<AuditeeDto> getAuditeeList() throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getAuditeeList()");
+		logger.info( " AuditServiceImpl Inside method getAuditeeList()");
 		try {
 			List<Auditee> auditeeList = auditeeRepository.findAllByIsActive(1); 
 			List<EmployeeDto> totalEmployee = masterClient.getEmployeeMasterList(xApiKey);
@@ -439,7 +443,7 @@ public class AuditServiceImpl implements AuditService{
 	
 	@Override
 	public List<DivisionMasterDto> getDivisionMaster() throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getDivisionMaster()");
+		logger.info( " AuditServiceImpl Inside method getDivisionMaster()");
 		try {
 
 			List<DivisionMasterDto> divisiondto=masterClient.getDivisionMaster(xApiKey);
@@ -456,7 +460,7 @@ public class AuditServiceImpl implements AuditService{
 	
 	@Override
 	public List<DivisionGroupDto> getDivisionGroupList() throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getDivisionGroupList()");
+		logger.info( " AuditServiceImpl Inside method getDivisionGroupList()");
 		try {
 			List<DivisionGroupDto> divisiongroupdto=masterClient.getDivisionGroupList(xApiKey);
 			return divisiongroupdto.stream()
@@ -471,7 +475,7 @@ public class AuditServiceImpl implements AuditService{
 	
 	@Override
 	public List<ProjectMasterDto> getProjectMasterList() throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getProjectMasterList()");
+		logger.info( " AuditServiceImpl Inside method getProjectMasterList()");
 		try {
 			List<ProjectMasterDto> projectmasterdto=masterClient.getProjectMasterList(xApiKey);
 			return projectmasterdto.stream()
@@ -486,7 +490,7 @@ public class AuditServiceImpl implements AuditService{
 	
 	@Override
 	public long insertAuditee(AuditeeDto auditeedto, String username) throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method insertAuditee()");
+		logger.info( " AuditServiceImpl Inside method insertAuditee()");
 		long result=0;
 		try {
 			if(auditeedto!=null && auditeedto.getAuditeeId()!=null) {
@@ -544,7 +548,7 @@ public class AuditServiceImpl implements AuditService{
 	
 	@Override
 	public List<AuditTeam> getTeamList() throws Exception {
-	    logger.info(new Date() + " AuditServiceImpl Inside method getTeamList()");
+	    logger.info( " AuditServiceImpl Inside method getTeamList()");
 	    try {
 	    	return teamRepository.findAllByIsActive(1);
 	    } catch (Exception e) {
@@ -557,7 +561,7 @@ public class AuditServiceImpl implements AuditService{
 	
 	@Override
 	public long updateAuditee(String auditeeId, String username) throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method updateAuditee()");
+		logger.info( " AuditServiceImpl Inside method updateAuditee()");
 		long result=0;
 		try {
 			Optional<Auditee> model =auditeeRepository.findById(Long.parseLong(auditeeId));
@@ -998,7 +1002,8 @@ public class AuditServiceImpl implements AuditService{
 	@Override 
 	public long scheduleMailSend(List<AuditScheduleListDto> auditScheduleListDto, String username) throws Exception {
 	    logger.info( " AuditServiceImpl Inside method scheduleMailSend()");
-	    long result = 0;
+	    long teamResult = 0;
+	    long auditResult = 0;
 	    try {
 	    	Login login = loginRepo.findByUsername(username);
 	    	Long iqaId = auditScheduleListDto.get(0).getIqaId();
@@ -1010,19 +1015,37 @@ public class AuditServiceImpl implements AuditService{
 			Map<Long, List<AuditScheduleListDto>> auditeeMap = auditScheduleListDto.stream().collect(Collectors.groupingBy(AuditScheduleListDto::getAuditeeEmpId));
 			Map<Long, List<AuditScheduleListDto>> teamMap = auditScheduleListDto.stream().collect(Collectors.groupingBy(AuditScheduleListDto::getTeamId));			
 			
+			ArrayList<Long> teams = new ArrayList<>(teamMap.keySet());
+			List<Object[]> filAuditees = auditorsByIqa.stream().filter(data -> teams.contains(Long.parseLong(data[1].toString()))).collect(Collectors.toList());		
+			ImsAuditMailTrack imsAuditMailTrack = new ImsAuditMailTrack();
+			imsAuditMailTrack.setCreatedDate(LocalDateTime.now());
+			imsAuditMailTrack.setMailExpectedCount((long)(auditeeMap.size()+filAuditees.size()));
+			
+			Long mailTrackingId = imsMailTrackRepository.save(imsAuditMailTrack).getMailTrackingId();			
+			
+			
 			String url= "/schedule-approval";
 			String NotiMsg = auditScheduleListDto.get(0).getIqaNo()+" Of Audit Schedule Forwarded by "+ employeeLogIn.getEmpName()+", "+employeeLogIn.getEmpDesigName();
-			result = sendTeamMail(teamMap,username,login,url,NotiMsg,totalEmployee,auditorsByIqa,iqaNo);
-			result = sendAuditeeMail(auditeeMap,username,login,url,NotiMsg,totalEmployee,auditorsByIqa,iqaNo);
+			teamResult  = sendTeamMail(teamMap,username,login,url,NotiMsg,totalEmployee,auditorsByIqa,iqaNo,mailTrackingId);
+			auditResult = sendAuditeeMail(auditeeMap,username,login,url,NotiMsg,totalEmployee,auditorsByIqa,iqaNo,mailTrackingId);
+			
+			Optional<ImsAuditMailTrack> mailOptional = imsMailTrackRepository.findById(mailTrackingId);
+			if(mailOptional.isPresent()) {
+				ImsAuditMailTrack mail = mailOptional.get();
+				mail.setMailSentCount(teamResult+auditResult);	
+				mail.setMailSentDateTime(LocalDateTime.now());
+				mail.setMailSentStatus("S");
+				imsMailTrackRepository.save(mail);
+			}
 	    	
 	    } catch (Exception e) {
 	    	e.printStackTrace();
 	        logger.error("AuditServiceImpl Inside method scheduleMailSend() " + e);
 	    }
-	    return result;
+	    return 1;
 	}
 	
-	public long sendAuditeeMail(Map<Long, List<AuditScheduleListDto>> auditeeMap,String username,Login login,String url,String NotiMsg,List<EmployeeDto> totalEmployee,List<Object[]> auditorsByIqa,String iqaNo) throws Exception {
+	public long sendAuditeeMail(Map<Long, List<AuditScheduleListDto>> auditeeMap,String username,Login login,String url,String NotiMsg,List<EmployeeDto> totalEmployee,List<Object[]> auditorsByIqa,String iqaNo,Long mailTrackingId) throws Exception {
 		
 		String heading   = "<span>Dear Sir/Madam,</span>"
 							+ "<br /><br /><span>Please find details of your Audit Schedul of "+iqaNo+"</span>"
@@ -1030,7 +1053,9 @@ public class AuditServiceImpl implements AuditService{
 		String  note = "<br /><br /><span>Important Note: This is an automated message. Kindly avoid responding.</span>"
 					    + "<br /><br /><span>Regards,</span> <br />"
 						+ "<span>LRDE-IMS Team</span>";
-		  try {			  
+		
+	    AtomicInteger count = new AtomicInteger(0);
+		  try {	
 			auditeeMap.forEach((key, value) -> {
 				    StringBuilder tableContent = new StringBuilder();
 				    tableContent.append("<table border='1' style='border-collapse: collapse; width: 100%;'>")
@@ -1042,6 +1067,7 @@ public class AuditServiceImpl implements AuditService{
 					            .append("<th style='width: 10%;'>Team</th></tr>");
 
 				    AtomicInteger index = new AtomicInteger(1);
+			
 				    value.forEach(dto -> {
 				    	try {
 							List<Object[]> teamMemberDetails = teamRepository.getTeamMemberDetails(dto.getTeamId());
@@ -1073,19 +1099,31 @@ public class AuditServiceImpl implements AuditService{
 
 					EmployeeDto employee =	NFormatConvertion.getEmployeeDetails(key,totalEmployee);
 					if(employee!=null && employee.getEmail() !=null && !(employee.getEmail().equalsIgnoreCase("a@lrde.com"))) {	
-			            sendHtmlMessage(employee.getEmail(), "Audit Schedule of " + iqaNo, tableContent.toString(), heading, note);
+						long sendMessage = sendHtmlMessage(employee.getEmail(), "Audit Schedule of " + iqaNo, tableContent.toString(), heading, note);
+						if(sendMessage > 0) {
+							ImsAuditMailTrackInsights trackInsights = new ImsAuditMailTrackInsights();
+							trackInsights.setMailTrackingId(mailTrackingId);					
+							trackInsights.setEmpId(employee.getEmpId());
+							trackInsights.setMessage(heading+tableContent+note);
+							trackInsights.setMailStatus('S');
+							trackInsights.setMailSentDate(LocalDateTime.now());
+							trackInsights.setCreatedDate(LocalDateTime.now());
+							imsMailTrackInsightRepository.save(trackInsights);
+							
+							count.incrementAndGet();
+						}
 					}
 		            insertScheduleNomination(key,login.getEmpId(),username,url,NotiMsg);
-				});
+		            });
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error( " Inside sendAuditeeMail Service "+e );
 		}
-		return 1;
+		return count.longValue();
 	}
 	
-	public long sendTeamMail(Map<Long, List<AuditScheduleListDto>> teamMap,String username,Login login,String url,String NotiMsg,List<EmployeeDto> totalEmployee,List<Object[]> auditorsByIqa,String iqaNo) throws Exception {
+	public long sendTeamMail(Map<Long, List<AuditScheduleListDto>> teamMap,String username,Login login,String url,String NotiMsg,List<EmployeeDto> totalEmployee,List<Object[]> auditorsByIqa,String iqaNo,Long mailTrackingId) throws Exception {
 		
 		String heading   = "<span>Dear Sir/Madam,</span>"
 							+ "<br /><br /><span>Please find details of your Audit Schedule of "+iqaNo+"</span>"
@@ -1093,6 +1131,7 @@ public class AuditServiceImpl implements AuditService{
 		String  note = "<br /><br /><span>Important Note: This is an automated message. Kindly avoid responding.</span>"
 					    + "<br /><br /><span>Regards,</span> <br />"
 						+ "<span>LRDE-IMS Team</span>";
+		AtomicInteger count = new AtomicInteger(0);
 		  try {			  
 			  teamMap.forEach((key, value) -> {
 				    StringBuilder tableContent = new StringBuilder();
@@ -1120,7 +1159,19 @@ public class AuditServiceImpl implements AuditService{
 				        if (key.equals(Long.parseLong(obj[1].toString()))) {
 							EmployeeDto employee =	NFormatConvertion.getEmployeeDetails(Long.parseLong(obj[0].toString()),totalEmployee);
 							if(employee!=null && employee.getEmail() !=null && !(employee.getEmail().equalsIgnoreCase("a@lrde.com"))) {	
-					            sendHtmlMessage(employee.getEmail(), "Audit Schedule of " + iqaNo, tableContent.toString(), heading, note);
+								long sendMessage = sendHtmlMessage(employee.getEmail(), "Audit Schedule of " + iqaNo, tableContent.toString(), heading, note);
+								if(sendMessage > 0) {
+									ImsAuditMailTrackInsights trackInsights = new ImsAuditMailTrackInsights();
+									trackInsights.setMailTrackingId(mailTrackingId);					
+									trackInsights.setEmpId(employee.getEmpId());
+									trackInsights.setMessage(heading+tableContent+note);
+									trackInsights.setMailStatus('S');
+									trackInsights.setMailSentDate(LocalDateTime.now());
+									trackInsights.setCreatedDate(LocalDateTime.now());
+									imsMailTrackInsightRepository.save(trackInsights);
+									
+									count.incrementAndGet();
+								}
 							}
 				            insertScheduleNomination(Long.parseLong(obj[0].toString()),login.getEmpId(),username,url,NotiMsg);
 				        }
@@ -1131,13 +1182,14 @@ public class AuditServiceImpl implements AuditService{
 			e.printStackTrace();
 			logger.error( " Inside sendTeamMail Service " );
 		}
-		return 1;
+		  return count.longValue();
 	}
 	
 	public long sendRescheduleMail(AuditScheduleListDto dto,String username,Login login,String url,String NotiMsg,List<EmployeeDto> totalEmployee) throws Exception {
 		long result = 0;
+		long count = 0;
 		  try {
-			  
+				
 			String heading   = "<span>Dear Sir/Madam,</span>"
 								+ "<br /><br /><span>Please find details of your Audit Schedule of "+dto.getIqaNo()+"</span>"
 							    + "<br /><br />";
@@ -1180,6 +1232,12 @@ public class AuditServiceImpl implements AuditService{
             .append("<td style='text-align: center;'>").append(FormatConverter.getDateTimeFormat(dto.getScheduleDate())).append("</td>")
             .append("<td>").append((dto.getGroupName() != ""?dto.getGroupName():dto.getDivisionName() != ""?dto.getDivisionName():dto.getProjectName() != ""?dto.getProjectName():" - ")).append("</td>")
             .append("<td>").append("<span style='font-weight: bolder;'>"+dto.getTeamCode()+"</span><br />");
+		    
+			ImsAuditMailTrack imsAuditMailTrack = new ImsAuditMailTrack();
+			imsAuditMailTrack.setCreatedDate(LocalDateTime.now());
+			imsAuditMailTrack.setMailExpectedCount((long)(teamMemberDetails.size()+1));
+			
+			Long mailTrackingId = imsMailTrackRepository.save(imsAuditMailTrack).getMailTrackingId();	
             for( int i = 0;i<teamMemberDetails.size();i++){
          		EmployeeDto employee =	NFormatConvertion.getEmployeeDetails(Long.parseLong(teamMemberDetails.get(i)[1].toString()),totalEmployee);
          		if(i < (teamMemberDetails.size() - 1)) {
@@ -1198,15 +1256,48 @@ public class AuditServiceImpl implements AuditService{
 	    	result = insertScheduleNomination(auditee.getEmpId(),login.getEmpId(),username,url,NotiMsg);
 			EmployeeDto auditeeDetails =	NFormatConvertion.getEmployeeDetails(auditee.getEmpId(),totalEmployee);
 			if(auditeeDetails!=null && auditeeDetails.getEmail() !=null && !(auditeeDetails.getEmail().equalsIgnoreCase("a@lrde.com"))) {	
-				sendHtmlMessage(auditeeDetails.getEmail(),"Audit Schedule of "+dto.getIqaNo(), AuditeetableContent.toString(), heading, note);
+				long sendMessage = sendHtmlMessage(auditeeDetails.getEmail(),"Audit Schedule of "+dto.getIqaNo(), AuditeetableContent.toString(), heading, note);
+				if(sendMessage > 0) {
+					ImsAuditMailTrackInsights trackInsights = new ImsAuditMailTrackInsights();
+					trackInsights.setMailTrackingId(mailTrackingId);					
+					trackInsights.setEmpId(auditee.getEmpId());
+					trackInsights.setMessage(heading+tableContent+note);
+					trackInsights.setMailStatus('S');
+					trackInsights.setMailSentDate(LocalDateTime.now());
+					trackInsights.setCreatedDate(LocalDateTime.now());
+					imsMailTrackInsightRepository.save(trackInsights);
+					
+					count++;
+				}
 			}
     	
 			for(Object[] obj : teamMemberDetails) {
 				result = insertScheduleNomination(Long.parseLong(obj[1].toString()),login.getEmpId(),username,url,NotiMsg);
 				EmployeeDto employee =	NFormatConvertion.getEmployeeDetails(Long.parseLong(obj[1].toString()),totalEmployee);
 				if(employee!=null && employee.getEmail() !=null && !(employee.getEmail().equalsIgnoreCase("a@lrde.com"))) {	
-					sendHtmlMessage(employee.getEmail(),"Audit Schedule of "+dto.getIqaNo(), tableContent.toString(), heading, note);
+					long sendMessage = sendHtmlMessage(employee.getEmail(),"Audit Schedule of "+dto.getIqaNo(), tableContent.toString(), heading, note);
+					if(sendMessage > 0) {
+						ImsAuditMailTrackInsights trackInsights = new ImsAuditMailTrackInsights();
+						trackInsights.setMailTrackingId(mailTrackingId);					
+						trackInsights.setEmpId(Long.parseLong(obj[1].toString()));
+						trackInsights.setMessage(heading+tableContent+note);
+						trackInsights.setMailStatus('S');
+						trackInsights.setMailSentDate(LocalDateTime.now());
+						trackInsights.setCreatedDate(LocalDateTime.now());
+						imsMailTrackInsightRepository.save(trackInsights);
+						
+						count++;
+					}
 				}
+			}
+			
+			Optional<ImsAuditMailTrack> mailOptional = imsMailTrackRepository.findById(mailTrackingId);
+			if(mailOptional.isPresent()) {
+				ImsAuditMailTrack mail = mailOptional.get();
+				mail.setMailSentCount(count);	
+				mail.setMailSentDateTime(LocalDateTime.now());
+				mail.setMailSentStatus("S");
+				imsMailTrackRepository.save(mail);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1215,7 +1306,7 @@ public class AuditServiceImpl implements AuditService{
 		return result;
 	}
 	
-	public void sendHtmlMessage(String to, String subject, String tableContent, String heading, String note) {
+	public long sendHtmlMessage(String to, String subject, String tableContent, String heading, String note) {
 	    try {
 	    	
 	        String htmlMessage = "<html>"
@@ -1249,26 +1340,13 @@ public class AuditServiceImpl implements AuditService{
 		Transport.send(message);
 		
 		Thread.sleep(10000);
+		return 1;
 	    }catch (MessagingException | InterruptedException mex) {
 				mex.printStackTrace();
 		        logger.error("Inside sendHtmlMessage Service", mex);
+		        return 0;
 		}
 	}
-
-	
-//	public void sendSimpleMessage(String to, String subject, String text) {
-//	    try {
-//		 SimpleMailMessage message = new SimpleMailMessage(); 
-//		        message.setTo(to); 
-//		        message.setSubject(subject); 
-//		        message.setText(text);
-//		    emailSender.send(message);
-//		       
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			logger.error( " Inside sendSimpleMessage Service " );
-//		}	        
-//	}
 	
 	public long insertScheduleNomination(Long id,Long LoginEmpId  , String username, String url, String message) {
 		try {			
@@ -1378,7 +1456,7 @@ public class AuditServiceImpl implements AuditService{
 	}
 
 	public List<AuditorTeamDto> getAuditTeamMainList() throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getAuditTeamList()");
+		logger.info( " AuditServiceImpl Inside method getAuditTeamList()");
 		try {
 			List<AuditTeam> auditTeamList=teamRepository.findAllByIsActive(1);
 			List<AuditorTeamDto> finalAuditTeamList  = auditTeamList.stream()
@@ -1402,7 +1480,7 @@ public class AuditServiceImpl implements AuditService{
 	
 	@Override
 	public List<AuditorDto> getAuditorIsActiveList() throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getAuditorList()");
+		logger.info( " AuditServiceImpl Inside method getAuditorList()");
 		try {
 			List<Auditor> auditors = auditRepository.findAllByIsActive(1);
 			List<EmployeeDto> employeeList=masterClient.getEmployeeList("VTS");
@@ -1412,7 +1490,6 @@ public class AuditServiceImpl implements AuditService{
 			List<AuditorDto> finalDto = auditors.stream()
 				    .map(obj -> {
 				        AuditorDto auditorDto = new AuditorDto();
-				       // EmployeeDto employeeDto = masterClient.getEmployee("VTS", obj.getEmpId()).get(0);
 				        EmployeeDto employeeDto =  employeeMap.get(obj.getEmpId());
 				        auditorDto.setEmpId(obj.getEmpId());
 				        auditorDto.setEmpName(employeeDto.getEmpName());
@@ -1432,7 +1509,7 @@ public class AuditServiceImpl implements AuditService{
 	
 	@Override
 	public List<AuditTeamMembersDto> getTeamMmberIsActiveList() throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getTeamMmberIsActiveList()");
+		logger.info( " AuditServiceImpl Inside method getTeamMmberIsActiveList()");
 		try {
 			List<AuditTeamMembers> teamMembers = teamMemberRepository.findAllByIsActive(1);
 			List<AuditTeam> auditTeamList=teamRepository.findAllByIsActive(1);
@@ -1461,11 +1538,9 @@ public class AuditServiceImpl implements AuditService{
 	}
 	
 	
-	@Modifying
-    @Transactional
 	@Override
 	public long insertAuditTeam(AuditorTeamDto auditormemberteamdto, String username) throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method insertAuditTeam()");
+		logger.info( " AuditServiceImpl Inside method insertAuditTeam()");
 		long result=0;
 		try {
 			if(auditormemberteamdto!=null && auditormemberteamdto.getTeamId()!=null) {
@@ -1536,7 +1611,7 @@ public class AuditServiceImpl implements AuditService{
 	
 	@Override
 	public List<AuditTeamEmployeeDto> getauditteammemberlist() throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getauditteammemberlist()");
+		logger.info( " AuditServiceImpl Inside method getauditteammemberlist()");
 		try {
 			List<Object[]> getAuditTeamMemberList=teamRepository.getAuditTeamMemberList();
 			List<EmployeeDto> totalEmployee = masterClient.getEmployeeMasterList("VTS");
@@ -1877,22 +1952,23 @@ public class AuditServiceImpl implements AuditService{
 	}
 
 	@Override
-	public int addAuditCheckList(AuditCheckListDTO auditCheckListDTO, String username) throws Exception {
-		int result = 1;
+	public long addAuditCheckList(AuditCheckListDTO auditCheckListDTO, String username) throws Exception {
+		long result = 0;
 		logger.info(" AuditServiceImpl Inside method addAuditCheckList()");
 		try {
 
 			for(CheckListItem item  : auditCheckListDTO.getCheckListMap()){
-//				AuditCheckList checkList = new AuditCheckList();
-//				checkList.setScheduleId((long)auditCheckListDTO.getScheduleId());			
-//				checkList.setIqaId((long)auditCheckListDTO.getIqaId());			
-//				checkList.setMocId((long)item.getMocId());			
-//				checkList.setAuditObsId((long)item.getObservation());
-//				checkList.setAuditorRemarks(item.getAuditorRemarks());
-//				checkList.setCreatedBy(username);
-//				checkList.setCreatedDate(LocalDateTime.now());
-//				checkList.setIsActive(1);
-				result = auditCheckListRepository.updateAuditorRemarks(item.getObservation(),item.getAuditorRemarks(),username,LocalDateTime.now(),item.getAuditCheckListId());
+				Optional<AuditCheckList> checkListOptiinal = auditCheckListRepository.findById((long)item.getAuditCheckListId());
+				if(checkListOptiinal.isPresent()) {
+					AuditCheckList checkList = checkListOptiinal.get();
+					checkList.setAuditObsId((long)item.getObservation());
+					checkList.setAuditorRemarks(item.getAuditorRemarks());
+					checkList.setModifiedBy(username);
+					checkList.setModifiedDate(LocalDateTime.now());
+					result = auditCheckListRepository.save(checkList).getAuditCheckListId();	
+				}
+				
+
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1999,39 +2075,38 @@ public class AuditServiceImpl implements AuditService{
 			Timestamp instant = Timestamp.from(Instant.now());
 			String timestampstr = instant.toString().replace(" ", "").replace(":", "").replace("-", "").replace(".", "");
 			for(CheckListItem item  : auditCheckListDTO.getCheckListMap()){
-				AuditCheckList checkList = auditCheckListRepository.findById((long)item.getAuditCheckListId()).get();
-	
-				
-				if(item.getAttachment().equalsIgnoreCase("")) {
-					checkList.setAuditeeRemarks(item.getAuditeeRemarks());
-					checkList.setModifiedBy(username);
-					checkList.setModifiedDate(LocalDateTime.now());
-					auditCheckListRepository.save(checkList);
-					//result = auditCheckListRepository.updateAuditeeRemarksWithoutAttachment(item.getAuditeeRemarks(),username,LocalDateTime.now(),item.getAuditCheckListId());
-				}else {		
-					String[] attachment = item.getAttachment().split("\\.");
-					String attachmentName = attachment[0]+timestampstr+"."+attachment[1];
+				Optional<AuditCheckList> checkListOptinal = auditCheckListRepository.findById((long)item.getAuditCheckListId());
+				if(checkListOptinal.isPresent()) {
+					AuditCheckList checkList = checkListOptinal.get();
 					
-					if(checkList.getAttachment().equalsIgnoreCase("")) {
-						List<MultipartFile> fileNames = files.stream().filter(data -> data.getOriginalFilename().equalsIgnoreCase(item.getAttachment())).collect(Collectors.toList());
-						if(fileNames.size() > 0) {
-							saveEachFilesUpload(fileNames.get(0),auditCheckListDTO,timestampstr,"");
-						}
-					}else {
-						List<MultipartFile> fileNames = files.stream().filter(data -> data.getOriginalFilename().equalsIgnoreCase(item.getAttachment())).collect(Collectors.toList());
-						if(fileNames.size() > 0) {
-							saveEachFilesUpload(fileNames.get(0),auditCheckListDTO,timestampstr,checkList.getAttachment());
-						}
-					}
 					
-					checkList.setAttachment(attachmentName);
-					checkList.setAuditeeRemarks(item.getAuditeeRemarks());
-					checkList.setModifiedBy(username);
-					checkList.setModifiedDate(LocalDateTime.now());
-					auditCheckListRepository.save(checkList);
-					auditCheckListRepository.save(checkList);
-							
-					//result = auditCheckListRepository.updateAuditeeRemarks(item.getAuditeeRemarks(),attachmentName,username,LocalDateTime.now(),item.getAuditCheckListId());
+					if(item.getAttachment().equalsIgnoreCase("")) {
+						checkList.setAuditeeRemarks(item.getAuditeeRemarks());
+						checkList.setModifiedBy(username);
+						checkList.setModifiedDate(LocalDateTime.now());
+						auditCheckListRepository.save(checkList);
+					}else {		
+						String[] attachment = item.getAttachment().split("\\.");
+						String attachmentName = attachment[0]+timestampstr+"."+attachment[1];
+						
+						if(checkList.getAttachment().equalsIgnoreCase("")) {
+							List<MultipartFile> fileNames = files.stream().filter(data -> data.getOriginalFilename().equalsIgnoreCase(item.getAttachment())).collect(Collectors.toList());
+							if(fileNames.size() > 0) {
+								saveEachFilesUpload(fileNames.get(0),auditCheckListDTO,timestampstr,"");
+							}
+						}else {
+							List<MultipartFile> fileNames = files.stream().filter(data -> data.getOriginalFilename().equalsIgnoreCase(item.getAttachment())).collect(Collectors.toList());
+							if(fileNames.size() > 0) {
+								saveEachFilesUpload(fileNames.get(0),auditCheckListDTO,timestampstr,checkList.getAttachment());
+							}
+						}
+						
+						checkList.setAttachment(attachmentName);
+						checkList.setAuditeeRemarks(item.getAuditeeRemarks());
+						checkList.setModifiedBy(username);
+						checkList.setModifiedDate(LocalDateTime.now());
+						auditCheckListRepository.save(checkList);
+				}			
 				}
 
 			}
@@ -2158,7 +2233,7 @@ public class AuditServiceImpl implements AuditService{
 	@Override
 	public long uploadCheckListImage(MultipartFile file, Map<String, Object> response, String username)
 			throws Exception {
-		long result = 1;
+		long result = 0;
 		logger.info( " AuditServiceImpl Inside method uploadCheckListImage()");
 		try {
 			String orgNameExtension = FilenameUtils.getExtension(file.getOriginalFilename());
@@ -2169,7 +2244,14 @@ public class AuditServiceImpl implements AuditService{
 			if(checkListUpload.size() > 0) {
 				 File fileR = Paths.get(storageDrive,"CheckListUploads",iqaNo,checkListUpload.get(0)[1].toString()).toFile();
 				 if(fileR.delete()) {
-					 auditCheckListRepository.updateUpload(response.get("checkListAttachementName").toString(),username,LocalDateTime.now(),checkListUpload.get(0)[0].toString());
+					 Optional<AuditCheckList> uploadOptional = auditCheckListRepository.findById(Long.parseLong(checkListUpload.get(0)[0].toString()));
+					 if(uploadOptional.isPresent()) {
+						 AuditCheckList checkList = uploadOptional.get();
+						 checkList.setAttachment(response.get("checkListAttachementName").toString());
+						 checkList.setModifiedBy(username);
+						 checkList.setModifiedDate(LocalDateTime.now());
+				result = auditCheckListRepository.save(checkList).getAuditCheckListId();
+					 }
 				 }
 				
 			}else {
@@ -2259,7 +2341,7 @@ public class AuditServiceImpl implements AuditService{
 
 	@Override
 	public List<CheckListDto> getAuditCheckListbyObsIds() throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getAuditCheckListbyObsIds()");
+		logger.info( " AuditServiceImpl Inside method getAuditCheckListbyObsIds()");
 		try {
 			 List<Object[]> result = auditCheckListRepository.getAuditCheckListbyObsIds();
 			 
@@ -2291,7 +2373,7 @@ public class AuditServiceImpl implements AuditService{
 	}
 	@Override
 	public List<CheckListDto> getMostFqNCMocDes(Long scheduleId, Integer auditObsId, Long iqaId) throws Exception {
-	    logger.info(new Date() + " Inside method getMostFqNCMocDes()");
+	    logger.info( " Inside method getMostFqNCMocDes()");
 	    try {
 	        List<Object[]> result = auditCheckListRepository.getMostFqNCMocDes(scheduleId, auditObsId, iqaId);
 	        return result.stream()
@@ -2308,7 +2390,7 @@ public class AuditServiceImpl implements AuditService{
 	}
 	@Override
 	public List<CheckListDto> getMostFreqNCDetails(Long mocId) throws Exception {
-	    logger.info(new Date() + " Inside method getMostFreqNCDetails()");
+	    logger.info( " Inside method getMostFreqNCDetails()");
 	    try {
 	        List<Object[]> result = auditCheckListRepository.getMostFreqNCDetails(mocId);
 	        return result.stream()
@@ -2329,7 +2411,7 @@ public class AuditServiceImpl implements AuditService{
 
 	@Override
 	public List<CheckListDto> getMostFrequentNC() throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getMostFrequentNC()");
+		logger.info( " AuditServiceImpl Inside method getMostFrequentNC()");
 		try {
 			 List<Object[]> result = auditCheckListRepository.getMostFrequentNC();
 			 System.out.println("result: " + result);
@@ -2361,13 +2443,25 @@ public class AuditServiceImpl implements AuditService{
 	}
 
 	@Override
-	public int insertCorrectiveAction(List<AuditCarDTO> auditCarDTO, String username) throws Exception {
-		int result = 0;
+	public long insertCorrectiveAction(List<AuditCarDTO> auditCarDTO, String username) throws Exception {
+		long result = 0;
 		logger.info( " AuditServiceImpl Inside method insertCorrectiveAction()");
 		try {
 			Login login = loginRepo.findByUsername(username);
 			for(AuditCarDTO dto : auditCarDTO) {
-			  result = auditCorrectiveActionRepository.updateActions(dto.getAction(),dto.getEmployee(),DLocalConvertion.converLocalTime(dto.getTargetDate()),LocalDateTime.now(),login.getEmpId(),username,LocalDateTime.now(),dto.getCorrectiveActionId());	
+				Optional<AuditCorrectiveAction> carOptional = auditCorrectiveActionRepository.findById(dto.getCorrectiveActionId());
+				if(carOptional.isPresent()) {
+					AuditCorrectiveAction car = carOptional.get();
+					car.setActionPlan(dto.getAction());				
+					car.setResponsibility(dto.getEmployee());				
+					car.setTargetDate(DLocalConvertion.converLocalTime(dto.getTargetDate()));				
+					car.setCarDate(LocalDateTime.now());
+					car.setActEmpId(login.getEmpId());
+					car.setModifiedBy(username);
+					car.setModifiedDate(LocalDateTime.now());
+					
+		   result = auditCorrectiveActionRepository.save(car).getCorrectiveActionId();				
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -2376,12 +2470,21 @@ public class AuditServiceImpl implements AuditService{
 		return result;
 	}
 	@Override
-	public int updateCorrectiveAction(AuditCarDTO auditCarDTO, String username) throws Exception {
-		int result = 0;
+	public long updateCorrectiveAction(AuditCarDTO auditCarDTO, String username) throws Exception {
+		long result = 0;
 		logger.info( " AuditServiceImpl Inside method updateCorrectiveAction()");
 		try {
-	
-			  result = auditCorrectiveActionRepository.updateCarReport(auditCarDTO.getRootCause(),auditCarDTO.getCorrectiveActionTaken(),DLocalConvertion.converLocalTime(auditCarDTO.getCompletionDate()),username,LocalDateTime.now(),auditCarDTO.getCorrectiveActionId());	
+			Optional<AuditCorrectiveAction> carOptional = auditCorrectiveActionRepository.findById(auditCarDTO.getCorrectiveActionId());		
+			if(carOptional.isPresent()) {
+				AuditCorrectiveAction car = carOptional.get();
+				car.setRootCause(auditCarDTO.getRootCause());			
+				car.setCorrectiveActionTaken(auditCarDTO.getCorrectiveActionTaken());		
+				car.setCarCompletionDate(DLocalConvertion.converLocalTime(auditCarDTO.getCompletionDate()));
+				car.setModifiedBy(username);
+				car.setModifiedDate(LocalDateTime.now());
+			
+				result = auditCorrectiveActionRepository.save(car).getCorrectiveActionId();		
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("AuditServiceImpl Inside method updateCorrectiveAction()"+ e);
@@ -2460,8 +2563,15 @@ public class AuditServiceImpl implements AuditService{
 			String url= "/car-report";
 			EmployeeDto employeeLogIn = masterClient.getEmployee(xApiKey,login.getEmpId()).get(0);
 	    		if(auditCorrectiveActionDTO.getAuditStatus().equalsIgnoreCase("FWD")){
+	    			Optional<AuditCorrectiveAction> carOptional = auditCorrectiveActionRepository.findById(auditCorrectiveActionDTO.getCorrectiveActionId());		
+	    			if(carOptional.isPresent()) {
+	    				AuditCorrectiveAction car = carOptional.get();
+	    				car.setCarStatus("CRM");			
+	    				car.setModifiedBy(username);
+	    				car.setModifiedDate(LocalDateTime.now());
 	    			
-			    	auditCorrectiveActionRepository.updateCarStatus("CRM",username,LocalDateTime.now(),auditCorrectiveActionDTO.getCorrectiveActionId());
+	    				result = auditCorrectiveActionRepository.save(car).getCorrectiveActionId();		
+	    			}
 			    	
 			    	AuditTransaction trans = new AuditTransaction();
 					trans.setEmpId(login.getEmpId());
@@ -2483,7 +2593,16 @@ public class AuditServiceImpl implements AuditService{
 	    			
 	    		}else if(auditCorrectiveActionDTO.getAuditStatus().equalsIgnoreCase("CRM")){
 	    			
-			    	auditCorrectiveActionRepository.updateCarStatus("CAP",username,LocalDateTime.now(),auditCorrectiveActionDTO.getCorrectiveActionId());
+	    			Optional<AuditCorrectiveAction> carOptional = auditCorrectiveActionRepository.findById(auditCorrectiveActionDTO.getCorrectiveActionId());		
+	    			if(carOptional.isPresent()) {
+	    				AuditCorrectiveAction car = carOptional.get();
+	    				car.setCarStatus("CAP");			
+	    				car.setModifiedBy(username);
+	    				car.setModifiedDate(LocalDateTime.now());
+	    			
+	    				result = auditCorrectiveActionRepository.save(car).getCorrectiveActionId();		
+	    			}
+			    	//auditCorrectiveActionRepository.updateCarStatus("CAP",username,LocalDateTime.now(),auditCorrectiveActionDTO.getCorrectiveActionId());
 			    	
 			    	AuditTransaction trans = new AuditTransaction();
 					trans.setEmpId(login.getEmpId());
@@ -2500,7 +2619,15 @@ public class AuditServiceImpl implements AuditService{
 					
 	    			
 	    		}else{
-			    	auditCorrectiveActionRepository.updateCarStatus("FWD",username,LocalDateTime.now(),auditCorrectiveActionDTO.getCorrectiveActionId());
+	    			Optional<AuditCorrectiveAction> carOptional = auditCorrectiveActionRepository.findById(auditCorrectiveActionDTO.getCorrectiveActionId());		
+	    			if(carOptional.isPresent()) {
+	    				AuditCorrectiveAction car = carOptional.get();
+	    				car.setCarStatus("FWD");			
+	    				car.setModifiedBy(username);
+	    				car.setModifiedDate(LocalDateTime.now());
+	    			
+	    				result = auditCorrectiveActionRepository.save(car).getCorrectiveActionId();		
+	    			}
 			    	
 			    	AuditTransaction trans = new AuditTransaction();
 					trans.setEmpId(login.getEmpId());

@@ -47,12 +47,12 @@ public class MasterController {
 
 	@GetMapping(value ="/lab-details" , produces="application/json")
 	public ResponseEntity<LabMasterDto> LabMasterList(@RequestHeader  String username) throws Exception {
-		logger.info("{} Inside lab-details", new Date());
+		logger.info("{} Inside lab-details");
 		LabMasterDto dto= null;
 		try {
 			dto=service.labDetailsList(username);
 		} catch (Exception e) {
-			logger.error(new Date() +" error in lab-details ");
+			logger.error(" error in lab-details ");
 			e.printStackTrace();
 		}
 		return new ResponseEntity<>(dto, HttpStatus.OK);
@@ -61,7 +61,7 @@ public class MasterController {
 	@GetMapping(value = "/lab-logo" , produces ="application/json")
 	public ResponseEntity<String> QamLabLogo()throws Exception {
 
-		logger.info("{} Inside lab-details", new Date());
+		logger.info("{} Inside lab-details");
 		
 		String result = service.LogoImage();
 		if (result != null) {
@@ -73,7 +73,7 @@ public class MasterController {
 	
     @RequestMapping(value = "/drdo-logo" , method = RequestMethod.POST , produces ="application/json")
     public ResponseEntity<String> getDrdoImage(@RequestHeader  String username)throws Exception {
-    	logger.info(new Date()+" Inside drdo-logo " +username);
+    	logger.info(" Inside drdo-logo " +username);
     	String result = service.getDrdoLogo();
     	if (result != null) {
     		return new ResponseEntity<>(result, HttpStatus.OK);
@@ -86,7 +86,7 @@ public class MasterController {
 	@PostMapping(value = "/get-DocTemplateAttributes" , produces ="application/json")
 	public DocTemplateAttributesDto getDocTemplateAttributesDto()throws Exception {
 		
-		logger.info("{} Inside get-DocTemplateAttributes() ", new Date());
+		logger.info("{} Inside get-DocTemplateAttributes() ");
 		
 		return service.getDocTemplateAttributesDto();
 	}
@@ -104,12 +104,12 @@ public class MasterController {
 
     @PostMapping(value = "/get-employee-byid", produces = "application/json")
     public ResponseEntity<List<EmployeeDto>> getemployeebyid(@RequestBody long empId, @RequestHeader  String username) throws Exception {
-		logger.info("{} Inside getemployeebyid", new Date());
+		logger.info("{} Inside getemployeebyid");
 		List<EmployeeDto> dto= null;
 		try {
 			dto=service.getemployeebyid(empId);
 		} catch (Exception e) {
-			logger.error(new Date() +" error in getemployeebyid ");
+			logger.error(" error in getemployeebyid ");
 			e.printStackTrace();
 		}
 		return new ResponseEntity<>(dto, HttpStatus.OK);
@@ -118,7 +118,7 @@ public class MasterController {
     
     @PostMapping(value = "/get-committee-schedule-list" , produces = "application/json")
     public ResponseEntity<List<CommitteeScheduleDto>> GetComitteeScheduleList( @RequestHeader String username,@RequestBody Map<String, String> requestBody)throws Exception {		
-    	logger.info(new Date() + " Inside get-committee-schedule-list" );
+    	logger.info( " Inside get-committee-schedule-list" );
     	try {
 			String committeeType = requestBody.get("committeeType");
 			List<CommitteeScheduleDto> result=service.GetComitteeScheduleList(committeeType);
@@ -135,7 +135,7 @@ public class MasterController {
     public ResponseEntity<List<ActionAssignDto>> GetCommitteeScheduleActionAssignList( @RequestHeader String username,@RequestBody Map<String, String> requestBody)throws Exception {			    	
     	try {
     		String committeeType = requestBody.get("committeeType");
-			logger.info(new Date() + " Inside GetCommitteeScheduleActionAssignList" );
+			logger.info( " Inside GetCommitteeScheduleActionAssignList" );
 			List<ActionAssignDto> result=service.GetCommitteeScheduleActionAssignList(committeeType);
 			return new ResponseEntity<List<ActionAssignDto>>( result,HttpStatus.OK);
 		} catch (Exception e) {
@@ -147,12 +147,12 @@ public class MasterController {
 
 	@RequestMapping(value = "/division-master-list", method = RequestMethod.GET, produces="application/json")
 	public ResponseEntity<List<DivisionMasterDto>> getDivisionMasterList(@RequestHeader  String username) throws Exception {
-		logger.info("{} Inside division-master-list", new Date());
+		logger.info("{} Inside division-master-list");
 		List<DivisionMasterDto> list = null;
 		try {
 			list = service.getDivisionMasterList(username);
 		} catch (Exception e) {
-			logger.error(new Date() +" error in  division-master-list ");
+			logger.error(" error in  division-master-list ");
 			e.printStackTrace();
 		}
 		return new ResponseEntity<>(list, HttpStatus.OK);
@@ -160,13 +160,13 @@ public class MasterController {
 
 	@RequestMapping(value = "/division-group-master-list", method = RequestMethod.GET, produces="application/json")
 	public ResponseEntity<List<DivisionGroupDto>> getDivisionGroupList(@RequestHeader  String username) throws Exception{
-		logger.info(new Date() + " Inside division-group-master-list " );
+		logger.info( " Inside division-group-master-list " );
 		List<DivisionGroupDto> list= null;
 		try {
 			list=service.getDivisonGroupList(username);
 
 		} catch (Exception e) {
-			logger.error(new Date() +" error in division-group-master-list ");
+			logger.error(" error in division-group-master-list ");
 			e.printStackTrace();
 		}
 		return new ResponseEntity<>(list, HttpStatus.OK);
@@ -175,12 +175,12 @@ public class MasterController {
 
 	@GetMapping(value ="project-master-active-list" , produces="application/json")
 	public ResponseEntity<List<ProjectMasterDto>> projectMainList(@RequestHeader  String username) throws Exception{
-		logger.info("{} Inside project-master-list", new Date());
+		logger.info("{} Inside project-master-list");
 		List<ProjectMasterDto> list=null;
 		try {
 			list=service.getprojectMasterList(username);
 		} catch (Exception e) {
-			logger.error(new Date() +"project-master-list ");
+			logger.error("project-master-list ");
 			e.printStackTrace();
 		}
 

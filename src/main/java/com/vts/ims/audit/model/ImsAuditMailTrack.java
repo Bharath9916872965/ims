@@ -3,6 +3,7 @@ package com.vts.ims.audit.model;
 
 import java.time.LocalDateTime;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -19,11 +20,22 @@ public class ImsAuditMailTrack {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long MailTrackingId;               
-    private LocalDateTime CreatedDate;   
-    private Long MailExpectedCount;   
-    private Long MailSentCount;   
-    private LocalDateTime MailSentDateTime;   
-    private String MailSentStatus;   
+	@Column(name = "MailTrackingId")
+    private Long mailTrackingId;   
+	
+	@Column(name = "CreatedDate")
+    private LocalDateTime createdDate;
+	
+	@Column(name = "MailExpectedCount")
+    private Long mailExpectedCount; 
+	
+	@Column(name = "MailSentCount")
+    private Long mailSentCount;   
+	
+	@Column(name = "MailSentDateTime")
+    private LocalDateTime mailSentDateTime;   
+	
+	@Column(name = "MailSentStatus")
+    private String mailSentStatus;   
 
 }

@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import com.vts.ims.qms.model.DwpChapters;
-import com.vts.ims.qms.model.QmsQmChapters;
 
 import feign.Param;
 

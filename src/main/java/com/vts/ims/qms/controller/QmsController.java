@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Date;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -276,8 +275,6 @@ public class QmsController {
 	@PostMapping(value = "/get-all-dwp-chapters", produces = "application/json")
 	public List<DwpChapters> getAllDwpChapters(@RequestBody QmsDocTypeDto qmsDocTypeDto, @RequestHeader String username) throws Exception {
 		logger.info(" Inside get-all-dwp-chapters " + username);
-		System.out.println("qmsDocTypeDto"+qmsDocTypeDto);
-		System.out.println("coming inside the master");
 		return service.getAllDwpChapters(qmsDocTypeDto);
 	}
 
@@ -346,7 +343,7 @@ public class QmsController {
 	public ResponseEntity<String> updateChapterDescById(@RequestHeader String username, @RequestBody CheckListMasterDto checkListMasterDto) throws Exception {
 		try {
 			logger.info( " update-chapter-desc" );
-			Integer result=service.updateChapterDescById(checkListMasterDto,username);
+			long result=service.updateChapterDescById(checkListMasterDto,username);
 			if(result > 0) {
 				return new ResponseEntity<String>("Successfully" , HttpStatus.OK);
 			}else {
@@ -363,7 +360,7 @@ public class QmsController {
 	public ResponseEntity<String> deleteChapterDescById(@RequestHeader String username, @RequestBody String mocId) throws Exception {
 		try {
 			logger.info( " delete-chapter-desc" );
-			Integer result=service.deleteChapterDescById(mocId,username);
+			long result=service.deleteChapterDescById(mocId,username);
 			if(result > 0) {
 				return new ResponseEntity<String>("S" , HttpStatus.OK);
 			}else {
@@ -380,7 +377,7 @@ public class QmsController {
 	public ResponseEntity<String> deleteSubChapterDescById(@RequestHeader String username, @RequestBody String mocId) throws Exception {
 		try {
 			logger.info( " delete-sub-chapter-desc" );
-			Integer result=service.deleteSubChapterDescById(mocId,username);
+			long result=service.deleteSubChapterDescById(mocId,username);
 			if(result > 0) {
 				return new ResponseEntity<String>("S" , HttpStatus.OK);
 			}else {
@@ -414,7 +411,7 @@ public class QmsController {
 	public ResponseEntity<String> addChapterToMasters(@RequestHeader String username, @RequestBody List<String> mocIds) throws Exception {
 		try {
 			logger.info( " add-chapter-to-master" );
-			Integer result=service.addChapterToMasters(mocIds,username);
+			long result=service.addChapterToMasters(mocIds,username);
 			if(result > 0) {
 				return new ResponseEntity<String>("Successfully" , HttpStatus.OK);
 			}else {
@@ -431,7 +428,7 @@ public class QmsController {
 	public ResponseEntity<String> updateCheckListChapters(@RequestHeader String username, @RequestBody List<Long> mocIds) throws Exception {
 		try {
 			logger.info( " update-check-list-chapters" );
-			Integer result=service.updateCheckListChapters(mocIds,username);
+			long result=service.updateCheckListChapters(mocIds,username);
 			if(result > 0) {
 				return new ResponseEntity<String>("Successfully" , HttpStatus.OK);
 			}else {
@@ -470,7 +467,7 @@ public class QmsController {
 
 	@PostMapping(value = "/get-dwp-project-list/{imsFormRoleId}/{empId}", produces = "application/json")
 	public ResponseEntity<List<ProjectMasterDto>> getDwpProjectMaster(@PathVariable("imsFormRoleId") Integer imsFormRoleId, @PathVariable("empId") Long empId, @RequestHeader String username) throws Exception {
-		logger.info(new Date() + " Inside getDwpProjectlist()" );
+		logger.info( " Inside getDwpProjectlist()" );
 		List<ProjectMasterDto> dto = service.getDwpProjectMaster(imsFormRoleId, empId);
 		return new ResponseEntity<List<ProjectMasterDto>>( dto,HttpStatus.OK);
 	}
@@ -478,21 +475,21 @@ public class QmsController {
 	
 	@PostMapping(value = "/get-dwp-division-list/{imsFormRoleId}/{empId}", produces = "application/json")
 	public ResponseEntity<List<DivisionMasterDto>> getDwpDivisionlist(@PathVariable("imsFormRoleId") Integer imsFormRoleId, @PathVariable("empId") Long empId, @RequestHeader String username) throws Exception {
-		logger.info(new Date() + " Inside getDwpDivisionlist()" );
+		logger.info( " Inside getDwpDivisionlist()" );
 		List<DivisionMasterDto> dto = service.getDwpDivisionMaster(imsFormRoleId, empId);
 		return new ResponseEntity<List<DivisionMasterDto>>( dto,HttpStatus.OK);
 	}
 
 	@PostMapping(value = "/get-dwp-division-grouplist/{imsFormRoleId}/{empId}", produces = "application/json")
 	public ResponseEntity<List<DivisionGroupDto>> getDwpDivisionGroupList(@PathVariable("imsFormRoleId") Integer imsFormRoleId, @PathVariable("empId") Long empId, @RequestHeader String username) throws Exception {
-		logger.info(new Date() + " Inside getDwpDivisionlist()" );
+		logger.info( " Inside getDwpDivisionlist()" );
 		List<DivisionGroupDto> dto = service.getDwpDivisionGroupList(imsFormRoleId, empId);
 		return new ResponseEntity<List<DivisionGroupDto>>( dto,HttpStatus.OK);
 	}
 
 	@PostMapping(value = "/add-dwp-new-issue", produces = "application/json")
 	public ResponseEntity<DwpRevisionRecord> addDwpRevisionRecord(@RequestBody QmsIssueDto qmsIssueDto, @RequestHeader String username) throws Exception {
-		logger.info(new Date() + " Inside addRevisionRecord() " + username);
+		logger.info( " Inside addRevisionRecord() " + username);
 
 		DwpRevisionRecord res = service.addNewDwpRevisionRecord(qmsIssueDto, username);
 
@@ -702,7 +699,7 @@ public class QmsController {
 	@PostMapping(value = "/get-division-employee-list", produces = "application/json")
 	public ResponseEntity<List<DivisionEmployeeDto>> getDivisionEmployee(@RequestHeader String username) throws Exception {
 		try {
-			logger.info(new Date() + " Inside getEmployelist" );
+			logger.info( " Inside getEmployelist" );
 			List<DivisionEmployeeDto> dto=service.getDivisionEmployee();
 			return new ResponseEntity<List<DivisionEmployeeDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {

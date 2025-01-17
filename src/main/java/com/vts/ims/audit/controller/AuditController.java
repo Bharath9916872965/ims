@@ -4,7 +4,6 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,7 +82,7 @@ public class AuditController {
 	@PostMapping(value = "/auditor-list", produces = "application/json")
 	public ResponseEntity<List<AuditorDto>> auditorList(@RequestHeader String username) throws Exception {
 		try {
-			logger.info(new Date() + " Inside auditorList" );
+			logger.info(" Inside auditorList" );
 			List<AuditorDto> dto=auditService.getAuditorList();
 			return new ResponseEntity<List<AuditorDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
@@ -97,7 +96,7 @@ public class AuditController {
 	@PostMapping(value = "/get-employee-list", produces = "application/json")
 	public ResponseEntity<List<EmployeeDto>> getEmployelist(@RequestHeader String username) throws Exception {
 		try {
-			logger.info(new Date() + " Inside getEmployelist" );
+			logger.info( " Inside getEmployelist" );
 			List<EmployeeDto> dto=auditService.getEmployelist();
 			return new ResponseEntity<List<EmployeeDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
@@ -110,7 +109,7 @@ public class AuditController {
 	@PostMapping(value = "/insert-auditor-employees", produces = "application/json")
 	public ResponseEntity<String> insertAuditorEmployees(@RequestHeader String username, @RequestBody String[] empIds) throws Exception {
 		try {
-			logger.info(new Date() + " Inside insert-selected-employees" );
+			logger.info( " Inside insert-selected-employees" );
 			 long insertAuditor=auditService.insertAuditor(empIds,username);
 			 if(insertAuditor > 0) {
 				 return new ResponseEntity<String>("200" , HttpStatus.OK);
@@ -118,7 +117,7 @@ public class AuditController {
 				 return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
 			 }
 		} catch (Exception e) {
-			 logger.error(new Date() +"error in insert-selected-employees"+ e.getMessage());
+			 logger.error("error in insert-selected-employees"+ e.getMessage());
 			 e.printStackTrace();
 			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
 		}
@@ -136,7 +135,7 @@ public class AuditController {
 		    	return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
 		    }
    		 } catch (Exception e) {
-  			  logger.error(new Date() +" error in auditor-inactive");
+  			  logger.error(" error in auditor-inactive");
   		         e.printStackTrace();
   		       return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
   		}
@@ -146,7 +145,7 @@ public class AuditController {
 	@PostMapping(value = "/iqa-list", produces = "application/json")
 	public ResponseEntity<List<IqaDto>> iqalist(@RequestHeader String username) throws Exception {
 		try {
-			logger.info(new Date() + " Inside iqalist" );
+			logger.info( " Inside iqalist" );
 			List<IqaDto> dto=auditService.getIqaList();
 			return new ResponseEntity<List<IqaDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
@@ -159,7 +158,7 @@ public class AuditController {
 	@PostMapping(value = "/insert-iqa", produces = "application/json")
 	public ResponseEntity<String> insertIqa(@RequestHeader String username, @RequestBody IqaDto iqadto) throws Exception {
 		try {
-			logger.info(new Date() + " Inside insert-iqa" );
+			logger.info( " Inside insert-iqa" );
 			long insertIqa=auditService.insertIqa(iqadto,username);
 			 if(insertIqa > 0) {
 				 return new ResponseEntity<String>("200" , HttpStatus.OK);
@@ -167,7 +166,7 @@ public class AuditController {
 				 return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
 			 }
 		} catch (Exception e) {
-			 logger.error(new Date() +"error in insert-iqa"+ e.getMessage());
+			 logger.error("error in insert-iqa"+ e.getMessage());
 			 e.printStackTrace();
 			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
 		}
@@ -177,7 +176,7 @@ public class AuditController {
 	@PostMapping(value = "/auditee-list", produces = "application/json")
 	public ResponseEntity<List<AuditeeDto>> auditeelist(@RequestHeader String username) throws Exception {
 		try {
-			logger.info(new Date() + " Inside auditeelist" );
+			logger.info( " Inside auditeelist" );
 			List<AuditeeDto> dto=auditService.getAuditeeList();
 			return new ResponseEntity<List<AuditeeDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
@@ -190,7 +189,7 @@ public class AuditController {
 	@PostMapping(value = "/iqa-auditee-list", produces = "application/json")
 	public ResponseEntity<List<IqaAuditeeListDto>> getIqaAuditeelist(@RequestHeader String username) throws Exception {
 		try {
-			logger.info(new Date() + " Inside iqaAuditeelist" );
+			logger.info( " Inside iqaAuditeelist" );
 			List<IqaAuditeeListDto> dto=auditService.getIqaAuditeelist();
 			return new ResponseEntity<List<IqaAuditeeListDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
@@ -203,7 +202,7 @@ public class AuditController {
 	@PostMapping(value = "/get-division-list", produces = "application/json")
 	public ResponseEntity<List<DivisionMasterDto>> getDivisionlist(@RequestHeader String username) throws Exception {
 		try {
-			logger.info(new Date() + " Inside getDivisionlist" );
+			logger.info( " Inside getDivisionlist" );
 			List<DivisionMasterDto> dto=auditService.getDivisionMaster();
 			return new ResponseEntity<List<DivisionMasterDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
@@ -216,7 +215,7 @@ public class AuditController {
 	@PostMapping(value = "/get-division-group-list", produces = "application/json")
 	public ResponseEntity<List<DivisionGroupDto>> getDivisionGrouplist(@RequestHeader String username) throws Exception {
 		try {
-			logger.info(new Date() + " Inside getDivisionGrouplist" );
+			logger.info( " Inside getDivisionGrouplist" );
 			List<DivisionGroupDto> dto=auditService.getDivisionGroupList();
 			return new ResponseEntity<List<DivisionGroupDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
@@ -229,7 +228,7 @@ public class AuditController {
 	@PostMapping(value = "/get-project-list", produces = "application/json")
 	public ResponseEntity<List<ProjectMasterDto>> getProjectlist(@RequestHeader String username) throws Exception {
 		try {
-			logger.info(new Date() + " Inside getProjectlist" );
+			logger.info( " Inside getProjectlist" );
 			List<ProjectMasterDto> dto=auditService.getProjectMasterList();
 			return new ResponseEntity<List<ProjectMasterDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
@@ -244,7 +243,7 @@ public class AuditController {
 	@PostMapping(value = "/auditee-insert", produces = "application/json")
 	public ResponseEntity<String> auditeeinsert(@RequestHeader String username, @RequestBody AuditeeDto auditeedto) throws Exception {
 		try {
-			logger.info(new Date() + " Inside auditeeinsert" );
+			logger.info( " Inside auditeeinsert" );
 			long insertAuditee=auditService.insertAuditee(auditeedto,username);
 			 if(insertAuditee > 0) {
 				 return new ResponseEntity<String>("200" , HttpStatus.OK);
@@ -252,7 +251,7 @@ public class AuditController {
 				 return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
 			 }
 		} catch (Exception e) {
-			 logger.error(new Date() +"error in auditeeinsert"+ e.getMessage());
+			 logger.error("error in auditeeinsert"+ e.getMessage());
 			 e.printStackTrace();
 			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
 		}
@@ -270,7 +269,7 @@ public class AuditController {
 		    	return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
 		    }
    		 } catch (Exception e) {
-  			  logger.error(new Date() +" error in auditee-inactive");
+  			  logger.error(" error in auditee-inactive");
   		         e.printStackTrace();
   		       return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
   		}
@@ -343,7 +342,7 @@ public class AuditController {
 	@PostMapping(value = "/audit-team-list", produces = "application/json")
 	public ResponseEntity<List<AuditorTeamDto>> getAuditTeamList(@RequestHeader String username) throws Exception {
 		try {
-			logger.info(new Date() + "Inside getAuditTeamList" );
+			logger.info( "Inside getAuditTeamList" );
 			List<AuditorTeamDto> dto=auditService.getAuditTeamMainList();
 			return new ResponseEntity<List<AuditorTeamDto>>(dto,HttpStatus.OK);
 		} catch (Exception e) {
@@ -439,7 +438,7 @@ public class AuditController {
 	@PostMapping(value = "/audit-team-insert", produces = "application/json")
 	public ResponseEntity<String> auditteaminsert(@RequestHeader String username, @RequestBody AuditorTeamDto auditorteamdto) throws Exception {
 		try {
-			logger.info(new Date() + " Inside audit-team-insert" );
+			logger.info( " Inside audit-team-insert" );
 			long insertAuditTeam=auditService.insertAuditTeam(auditorteamdto,username);
 			 if(insertAuditTeam > 0) {
 				 return new ResponseEntity<String>("200" , HttpStatus.OK);
@@ -447,7 +446,7 @@ public class AuditController {
 				 return new ResponseEntity<String>("500" , HttpStatus.BAD_REQUEST);
 			 }
 		} catch (Exception e) {
-			 logger.error(new Date() +"error in audit-team-insert"+ e.getMessage());
+			 logger.error("error in audit-team-insert"+ e.getMessage());
 			 e.printStackTrace();
 			 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
 		}
@@ -456,7 +455,7 @@ public class AuditController {
 	@PostMapping(value = "/auditor-isactive-list", produces = "application/json")
 	public ResponseEntity<List<AuditorDto>> auditorisactivelist(@RequestHeader String username) throws Exception {
 		try {
-			logger.info(new Date() + " Inside auditorisactivelist" );
+			logger.info( " Inside auditorisactivelist" );
 			List<AuditorDto> dto=auditService.getAuditorIsActiveList();
 			return new ResponseEntity<List<AuditorDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
@@ -470,7 +469,7 @@ public class AuditController {
 	@PostMapping(value = "/team-member-isactive-list", produces = "application/json")
 	public ResponseEntity<List<AuditTeamMembersDto>> teammemberisactivelist(@RequestHeader String username) throws Exception {
 		try {
-			logger.info(new Date() + " Inside teammemberisactivelist" );
+			logger.info( " Inside teammemberisactivelist" );
 			List<AuditTeamMembersDto> dto=auditService.getTeamMmberIsActiveList();
 			return new ResponseEntity<List<AuditTeamMembersDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
@@ -484,7 +483,7 @@ public class AuditController {
 	@PostMapping(value = "/audit-team-member-list", produces = "application/json")
 	public ResponseEntity<List<AuditTeamEmployeeDto>> getauditteammemberlist(@RequestHeader String username) throws Exception {
 		try {
-			logger.info(new Date() + " Inside getauditteammemberlist" );
+			logger.info( " Inside getauditteammemberlist" );
 			List<AuditTeamEmployeeDto> dto=auditService.getauditteammemberlist();
 			return new ResponseEntity<List<AuditTeamEmployeeDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
@@ -497,7 +496,7 @@ public class AuditController {
 	@PostMapping(value = "/get-team-list", produces = "application/json")
 	public ResponseEntity<List<AuditTeam>> getTeamList(@RequestHeader String username) throws Exception {
 		try {
-			logger.info(new Date() + " Inside getTeamList" );
+			logger.info( " Inside getTeamList" );
 			List<AuditTeam> dto=auditService.getTeamList();
 			return new ResponseEntity<List<AuditTeam>>(dto,HttpStatus.OK);
 		} catch (Exception e) {
@@ -584,7 +583,7 @@ public class AuditController {
 	@PostMapping(value = "/get-iqa-auditee-list", produces = "application/json")
 	public ResponseEntity<List<IqaAuditeeDto>> iqaAuditeeList(@RequestHeader String username, @RequestBody String iqaId) throws Exception {
 		try {
-			logger.info(new Date() + " Inside iqaAuditeeList" );
+			logger.info( " Inside iqaAuditeeList" );
 			List<IqaAuditeeDto> dto=auditService.getIqaAuditeeList(Long.parseLong(iqaId));
 			return new ResponseEntity<List<IqaAuditeeDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
@@ -786,7 +785,7 @@ public class AuditController {
 	@PostMapping(value = "/auditcheck-list-byObsIds", produces = "application/json")
 	public ResponseEntity<List<CheckListDto>> getAuditCheckListbyObsIds(@RequestHeader String username,@RequestBody String scheduleId) throws Exception {
 		try {
-			logger.info(new Date() + " Inside getAuditCheckListbyObsIds" );
+			logger.info( " Inside getAuditCheckListbyObsIds" );
 			List<CheckListDto> dto=auditService.getAuditCheckListbyObsIds();
 			return new ResponseEntity<List<CheckListDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
@@ -798,7 +797,7 @@ public class AuditController {
 	@PostMapping(value = "/mostFrequent-Nc-list", produces = "application/json")
 	public ResponseEntity<List<CheckListDto>> getMostFrequentNC(@RequestHeader String username,@RequestBody String scheduleId) throws Exception {
 		try {
-			logger.info(new Date() + " Inside getMostFrequentNC" );
+			logger.info( " Inside getMostFrequentNC" );
 			List<CheckListDto> dto=auditService.getMostFrequentNC();
 			return new ResponseEntity<List<CheckListDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
@@ -810,7 +809,7 @@ public class AuditController {
 	@PostMapping(value = "/mostFqNc-Description-list/{auditObsId}/{scheduleId}/{iqaId}", produces = "application/json")
 	public ResponseEntity<List<CheckListDto>> getMostFqNCMocDes(@PathVariable("auditObsId") Integer auditObsId, @PathVariable("scheduleId") Long scheduleId,   @PathVariable("iqaId") Long iqaId, @RequestHeader String username) throws Exception {
 		try {
-			logger.info(new Date() + " Inside getMostFqNCMocDes" );
+			logger.info( " Inside getMostFqNCMocDes" );
 		List<CheckListDto> dto=auditService.getMostFqNCMocDes(scheduleId,auditObsId,iqaId);
 			return new ResponseEntity<List<CheckListDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
@@ -825,7 +824,7 @@ public class AuditController {
 		System.out.println("mocId: " + mocId);
 
 		try {
-			logger.info(new Date() + " Inside getMostFreqNCDetails" );
+			logger.info( " Inside getMostFreqNCDetails" );
 		List<CheckListDto> dto=auditService.getMostFreqNCDetails(mocId);
 			return new ResponseEntity<List<CheckListDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
@@ -842,7 +841,7 @@ public class AuditController {
 	public ResponseEntity<Response> insertCorrectiveAction(@RequestHeader String username, @RequestBody List<AuditCarDTO> auditCarDTO) throws Exception {
 		try {
 			logger.info( " Inside add-corrective-action" );
-			 int result=auditService.insertCorrectiveAction(auditCarDTO,username);
+			 long result=auditService.insertCorrectiveAction(auditCarDTO,username);
 			 if(result > 0) {
 				 return ResponseEntity.status(HttpStatus.OK).body(new Response("Corrective Actions Added Successfully","S"));
 			 }else {
@@ -859,7 +858,7 @@ public class AuditController {
 	public ResponseEntity<Response> updateCorrectiveAction(@RequestHeader String username, @RequestBody AuditCarDTO auditCarDTO) throws Exception {
 		try {
 			logger.info( " Inside update-corrective-action" );
-			 int result=auditService.updateCorrectiveAction(auditCarDTO,username);
+			 long result=auditService.updateCorrectiveAction(auditCarDTO,username);
 			 if(result > 0) {
 				 return ResponseEntity.status(HttpStatus.OK).body(new Response("Corrective Actions Added Successfully","S"));
 			 }else {

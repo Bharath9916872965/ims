@@ -39,7 +39,7 @@ public class RiskServiceImpl implements RiskService{
 	
 	@Override
 	public List<RiskRegisterDto> getRiskRegisterList(Long revisionRecordId) throws Exception {
-		logger.info(new Date() + " RiskServiceImpl Inside method getRiskRegisterList()");
+		logger.info( " RiskServiceImpl Inside method getRiskRegisterList()");
 		try {
 			List<Object[]> riskRegister = riskRepository.findByRevisionRecordId(revisionRecordId);
 			List<RiskRegisterDto> finalDto = Optional.ofNullable(riskRegister).orElse(Collections.emptyList()).stream()
@@ -76,7 +76,7 @@ public class RiskServiceImpl implements RiskService{
 	
 	@Override
 	public long insertRiskRegister(RiskRegisterDto dto, String username) throws Exception {
-		logger.info(new Date() + " RiskServiceImpl Inside method insertRiskRegister()");
+		logger.info( " RiskServiceImpl Inside method insertRiskRegister()");
 		long result=0;
 		try {
 			if(dto!=null && dto.getRiskRegisterId()!=null) {
@@ -124,7 +124,7 @@ public class RiskServiceImpl implements RiskService{
 	
 	@Override
 	public long insertMititgationRiskRegister(MitigationRiskRegisterDto dto, String username) throws Exception {
-		logger.info(new Date() + " RiskServiceImpl Inside method insertMititgationRiskRegister()");
+		logger.info( " RiskServiceImpl Inside method insertMititgationRiskRegister()");
 		long result=0;
 		try {
 			if(dto!=null && dto.getMitigationRiskRegisterId()!=null) {
@@ -189,7 +189,7 @@ public class RiskServiceImpl implements RiskService{
 	
 	@Override
 	public List<MitigationRiskRegisterDto> getMititgationRiskRegisterlist(long riskRegisterId) throws Exception {
-		logger.info(new Date() + " RiskServiceImpl Inside method getMititgationRiskRegisterlist()");
+		logger.info( " RiskServiceImpl Inside method getMititgationRiskRegisterlist()");
 		try {
 			List<Object[]> mitigationRiskRegister = mitigationriskRepository.findByRiskRegisterId(riskRegisterId);
 			List<MitigationRiskRegisterDto> finalDto = Optional.ofNullable(mitigationRiskRegister).orElse(Collections.emptyList()).stream()
@@ -219,7 +219,7 @@ public class RiskServiceImpl implements RiskService{
 	}
 	@Override
 	public List<RiskMitigationMergeDto> getRegMitigationList(Long groupDivisionId,String docType,Long revisionRecordId) throws Exception {
-		logger.info(new Date() + " RiskServiceImpl Inside method getRiskRegisterList()");
+		logger.info( " RiskServiceImpl Inside method getRiskRegisterList()");
 		try {
 			List<Object[]> riskRegister = riskRepository.getRegMitigationList(groupDivisionId,docType,revisionRecordId);
 			List<RiskMitigationMergeDto> finalDto = Optional.ofNullable(riskRegister).orElse(Collections.emptyList()).stream()
@@ -290,7 +290,7 @@ public class RiskServiceImpl implements RiskService{
 	
 	@Override
 	public List<MitigationRiskRegisterDto> getAllMititgationRiskRegisterlist() throws Exception {
-		logger.info(new Date() + " RiskServiceImpl Inside method getMititgationRiskRegisterlist()");
+		logger.info( " RiskServiceImpl Inside method getMititgationRiskRegisterlist()");
 		try {
 			List<Object[]> mitigationRiskRegister = mitigationriskRepository.getAllMititgationRiskRegisterlist();
 			List<MitigationRiskRegisterDto> finalDto = Optional.ofNullable(mitigationRiskRegister).orElse(Collections.emptyList()).stream()

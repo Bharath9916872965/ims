@@ -1,6 +1,5 @@
 package com.vts.ims.kpi.controller;
 
-import java.util.Date;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -42,7 +41,7 @@ public class KpiController {
 	@PostMapping(value = "/get-kpi-unit-list", produces = "application/json")
 	public ResponseEntity<List<ImsKpiUnit>> getKpiUnitList(@RequestHeader String username) throws Exception {
 		try {
-			logger.info(new Date() + " Inside getKpiUnitList" );
+			logger.info( " Inside getKpiUnitList" );
 			List<ImsKpiUnit> dto = kpiService.getKpiUnitList();
 			return new ResponseEntity<List<ImsKpiUnit>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
@@ -107,7 +106,7 @@ public class KpiController {
 	public ResponseEntity<Response> updateKpiObjective(@RequestHeader String username, @RequestBody KpiObjListDto kpiObjListDto) throws Exception {
 		try {
 			logger.info( " Inside update-kpi-objective" );
-			 int result=kpiService.updateKpiObjective(kpiObjListDto,username);
+			 long result=kpiService.updateKpiObjective(kpiObjListDto,username);
 			 if(result > 0) {
 				 return ResponseEntity.status(HttpStatus.OK).body(new Response("KPI Rating Edited Successfully","S"));
 			 }else {
@@ -123,7 +122,7 @@ public class KpiController {
 	@PostMapping(value = "/get-kpi-master-list", produces = "application/json")
 	public ResponseEntity<List<KpiMasterDto>> getKpiMasterList(@RequestHeader String username) throws Exception {
 		try {
-			logger.info(new Date() + " Inside getKpiMasterList" );
+			logger.info( " Inside getKpiMasterList" );
 			List<KpiMasterDto> dto = kpiService.getKpiMasterList(username);
 			return new ResponseEntity<List<KpiMasterDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
@@ -136,7 +135,7 @@ public class KpiController {
 	@PostMapping(value = "/get-kpi-rating-list", produces = "application/json")
 	public ResponseEntity<List<KpiTargetRatingrDto>> getKpiRatingList(@RequestHeader String username) throws Exception {
 		try {
-			logger.info(new Date() + " Inside getKpiRatingList" );
+			logger.info( " Inside getKpiRatingList" );
 			List<KpiTargetRatingrDto> dto = kpiService.getKpiRatingList();
 			return new ResponseEntity<List<KpiTargetRatingrDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
@@ -149,7 +148,7 @@ public class KpiController {
 	@PostMapping(value = "/get-kpi-obj-rating-list", produces = "application/json")
 	public ResponseEntity<List<KpiObjRatingDto>> getKpiObjRatingList(@RequestHeader String username) throws Exception {
 		try {
-			logger.info(new Date() + " Inside getKpiObjRatingList" );
+			logger.info( " Inside getKpiObjRatingList" );
 			List<KpiObjRatingDto> dto = kpiService.getKpiObjRatingList();
 			return new ResponseEntity<List<KpiObjRatingDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
@@ -162,7 +161,7 @@ public class KpiController {
 	@PostMapping(value = "/get-group-division-list", produces = "application/json")
 	public ResponseEntity<List<GroupDivisionDto>> getGroupDivisionList(@RequestHeader String username) throws Exception {
 		try {
-			logger.info(new Date() + " Inside getGroupDivisionList" );
+			logger.info( " Inside getGroupDivisionList" );
 			List<GroupDivisionDto> dto = kpiService.getGroupDivisionList();
 			return new ResponseEntity<List<GroupDivisionDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {

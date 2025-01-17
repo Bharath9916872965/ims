@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -100,7 +99,7 @@ public class AdminServiceImpl implements AdminService {
 	
 	@Override
 	public List<FormModuleDto> formModuleList(Long imsFormRoleId) throws Exception {
-		logger.info(new Date() +" Inside formModuleList " );
+		logger.info(" Inside formModuleList " );
 		try {
 			List<FormModuleDto> formModuleDtoList = new ArrayList<FormModuleDto>();
 			List<FormModule> formModuleList = formModuleRepo.findDistinctFormModulesByRoleId(imsFormRoleId);
@@ -120,7 +119,7 @@ public class AdminServiceImpl implements AdminService {
 			
 			return formModuleDtoList;
 		} catch (Exception e) {
-			logger.error(new Date() +" Inside formModuleList ", e );
+			logger.error(" Inside formModuleList ", e );
 			e.printStackTrace();
 			return new ArrayList<FormModuleDto>();
 		}
@@ -129,7 +128,7 @@ public class AdminServiceImpl implements AdminService {
 	
 	@Override
 	public List<FormDetailDto> formModuleDetailList(Long imsFormRoleId) throws Exception {
-		logger.info(new Date() +" Inside formModuleDetailList " );
+		logger.info(" Inside formModuleDetailList " );
 		try {
 			List<FormDetailDto> formDetailDtoList = new ArrayList<FormDetailDto>();
 			List<FormDetail> formDetailList = formDetailRepo.findDistinctFormModulesDetailsByRoleId(imsFormRoleId);
@@ -152,7 +151,7 @@ public class AdminServiceImpl implements AdminService {
 			
 			return formDetailDtoList;
 		} catch (Exception e) {
-			logger.error(new Date() +" Inside formModuleDetailList ", e );
+			logger.error(" Inside formModuleDetailList ", e );
 			e.printStackTrace();
 			return new ArrayList<FormDetailDto>();
 		}
@@ -162,14 +161,14 @@ public class AdminServiceImpl implements AdminService {
 	//mdn connection established in below method
 		@Override
 		public List<LoginDetailsDto> loginDetailsList(String username) {
-			 logger.info(new Date() + " AdminServiceImpl Inside method loginDetailsList");
+			 logger.info( " AdminServiceImpl Inside method loginDetailsList");
 			 List<LoginDetailsDto> list =null;
 			 try {
 		
 				 list = masterservice.loginDetailsList(username);
 				 
 			 } catch (Exception e) {
-		    	 logger.info(new Date() + " AdminServiceImpl Inside method loginDetailsList"+ e.getMessage());
+		    	 logger.info( " AdminServiceImpl Inside method loginDetailsList"+ e.getMessage());
 		        return new ArrayList<>(); // Return an empty list in case of an error
 		    }
 			 return list;
@@ -179,7 +178,7 @@ public class AdminServiceImpl implements AdminService {
 		
 		@Override
 		public List<EmployeeDto> employeeList() throws Exception {
-			logger.info(new Date() + " AuditServiceImpl Inside method employeeList()");
+			logger.info( " AuditServiceImpl Inside method employeeList()");
 			try {
 
 				List<EmployeeDto> empdto=masterClient.getEmployeeList(xApiKey);
@@ -201,25 +200,25 @@ public class AdminServiceImpl implements AdminService {
 
 		@Override
 		public long loginStampingInsert(LoginStamping Stamping)throws Exception{
-			logger.info(new Date() + " AdminServiceImpl Inside method LoginStampingInsert " );
+			logger.info( " AdminServiceImpl Inside method LoginStampingInsert " );
 			long result = 0;
 			try{
 				result =  auditStampingRepo.save(Stamping).getAuditStampingId();
 			}catch (Exception e) {
 				e.printStackTrace();
-				logger.error(new Date() +" error in AdminServiceImpl Inside method LoginStampingInsert "+ e.getMessage());
+				logger.error(" error in AdminServiceImpl Inside method LoginStampingInsert "+ e.getMessage());
 			}
 			return result;
 		}
 		
 		@Override
 		public long  lastLoginStampingId(long loginId)throws Exception{
-			logger.info(new Date() + " AdminServiceImpl Inside method LastLoginStampingId " );
+			logger.info( " AdminServiceImpl Inside method LastLoginStampingId " );
 			        try {
 			            Optional<Long> result = auditStampingRepo.findLastLoginStampingId(loginId);
 			            return result.isPresent() ? result.get() : 0L; 
 			        } catch (Exception e) {
-			        	logger.error(new Date() +" error in AdminServiceImpl Inside method LastLoginStampingId "+ e.getMessage());
+			        	logger.error(" error in AdminServiceImpl Inside method LastLoginStampingId "+ e.getMessage());
 			            throw new Exception("Error while fetching last login stamping ID", e);
 			        }
 			    
@@ -229,7 +228,7 @@ public class AdminServiceImpl implements AdminService {
 		@Override
 		public long loginStampingUpdate(LoginStamping stamping)throws Exception{
 
-			logger.info(new Date() + " AdminServiceImpl Inside method LoginStampingUpdate " );
+			logger.info( " AdminServiceImpl Inside method LoginStampingUpdate " );
 			long result = 0;
 			try{
 				LoginStamping prevStampingDetails = auditStampingRepo.findByAuditStampingId(stamping.getAuditStampingId());
@@ -240,7 +239,7 @@ public class AdminServiceImpl implements AdminService {
 				result =  auditStampingRepo.save(prevStampingDetails).getAuditStampingId();
 			}catch (Exception e) {
 				e.printStackTrace();
-				logger.error(new Date() +" error in AdminServiceImpl Inside method LoginStampingUpdate "+ e.getMessage());
+				logger.error(" error in AdminServiceImpl Inside method LoginStampingUpdate "+ e.getMessage());
 			}
 			return result;
 		}
@@ -249,7 +248,7 @@ public class AdminServiceImpl implements AdminService {
 	@Override
 		public List<AuditStampingDto> getAuditStampinglist(AuditStampingDto stamping)throws Exception{
 			
-			 logger.info(new Date() + " AdminServiceImpl Inside method getAuditStampinglist " );
+			 logger.info( " AdminServiceImpl Inside method getAuditStampinglist " );
 				List<Object[]> AuditStampinglist = null;
 			 try {
 			
@@ -292,7 +291,7 @@ public class AdminServiceImpl implements AdminService {
 			return List.of();
 			
 			 } catch (Exception e) {
-		        	logger.error(new Date() +" error in AdminServiceImpl Inside method getAuditStampinglist "+ e.getMessage());
+		        	logger.error(" error in AdminServiceImpl Inside method getAuditStampinglist "+ e.getMessage());
 				         e.printStackTrace();
 				     	return List.of();
 				}
@@ -303,7 +302,7 @@ public class AdminServiceImpl implements AdminService {
 
 	@Override
 	public List<UserManagerListDto> UserManagerList(String username) throws Exception {
-		logger.info(new Date() + " AdminServiceImpl Inside method UserManagerList " );
+		logger.info( " AdminServiceImpl Inside method UserManagerList " );
 
 		try {
 			//List<LoginDetailsDto> loginDtoList = masterservice.loginDetailsList(username);
@@ -362,7 +361,7 @@ public class AdminServiceImpl implements AdminService {
 			}
 
 		} catch (Exception e) {
-			logger.error(new Date() +" error in AdminServiceImpl Inside method UserManagerList "+ e.getMessage());
+			logger.error(" error in AdminServiceImpl Inside method UserManagerList "+ e.getMessage());
 			e.printStackTrace();
 			return List.of();
 		}
@@ -371,7 +370,7 @@ public class AdminServiceImpl implements AdminService {
 
 	@Override
 	public List<FormRoleDto> roleList() {
-		logger.info(new Date() + " AdminServiceImpl Inside method roleList " );
+		logger.info( " AdminServiceImpl Inside method roleList " );
 		List<Object[]> formRolesList = imsFormRoleRepo.getRoleDetails();
 
 		try {
@@ -388,7 +387,7 @@ public class AdminServiceImpl implements AdminService {
 			}
 
 		} catch (Exception e) {
-			logger.error(new Date() +" error in AdminServiceImpl Inside method roleList "+ e.getMessage());
+			logger.error(" error in AdminServiceImpl Inside method roleList "+ e.getMessage());
 			e.printStackTrace();
 			return List.of();
 		}
@@ -397,7 +396,7 @@ public class AdminServiceImpl implements AdminService {
 
 	@Override
 	public List<FormModuleDto> getformModulelist() throws Exception {
-		logger.info(new Date() + " AdminServiceImpl Inside method getformModulelist " );
+		logger.info( " AdminServiceImpl Inside method getformModulelist " );
 		List<FormModuleDto> FMlist = new ArrayList<FormModuleDto>();
 		try {
 
@@ -413,7 +412,7 @@ public class AdminServiceImpl implements AdminService {
 				FMlist = null;
 			}
 		} catch (Exception e) {
-			logger.error(new Date() +" error in AdminServiceImpl Inside method getformModulelist "+ e.getMessage());
+			logger.error(" error in AdminServiceImpl Inside method getformModulelist "+ e.getMessage());
 			e.printStackTrace();
 		}
 
@@ -422,7 +421,7 @@ public class AdminServiceImpl implements AdminService {
 
 	@Override
 	public List<FormroleAccessDto> getformRoleAccessList(String roleId, String formModuleId) {
-		logger.info(new Date() + " AdminServiceImpl Inside method getformModulelist");
+		logger.info( " AdminServiceImpl Inside method getformModulelist");
 		List<FormroleAccessDto> FRAlist = new ArrayList<FormroleAccessDto>();
 		try {
 
@@ -455,7 +454,7 @@ public class AdminServiceImpl implements AdminService {
 				FRAlist.add(dto);
 			}
 		} catch (Exception e) {
-			logger.error(new Date() +" error in AdminServiceImpl Inside method getformRoleAccessList "+ e.getMessage());
+			logger.error(" error in AdminServiceImpl Inside method getformRoleAccessList "+ e.getMessage());
 			e.printStackTrace();
 		}
 		return FRAlist;
@@ -463,7 +462,7 @@ public class AdminServiceImpl implements AdminService {
 
 	@Override
 	public String updateformroleaccess(FormroleAccessDto accessDto, String username) {
-		logger.info(new Date() + " AdminServiceImpl Inside method updateformroleaccess");
+		logger.info( " AdminServiceImpl Inside method updateformroleaccess");
 		String updateResult = null;
 		try {
 			long result = formRoleAccessRepo.countByFormRoleIdAndDetailId(String.valueOf(accessDto.getRoleId()),String.valueOf(accessDto.getFormDetailId()));
@@ -488,7 +487,7 @@ public class AdminServiceImpl implements AdminService {
 				}
 			}
 		} catch (Exception e) {
-			logger.error(new Date() +" error in AdminServiceImpl Inside method updateformroleaccess "+ e.getMessage());
+			logger.error(" error in AdminServiceImpl Inside method updateformroleaccess "+ e.getMessage());
 			e.printStackTrace();
 		}
 		return updateResult;
@@ -496,7 +495,7 @@ public class AdminServiceImpl implements AdminService {
 
 	@Override
 	public UserManageAddEditDto UserManagerEditData(String loginId) throws Exception {
-		logger.info(new Date() + " AdminServiceImpl Inside method UserManagerEditData " );
+		logger.info( " AdminServiceImpl Inside method UserManagerEditData " );
 		UserManageAddEditDto userEditData =null;
 		try {
 			userEditData =new UserManageAddEditDto();
@@ -508,7 +507,7 @@ public class AdminServiceImpl implements AdminService {
 			userEditData.setLoginId(login.getLoginId());
 			userEditData.setUserName(login.getUsername());
 		} catch (Exception e) {
-			logger.error(new Date() +" error in AdminServiceImpl Inside method AdminServiceImpl "+ e.getMessage());
+			logger.error(" error in AdminServiceImpl Inside method AdminServiceImpl "+ e.getMessage());
 			e.printStackTrace();
 		}
 		return userEditData;
@@ -516,7 +515,7 @@ public class AdminServiceImpl implements AdminService {
 
 	@Override
 	public int UserManagerUpdate(UserManageAddEditDto userManageAdd, String name) {
-		logger.info(new Date() + " AdminServiceImpl Inside method UserManagerUpdate " );
+		logger.info( " AdminServiceImpl Inside method UserManagerUpdate " );
 		long result = 0;
 		try {
 			Login login=userManagerRepo.findByLoginId(userManageAdd.getLoginId());
@@ -541,7 +540,7 @@ public class AdminServiceImpl implements AdminService {
 			userManagerRepo.save(login);
 			result = login.getLoginId();
 		} catch (Exception e) {
-			logger.error(new Date() +" error in AdminServiceImpl Inside method UserManagerUpdate "+ e.getMessage());
+			logger.error(" error in AdminServiceImpl Inside method UserManagerUpdate "+ e.getMessage());
 			e.printStackTrace();
 		}
 		return (int) result;
@@ -549,12 +548,12 @@ public class AdminServiceImpl implements AdminService {
 
 	@Override
 	public long UserNamePresentCount(String userName) throws Exception {
-		logger.info(new Date() + " AdminServiceImpl Inside method UserNamePresentCount " );
+		logger.info( " AdminServiceImpl Inside method UserNamePresentCount " );
 		try {
 			Long count = userManagerRepo.countByUserNameAndActive(userName);
 			return (count != null) ? count : 0L; // Return 0 if count is null
 		} catch (Exception e) {
-			logger.error(new Date() +" error in AdminServiceImpl Inside method UserNamePresentCount "+ e.getMessage());
+			logger.error(" error in AdminServiceImpl Inside method UserNamePresentCount "+ e.getMessage());
 			throw new Exception("Error while counting usernames", e);
 		}
 	}
@@ -562,7 +561,7 @@ public class AdminServiceImpl implements AdminService {
 	
 	@Override
 	public List<ApprovalAuthorityDto> approvalAuthorityList() throws Exception {
-		logger.info(new Date() + " AdminServiceImpl Inside method approvalAuthorityList " );
+		logger.info( " AdminServiceImpl Inside method approvalAuthorityList " );
 		try {
 			List<ApprovalAuthority> approvalAuthority = approvalAuthorityRepo.findAll();
 			List<EmployeeDto> employeeList=masterClient.getEmployeeList(xApiKey);
@@ -590,7 +589,7 @@ public class AdminServiceImpl implements AdminService {
 			return finalDto;
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.error(new Date() +" error in AdminServiceImpl Inside method approvalAuthorityList "+ e.getMessage());
+			logger.error(" error in AdminServiceImpl Inside method approvalAuthorityList "+ e.getMessage());
 			return List.of();
 		}
 		// TODO Auto-generated method stub
@@ -599,7 +598,7 @@ public class AdminServiceImpl implements AdminService {
 	
 	@Override
 	public long insertApprovalAuthority(ApprovalAuthorityDto approvalAuthorityDto, String username) throws Exception {
-		logger.info(new Date() + " AdminServiceImpl Inside method insertApprovalAuthority " );
+		logger.info( " AdminServiceImpl Inside method insertApprovalAuthority " );
 		long result=0;
 		try {
 			if(approvalAuthorityDto!=null) {
@@ -630,7 +629,7 @@ public class AdminServiceImpl implements AdminService {
 			return result;
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.error(new Date() +" error in AdminServiceImpl Inside method insertApprovalAuthority "+ e.getMessage());
+			logger.error(" error in AdminServiceImpl Inside method insertApprovalAuthority "+ e.getMessage());
 			return result;
 		}
 		
@@ -639,7 +638,7 @@ public class AdminServiceImpl implements AdminService {
 	
 	@Override
 	public long approvalAuthorityInactive(ApprovalAuthorityDto approvalAuthorityDto, String username) throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method approvalAuthorityInactive()");
+		logger.info( " AuditServiceImpl Inside method approvalAuthorityInactive()");
 		long result=0;
 		try {
 			Optional<ApprovalAuthority> model =approvalAuthorityRepo.findById(approvalAuthorityDto.getMRsId());
@@ -660,7 +659,7 @@ public class AdminServiceImpl implements AdminService {
 	
 	@Override
 	public Long UpdateApprovalAuthority(ApprovalAuthorityDto approvalAuthorityDto, String username) throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method UpdateApprovalAuthority()");
+		logger.info( " AuditServiceImpl Inside method UpdateApprovalAuthority()");
 		long result=0;
 		try {
 			Optional<ApprovalAuthority> model =approvalAuthorityRepo.findById(approvalAuthorityDto.getMRsId());
@@ -716,7 +715,7 @@ public class AdminServiceImpl implements AdminService {
 	
 	@Override
 	public long updateNotification(String userName, String notificationId) throws Exception {
-	    logger.info(new Date() + " AdminServiceImpl Inside method updateNotification ");
+	    logger.info( " AdminServiceImpl Inside method updateNotification ");
 	    try {
 	        // Find the notification by ID
 	        Optional<ImsNotification> notifOptional = notificationRepo.findById(Long.parseLong(notificationId));
@@ -748,7 +747,7 @@ public class AdminServiceImpl implements AdminService {
 	
 	@Override
 	public List<AuditPatchDto> getAuditPatchList() throws Exception {
-		logger.info(new Date() + " AdminServiceImpl Inside method getAuditPatchList ");
+		logger.info( " AdminServiceImpl Inside method getAuditPatchList ");
 		try {
 			List<AuditPatchDto> auditPatchListDto = new ArrayList<AuditPatchDto>();
 			List<AuditPatch> auditpatch = auditPatchRepo.findAll();
@@ -772,7 +771,7 @@ public class AdminServiceImpl implements AdminService {
 			
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.error(new Date() +" error in AdminServiceImpl Inside method getAuditPatchList "+ e.getMessage());
+			logger.error(" error in AdminServiceImpl Inside method getAuditPatchList "+ e.getMessage());
 			return List.of();
 			
 		}

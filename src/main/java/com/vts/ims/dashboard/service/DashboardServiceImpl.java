@@ -89,7 +89,7 @@ public class DashboardServiceImpl implements DashboardService {
 	
 	@Override
 	public List<IqaDto> getIqaListForDashboard() throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getIqaListForDashboard()");
+		logger.info( " AuditServiceImpl Inside method getIqaListForDashboard()");
 		try {
 			List<Iqa> iqalist = iqaRepository.getIqaListForDashboard();
 			List<IqaDto> finalIqaDtoList = iqalist.stream()
@@ -115,7 +115,7 @@ public class DashboardServiceImpl implements DashboardService {
 	
 	@Override
 	public List<DwpRevisionRecordDto> getAllDwpRevisionListForDashboard() throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getDwpRevisionListForDashboard()");
+		logger.info( " AuditServiceImpl Inside method getDwpRevisionListForDashboard()");
 		try {
 
 
