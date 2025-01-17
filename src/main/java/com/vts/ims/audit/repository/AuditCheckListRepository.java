@@ -101,7 +101,7 @@ ORDER BY COALESCE(totalNC, 0) DESC;
  List<Object[]> getCheckListObsByDivPrjGroup();
 
  @Query(value = "SELECT a.AuditCheckListId,a.ScheduleId,a.IqaId,a.MocId,a.AuditObsId,a.AuditorRemarks,b.ClauseNo,b.SectionNo,\r\n"
- 		+ "b.MocParentId,b.IsForCheckList,b.MocDescription,a.AuditeeRemarks,c.ScheduleStatus,d.CarRefNo\r\n"
+ 		+ "b.MocParentId,b.IsForCheckList,b.MocDescription,a.AuditeeRemarks,c.ScheduleStatus,d.CarRefNo,d.CarStatus\r\n"
  		+ "FROM\r\n"
  		+ "ims_audit_check_list a\r\n"
  		+ "LEFT JOIN ims_qms_qm_mapping_classes b ON b.MocId = a.MocId AND b.IsActive = 1\r\n"
