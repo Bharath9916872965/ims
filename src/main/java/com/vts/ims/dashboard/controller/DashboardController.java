@@ -43,7 +43,7 @@ public class DashboardController {
 	@PostMapping(value = "/iqa-list-for-dashboard", produces = "application/json")
 	public ResponseEntity<List<IqaDto>> iqalistForDashboard(@RequestHeader String username) throws Exception {
 		try {
-			logger.info(new Date() + " Inside iqalistForDashboard" );
+			logger.info( " Inside iqalistForDashboard" );
 			List<IqaDto> dto=service.getIqaListForDashboard();
 			return new ResponseEntity<List<IqaDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
@@ -56,7 +56,7 @@ public class DashboardController {
 	@PostMapping(value = "/dwp-revision-list-for-dashboard", produces = "application/json")
 	public ResponseEntity<List<DwpRevisionRecordDto>> getDwpVersionRecordDtoListForDahboard(@RequestHeader String username) throws Exception {
 		try {
-			logger.info(new Date() + " Inside getDwpVersionRecordDtoListForDahboard" );
+			logger.info( " Inside getDwpVersionRecordDtoListForDahboard" );
 			List<DwpRevisionRecordDto> dto=service.getAllDwpRevisionListForDashboard();
 			return new ResponseEntity<List<DwpRevisionRecordDto>>( dto,HttpStatus.OK);
 		} catch (Exception e) {
@@ -152,7 +152,7 @@ public class DashboardController {
 	
 	@PostMapping(value = "/get-project-list-of-prj-emps/{imsFormRoleId}/{empId}", produces = "application/json")
 	public ResponseEntity<List<ProjectMasterDto>> getProjectListOfPrjEmps(@PathVariable("imsFormRoleId") Integer imsFormRoleId, @PathVariable("empId") Long empId, @RequestHeader String username) throws Exception {
-		logger.info(new Date() + " Inside getProjectListOfPrjEmps()" );
+		logger.info( " Inside getProjectListOfPrjEmps()" );
 		List<ProjectMasterDto> dto = service.getProjectListOfPrjEmps(imsFormRoleId, empId);
 		return new ResponseEntity<List<ProjectMasterDto>>( dto,HttpStatus.OK);
 	}
@@ -162,7 +162,7 @@ public class DashboardController {
 
 	@PostMapping(value = "/get-div-group-list-of-div-emps/{imsFormRoleId}/{empId}", produces = "application/json")
 	public ResponseEntity<List<DivisionGroupDto>> getGroupListOfDivGroupEmps(@PathVariable("imsFormRoleId") Integer imsFormRoleId, @PathVariable("empId") Long empId, @RequestHeader String username) throws Exception {
-		logger.info(new Date() + " Inside getGroupListOfDivGroupEmps()" );
+		logger.info( " Inside getGroupListOfDivGroupEmps()" );
 		List<DivisionGroupDto> dto = service.getGroupListOfDivEmps(imsFormRoleId, empId);
 		return new ResponseEntity<List<DivisionGroupDto>>( dto,HttpStatus.OK);
 	}
@@ -174,7 +174,7 @@ public class DashboardController {
 		try {
 			list = service.getAllActiveDivisionList(username);
 		} catch (Exception e) {
-			logger.error(new Date() +" error in  division-master-list ");
+			logger.error(" error in  division-master-list ");
 			e.printStackTrace();
 		}
 		return new ResponseEntity<>(list, HttpStatus.OK);
@@ -185,21 +185,21 @@ public class DashboardController {
 
 	@PostMapping(value = "/get-division-list-of-div-emps/{imsFormRoleId}/{empId}", produces = "application/json")
 	public ResponseEntity<List<DivisionMasterDto>> getDivisionlistOfDivEmps(@PathVariable("imsFormRoleId") Integer imsFormRoleId, @PathVariable("empId") Long empId, @RequestHeader String username) throws Exception {
-		logger.info(new Date() + " Inside getDivisionlistOfDivEmps()" );
+		logger.info( " Inside getDivisionlistOfDivEmps()" );
 		List<DivisionMasterDto> dto = service.getDivisionListOfDivEmps(imsFormRoleId, empId);
 		return new ResponseEntity<List<DivisionMasterDto>>( dto,HttpStatus.OK);
 	}
 	
 	@PostMapping(value = "/get-division-list-of-div-head/{imsFormRoleId}/{empId}", produces = "application/json")
 	public ResponseEntity<List<DivisionMasterDto>> getDivisionListOfDH(@PathVariable("imsFormRoleId") Integer imsFormRoleId, @PathVariable("empId") Long empId, @RequestHeader String username) throws Exception {
-		logger.info(new Date() + " Inside getDivisionListOfDH()" );
+		logger.info( " Inside getDivisionListOfDH()" );
 		List<DivisionMasterDto> dto = service.getDivisionListOfDH(imsFormRoleId, empId);
 		return new ResponseEntity<List<DivisionMasterDto>>( dto,HttpStatus.OK);
 	}
 	
 	@PostMapping(value = "/get-division-list-of-group-head/{imsFormRoleId}/{empId}", produces = "application/json")
 	public ResponseEntity<List<DivisionMasterDto>> getDivisionListOfGH(@PathVariable("imsFormRoleId") Integer imsFormRoleId, @PathVariable("empId") Long empId, @RequestHeader String username) throws Exception {
-		logger.info(new Date() + " Inside getDivisionListOfGH()" );
+		logger.info( " Inside getDivisionListOfGH()" );
 		List<DivisionMasterDto> dto = service.getDivisionListOfGH(imsFormRoleId, empId);
 		return new ResponseEntity<List<DivisionMasterDto>>( dto,HttpStatus.OK);
 	}
@@ -207,7 +207,7 @@ public class DashboardController {
 	
 	@PostMapping(value = "/get-project-list-of-prj-director/{imsFormRoleId}/{empId}", produces = "application/json")
 	public ResponseEntity<List<ProjectMasterDto>> getProjectListOfPrjDir(@PathVariable("imsFormRoleId") Integer imsFormRoleId, @PathVariable("empId") Long empId, @RequestHeader String username) throws Exception {
-		logger.info(new Date() + " Inside getProjectListOfPrjDir()" );
+		logger.info( " Inside getProjectListOfPrjDir()" );
 		List<ProjectMasterDto> dto = service.getProjectListOfPrjDir(imsFormRoleId, empId);
 		return new ResponseEntity<List<ProjectMasterDto>>( dto,HttpStatus.OK);
 	}

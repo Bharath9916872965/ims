@@ -4,7 +4,6 @@ package com.vts.ims.kpi.service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -38,7 +37,6 @@ import com.vts.ims.master.dao.MasterClient;
 import com.vts.ims.master.dto.DivisionGroupDto;
 import com.vts.ims.master.dto.DivisionMasterDto;
 import com.vts.ims.master.dto.EmployeeDto;
-import com.vts.ims.qms.repository.DwpRevisionRecordRepo;
 
 
 @Service
@@ -69,7 +67,7 @@ public class KpiServiceImpl implements KpiService{
 	
 	@Override
 	public List<ImsKpiUnit> getKpiUnitList() throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getKpiUnitList()");
+		logger.info( " AuditServiceImpl Inside method getKpiUnitList()");
 		try {
 			return kpiUnitRepository.findAll();
 		} catch (Exception e) {
@@ -81,7 +79,7 @@ public class KpiServiceImpl implements KpiService{
 
 	@Override
 	public long insertKpi(KpiObjectiveDto kpiObjectiveDto, String username) throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method insertKpi()");
+		logger.info( " AuditServiceImpl Inside method insertKpi()");
 		long result=0;
 		try {
 			
@@ -126,10 +124,10 @@ public class KpiServiceImpl implements KpiService{
 	
 	@Override
 	public long updateKpi(KpiObjectiveDto kpiObjectiveDto, String username) throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method updateKpi()");
+		logger.info( " AuditServiceImpl Inside method updateKpi()");
 		long result=0;
 		try {
-			result = kpiTargetRatingRepository.deleteRatings(kpiObjectiveDto.getKpiId());
+			result = kpiTargetRatingRepository.deleteByImsKpiObjectiveMaster_KpiId(kpiObjectiveDto.getKpiId());
 			if(result > 0) {
 				ImsKpiObjectiveMaster kpiMas = kpiObjMasterRepository.findById(kpiObjectiveDto.getKpiId()).get();
 				
@@ -170,7 +168,7 @@ public class KpiServiceImpl implements KpiService{
 
 	@Override
 	public List<KpiMasterDto> getKpiMasterList(String username) throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getKpiUnitList()");
+		logger.info( " AuditServiceImpl Inside method getKpiUnitList()");
 		try {
 	    	Login login = loginRepo.findByUsername(username);
 			EmployeeDto employeeLogIn = masterClient.getEmployee(xApiKey,login.getEmpId()).get(0);
@@ -227,7 +225,7 @@ public class KpiServiceImpl implements KpiService{
 
 	@Override
 	public List<KpiTargetRatingrDto> getKpiRatingList() throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getKpiRatingList()");
+		logger.info( " AuditServiceImpl Inside method getKpiRatingList()");
 		try {
 			List<Object[]> result = kpiTargetRatingRepository.getTargetRatingList();
 			 return Optional.ofNullable(result).orElse(Collections.emptyList()).stream()
@@ -250,7 +248,7 @@ public class KpiServiceImpl implements KpiService{
 	
 	@Override
 	public List<KpiObjRatingDto> getKpiObjRatingList() throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getKpiObjRatingList()");
+		logger.info( " AuditServiceImpl Inside method getKpiObjRatingList()");
 		try {
 			List<Object[]> result = kpiObjectiveRepository.getKpiObjRatingList();
 			 return Optional.ofNullable(result).orElse(Collections.emptyList()).stream()
@@ -283,7 +281,7 @@ public class KpiServiceImpl implements KpiService{
 
 	@Override
 	public List<GroupDivisionDto> getGroupDivisionList() throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method getGroupDivisionList()");
+		logger.info( " AuditServiceImpl Inside method getGroupDivisionList()");
 		try {
 			List<DivisionMasterDto> divisionDtoList = masterClient.getDivisionMaster(xApiKey);
 			List<DivisionGroupDto> divisiongroupDtoList = masterClient.getDivisionGroupList(xApiKey);
@@ -320,7 +318,7 @@ public class KpiServiceImpl implements KpiService{
 
 	@Override
 	public long insertKpiObjective(KpiObjListDto kpiObjListDto, String username) throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method insertKpiObjective()");
+		logger.info( " AuditServiceImpl Inside method insertKpiObjective()");
 		long result = 0;
 		try {
 			Login login = loginRepo.findByUsername(username);
@@ -352,14 +350,24 @@ public class KpiServiceImpl implements KpiService{
 	}
 	
 	@Override
-	public int updateKpiObjective(KpiObjListDto kpiObjListDto, String username) throws Exception {
-		logger.info(new Date() + " AuditServiceImpl Inside method updateKpiObjective()");
-		int result = 0;
+	public long updateKpiObjective(KpiObjListDto kpiObjListDto, String username) throws Exception {
+		logger.info( " AuditServiceImpl Inside method updateKpiObjective()");
+		long result = 0;
 		try {
 			
 			for(KpiObjDto dto : kpiObjListDto.getRatingList()) {
 				
-				result = kpiObjectiveRepository.updateKpiObjRatings(dto.getKpiValue(),dto.getKpiRating(),username,LocalDateTime.now(),dto.getKpiObjectiveId());
+				Optional<ImsKpiObjective> kpiOptional = kpiObjectiveRepository.findById(dto.getKpiObjectiveId());
+				if(kpiOptional.isPresent()) {
+					
+					ImsKpiObjective kpiObj = kpiOptional.get();
+					kpiObj.setKpiValue(Long.parseLong(dto.getKpiValue()));					
+					kpiObj.setKpiRating(dto.getKpiRating());					
+					kpiObj.setModifiedBy(username);					
+					kpiObj.setModifiedDate(LocalDateTime.now());					
+					
+					result = kpiObjectiveRepository.save(kpiObj).getKpiObjectiveId();
+				}
 			}
 			
 

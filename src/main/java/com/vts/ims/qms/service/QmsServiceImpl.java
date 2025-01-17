@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -755,7 +754,7 @@ public class QmsServiceImpl implements QmsService {
 
 	@Override
 	public List<QmsQmMappingDto> getMoctotalList() throws Exception {
-		logger.info(new Date() + " Inside getMoctotalList() " );
+		logger.info(" Inside getMoctotalList() " );
 		try {
 			List<QmsQmMappingOfClasses> result = qmsQmMappingOfClassesRepo.findAll();
 			return Optional.ofNullable(result).orElse(Collections.emptyList()).stream().map(entity -> QmsQmMappingDto.builder()
@@ -772,7 +771,7 @@ public class QmsServiceImpl implements QmsService {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.error(new Date()  + "Inside service getMoctotalList() " + e);
+			logger.error( "Inside service getMoctotalList() " + e);
 			return List.of();
 		}
 	}
@@ -1097,12 +1096,24 @@ public class QmsServiceImpl implements QmsService {
 	}
 
 	@Override
-	public Integer updateChapterDescById(CheckListMasterDto checkListMasterDto, String username) throws Exception {
+	public long updateChapterDescById(CheckListMasterDto checkListMasterDto, String username) throws Exception {
 
 	    logger.info(" QmsServiceImpl Inside method updateChapterDescById()");
-	    Integer result = 0;
+	    long result = 0;
 	    try {
-	    	 result = qmsQmMappingOfClassesRepo.updateMoc(checkListMasterDto.getMocId(),checkListMasterDto.getDescription(),username,LocalDateTime.now());
+	    	
+	    	Optional<QmsQmMappingOfClasses> mocOptional = qmsQmMappingOfClassesRepo.findById(checkListMasterDto.getMocId());
+	    	if(mocOptional.isPresent()) {
+	    		QmsQmMappingOfClasses moc = mocOptional.get();
+	    		moc.setDescription(checkListMasterDto.getDescription());
+	    		moc.setModifiedBy(username);	    	
+	    		moc.setModifiedDate(LocalDateTime.now());	
+	    		
+	    		result = qmsQmMappingOfClassesRepo.save(moc).getMocId();
+	    	}
+	    		
+	    		
+	    	 //result = qmsQmMappingOfClassesRepo.updateMoc(checkListMasterDto.getMocId(),checkListMasterDto.getDescription(),username,LocalDateTime.now());
 	    	
 	    } catch (Exception e) {
 	    	e.printStackTrace();
@@ -1112,12 +1123,25 @@ public class QmsServiceImpl implements QmsService {
 	}
 
 	@Override
-	public Integer deleteChapterDescById(String mocId, String username) throws Exception {
+	public long deleteChapterDescById(String mocId, String username) throws Exception {
 
 	    logger.info(" QmsServiceImpl Inside method deleteChapterDescById()");
-	    Integer result = 0;
+	    long result = 0;
 	    try {
-	    	 result = qmsQmMappingOfClassesRepo.deleteMoc(mocId,username,LocalDateTime.now());
+	    	Optional<QmsQmMappingOfClasses> mocOptional = qmsQmMappingOfClassesRepo.findById(Long.parseLong(mocId));
+	    	if(mocOptional.isPresent()) {
+	    		QmsQmMappingOfClasses moc = mocOptional.get();
+	    		moc.setMocParentId(0L);	    	
+	    		moc.setModifiedBy(username);	    	
+	    		moc.setModifiedDate(LocalDateTime.now());
+	    		
+	    		result = qmsQmMappingOfClassesRepo.save(moc).getMocId();
+	    		
+	    	}
+	    	
+	    	
+	    	
+	    	 //result = qmsQmMappingOfClassesRepo.deleteMoc(mocId,username,LocalDateTime.now());
 	    	
 	    } catch (Exception e) {
 	    	e.printStackTrace();
@@ -1128,11 +1152,22 @@ public class QmsServiceImpl implements QmsService {
 	}
 
 	@Override
-	public Integer deleteSubChapterDescById(String mocId, String username) throws Exception {
+	public long deleteSubChapterDescById(String mocId, String username) throws Exception {
 	    logger.info(" QmsServiceImpl Inside method deleteSubChapterDescById()");
-	    Integer result = 0;
+	    long result = 0;
 	    try {
-	    	 result = qmsQmMappingOfClassesRepo.deleteSubChapter(mocId,username,LocalDateTime.now());
+	    	
+	    	Optional<QmsQmMappingOfClasses> mocOptional = qmsQmMappingOfClassesRepo.findById(Long.parseLong(mocId));
+	    	if(mocOptional.isPresent()) {
+	    		QmsQmMappingOfClasses moc = mocOptional.get();
+	    		moc.setIsActive(0);	    	
+	    		moc.setModifiedBy(username);	    	
+	    		moc.setModifiedDate(LocalDateTime.now());
+	    		
+	    		result = qmsQmMappingOfClassesRepo.save(moc).getMocId();
+	    		
+	    	}
+	    	 //result = qmsQmMappingOfClassesRepo.deleteSubChapter(mocId,username,LocalDateTime.now());
 	    	
 	    } catch (Exception e) {
 	    	e.printStackTrace();
@@ -1173,13 +1208,23 @@ public class QmsServiceImpl implements QmsService {
 	}
 
 	@Override
-	public int addChapterToMasters(List<String> mocIds, String username) throws Exception {
+	public long addChapterToMasters(List<String> mocIds, String username) throws Exception {
 	    logger.info(" QmsServiceImpl Inside method addChapterToMasters()");
-	    int result = 0;
+	    long result = 0;
 	    try {
 	    	for(String data : mocIds) {
 	    		String[] chapterData = data.split("#");
-	    		result = qmsQmMappingOfClassesRepo.addToCheckListMaster(chapterData[0],chapterData[1],username,LocalDateTime.now());
+		    	Optional<QmsQmMappingOfClasses> mocOptional = qmsQmMappingOfClassesRepo.findById(Long.parseLong(chapterData[0]));
+		    	if(mocOptional.isPresent()) {
+		    		QmsQmMappingOfClasses moc = mocOptional.get();
+		    		moc.setSectionNo(chapterData[1]);	    	
+		    		moc.setModifiedBy(username);	    	
+		    		moc.setModifiedDate(LocalDateTime.now());
+		    		
+		    		result = qmsQmMappingOfClassesRepo.save(moc).getMocId();
+		    		
+		    	}
+	    		//result = qmsQmMappingOfClassesRepo.addToCheckListMaster(chapterData[0],chapterData[1],username,LocalDateTime.now());
 	    	}
 	    } catch (Exception e) {
 	    	e.printStackTrace();
@@ -1190,16 +1235,31 @@ public class QmsServiceImpl implements QmsService {
 	}
 
 	@Override
-	public Integer updateCheckListChapters(List<Long> mocIds, String username) throws Exception {
+	public long updateCheckListChapters(List<Long> mocIds, String username) throws Exception {
 	    logger.info(" QmsServiceImpl Inside method updateCheckListChapters()");
-	    int result = 0;
+	    long result = 0;
 	    try {
-	    	result = qmsQmMappingOfClassesRepo.deleteCheckListChapters();
-	    	if(result >0) {
+	    	List<QmsQmMappingOfClasses> allClasses = qmsQmMappingOfClassesRepo.findAll();
+	    	allClasses.forEach(record -> record.setIsForCheckList("N"));
+	    	qmsQmMappingOfClassesRepo.saveAll(allClasses);
+	    	//result = qmsQmMappingOfClassesRepo.deleteCheckListChapters();
+	    	//if(result >0) {
 		    	for(Long id : mocIds) {
-		    		result = qmsQmMappingOfClassesRepo.updateCheckListChapters(id,username,LocalDateTime.now());
+		    		
+			    	Optional<QmsQmMappingOfClasses> mocOptional = qmsQmMappingOfClassesRepo.findById(id);
+			    	if(mocOptional.isPresent()) {
+			    		QmsQmMappingOfClasses moc = mocOptional.get();
+			    		moc.setIsForCheckList("Y");	    	
+			    		moc.setModifiedBy(username);	    	
+			    		moc.setModifiedDate(LocalDateTime.now());
+			    		
+			    		result = qmsQmMappingOfClassesRepo.save(moc).getMocId();
+			    		
+			    	}
+			    	
+		    		//result = qmsQmMappingOfClassesRepo.updateCheckListChapters(id,username,LocalDateTime.now());
 		    	}
-	    	}
+	    	//}
 	    } catch (Exception e) {
 	    	e.printStackTrace();
 	        logger.error("QmsServiceImpl Inside method updateCheckListChapters() " + e);

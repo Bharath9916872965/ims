@@ -28,5 +28,5 @@ public interface KpiService {
 
 	public long insertKpiObjective(KpiObjListDto kpiObjListDto, String username)throws Exception;
 	
-	public int updateKpiObjective(KpiObjListDto kpiObjListDto, String username)throws Exception;
+	public long updateKpiObjective(KpiObjListDto kpiObjListDto, String username)throws Exception;
 }

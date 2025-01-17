@@ -105,7 +105,7 @@ public interface AuditService {
 
 	public List<AuditObservation> getObservation()throws Exception;
 
-	public int addAuditCheckList(AuditCheckListDTO auditCheckListDTO, String username)throws Exception;
+	public long addAuditCheckList(AuditCheckListDTO auditCheckListDTO, String username)throws Exception;
 	
 	public long addAuditeeRemarks(List<MultipartFile> files,AuditCheckListDTO auditCheckListDTO, String username)throws Exception;
 	
@@ -129,9 +129,9 @@ public interface AuditService {
 
 	public List<CheckListDto> getMostFrequentNC() throws Exception;
 	
-	public int insertCorrectiveAction(List<AuditCarDTO> auditCarDTO, String username)throws Exception;
+	public long insertCorrectiveAction(List<AuditCarDTO> auditCarDTO, String username)throws Exception;
 
-	public int updateCorrectiveAction(AuditCarDTO auditCarDTO, String username)throws Exception;
+	public long updateCorrectiveAction(AuditCarDTO auditCarDTO, String username)throws Exception;
 
 	public long uploadCarAttachment(MultipartFile file, Map<String, Object> response, String username)throws Exception;
 	

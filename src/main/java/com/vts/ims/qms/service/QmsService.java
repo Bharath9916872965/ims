@@ -79,12 +79,12 @@ public interface QmsService {
 	public List<DwpSections> getDwpUnAddedQmSectionList(QmsDocTypeDto qmsDocTypeDto) throws Exception;
 	public Long addNewDwpSection(DwpSectionDto dwpSectionDto, String username) throws Exception;
 	public Long dwpUnAddListToAddList(@RequestBody long[] selectedSections, @RequestHeader  String username) throws Exception;
-	public Integer updateChapterDescById(CheckListMasterDto checkListMasterDto, String username)throws Exception;
-	public Integer deleteChapterDescById(String mocId, String username)throws Exception;
-	public Integer deleteSubChapterDescById(String mocId, String username)throws Exception;
+	public long updateChapterDescById(CheckListMasterDto checkListMasterDto, String username)throws Exception;
+	public long deleteChapterDescById(String mocId, String username)throws Exception;
+	public long deleteSubChapterDescById(String mocId, String username)throws Exception;
 	public Long addNewChapter(CheckListMasterDto checkListMasterDto, String username)throws Exception;
-	public int addChapterToMasters(List<String> mocIds, String username)throws Exception;
-	public Integer updateCheckListChapters(List<Long> mocIds, String username)throws Exception;
+	public long addChapterToMasters(List<String> mocIds, String username)throws Exception;
+	public long updateCheckListChapters(List<Long> mocIds, String username)throws Exception;
 	public DwpRevisionRecord getDwpRevisionRecord(Long revisionRecordId) throws Exception;
 	public long updateNotReqDwpAbbreviationIds(Long revisionRecordId, String abbreviationIds, String username) throws Exception;
 	public Long addDwpDocSummary(DwpGwpDocumentSummary documentSummary, String username) throws Exception;

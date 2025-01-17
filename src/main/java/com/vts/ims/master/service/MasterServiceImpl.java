@@ -54,7 +54,7 @@ public class MasterServiceImpl implements MasterService {
 	
 	@Override
 	public LabMasterDto labDetailsList(String username) throws Exception {
-		 logger.info(new Date() + " MasterServiceImpl Inside method labDetailsList");
+		 logger.info( " MasterServiceImpl Inside method labDetailsList");
 		 try {
 		List<LoginDetailsDto> loginDtoList = loginDetailsList(username);
 			String labCode = loginDtoList.stream()
@@ -68,7 +68,7 @@ public class MasterServiceImpl implements MasterService {
 	            .findFirst()
 	            .orElse(null); 
 		 } catch (Exception e) {
-			 logger.info(new Date() + " MasterServiceImpl Inside method labDetailsList"+ e.getMessage());
+			 logger.info( " MasterServiceImpl Inside method labDetailsList"+ e.getMessage());
 	        return null;
 	    }
 	}
@@ -76,7 +76,7 @@ public class MasterServiceImpl implements MasterService {
 	
 	@Override
 	public List<LoginDetailsDto> loginDetailsList(String username) {
-		 logger.info(new Date() + " MasterServiceImpl Inside method loginDetailsList");
+		 logger.info( " MasterServiceImpl Inside method loginDetailsList");
 		try {
 			
 	        // Fetch login data using the username
@@ -120,7 +120,7 @@ public class MasterServiceImpl implements MasterService {
 	        }
 	
 	    } catch (Exception e) {
-	    	 logger.info(new Date() + " MasterServiceImpl Inside method loginDetailsList"+ e.getMessage());
+	    	 logger.info( " MasterServiceImpl Inside method loginDetailsList"+ e.getMessage());
 	        return new ArrayList<>(); 
 	    }
 	}
@@ -185,7 +185,7 @@ public class MasterServiceImpl implements MasterService {
 	
 	@Override
 	public DocTemplateAttributesDto getDocTemplateAttributesDto() throws Exception {
-		logger.info(new Date() + " Inside getDocTemplateAttributesDto() " );
+		logger.info( " Inside getDocTemplateAttributesDto() " );
 		try {
 			DocTemplateAttributesDto qmsQmChaptersDto = DocTemplateAttributesDto.builder().build();
 			Optional<DocTemplateAttributes> optionalChapters = docTemplateAttributesRepo.findById(1l);
@@ -209,7 +209,7 @@ public class MasterServiceImpl implements MasterService {
 			}
 			return qmsQmChaptersDto;
 		} catch (Exception e) {
-			logger.error(new Date() + " Inside getDocTemplateAttributesDto() "+ e );
+			logger.error( " Inside getDocTemplateAttributesDto() "+ e );
 			e.printStackTrace();
 			return DocTemplateAttributesDto.builder().build();
 		}
@@ -246,12 +246,12 @@ public class MasterServiceImpl implements MasterService {
 	
 	@Override
 	public List<EmployeeDto> getemployeebyid(long empId) throws ExecutionException {
-		logger.info(new Date() + " MasterServiceImpl Inside method getemployeebyid");
+		logger.info( " MasterServiceImpl Inside method getemployeebyid");
 		 try {
 			 List<EmployeeDto> getEmployee=masterClient.getEmployee(xApiKey,empId);
 			 return getEmployee;
 		 } catch (Exception e) {
-			 logger.info(new Date() + " MasterServiceImpl Inside method getemployeebyid"+ e.getMessage());
+			 logger.info( " MasterServiceImpl Inside method getemployeebyid"+ e.getMessage());
 	        return null;
 	    }
 	}
@@ -259,24 +259,24 @@ public class MasterServiceImpl implements MasterService {
 	
 	@Override
 	public List<CommitteeScheduleDto> GetComitteeScheduleList(String committeeType) throws Exception {
-		logger.info(new Date() + " MasterServiceImpl Inside method GetComitteeScheduleList");
+		logger.info( " MasterServiceImpl Inside method GetComitteeScheduleList");
 		 try {
 			 List<CommitteeScheduleDto> getcommitteSchedule=masterClient.committeeScheduleList(xApiKey,committeeType);
 			 return getcommitteSchedule;
 		 } catch (Exception e) {
-			 logger.info(new Date() + " MasterServiceImpl Inside method GetComitteeScheduleList"+ e.getMessage());
+			 logger.info( " MasterServiceImpl Inside method GetComitteeScheduleList"+ e.getMessage());
 	        return null;
 	    }
 	}
 	
 	@Override
 	public List<ActionAssignDto> GetCommitteeScheduleActionAssignList(String committeeType) throws Exception {
-		logger.info(new Date() + " MasterServiceImpl Inside method GetCommitteeScheduleActionAssignList");
+		logger.info( " MasterServiceImpl Inside method GetCommitteeScheduleActionAssignList");
 		 try {
 			 List<ActionAssignDto> GetCommitteeScheduleActionAssignList=masterClient.actionAssignData(xApiKey,committeeType);
 			 return GetCommitteeScheduleActionAssignList;
 		 } catch (Exception e) {
-			 logger.info(new Date() + " MasterServiceImpl Inside method GetCommitteeScheduleActionAssignList"+ e.getMessage());
+			 logger.info( " MasterServiceImpl Inside method GetCommitteeScheduleActionAssignList"+ e.getMessage());
 	        return null;
 	    }
 	}
@@ -284,7 +284,7 @@ public class MasterServiceImpl implements MasterService {
 
 	@Override
 	public List<DivisionMasterDto> getDivisionMasterList(String username) throws Exception {
-		logger.info(new Date() + " MasterServiceImpl Inside method getDivisionMasterList");
+		logger.info( " MasterServiceImpl Inside method getDivisionMasterList");
 		try {
 			List<LoginDetailsDto> loginDtoList = loginDetailsList(username);
 			// Extract labCode safely
@@ -341,14 +341,14 @@ public class MasterServiceImpl implements MasterService {
 				return List.of();
 			}
 		} catch (Exception e) {
-			logger.info(new Date() + " MasterServiceImpl Inside method getDivisionMasterList"+ e.getMessage());
+			logger.info( " MasterServiceImpl Inside method getDivisionMasterList"+ e.getMessage());
 			return null;
 		}
 	}
 
 	@Override
 	public List<DivisionGroupDto> getDivisonGroupList(String username) throws Exception {
-		logger.info(new Date() + " MasterServiceImpl Inside method getDivisonGroupList");
+		logger.info( " MasterServiceImpl Inside method getDivisonGroupList");
 		try {
 			List<LoginDetailsDto> loginDtoList = loginDetailsList(username);
 			// Extract labCode safely
@@ -397,14 +397,14 @@ public class MasterServiceImpl implements MasterService {
 					.collect(Collectors.toList());
 			return finalDivisionGroupList;
 		} catch (Exception e) {
-			logger.info(new Date() + " MasterServiceImpl Inside method getDivisonGroupList"+ e.getMessage());
+			logger.info( " MasterServiceImpl Inside method getDivisonGroupList"+ e.getMessage());
 			return null; // Return an empty list in case of an error
 		}
 	}
 
 	@Override
 	public List<ProjectMasterDto> getprojectMasterList(String username) throws Exception {
-		logger.info(new Date() + " MasterServiceImpl Inside method getprojectMasterList");
+		logger.info( " MasterServiceImpl Inside method getprojectMasterList");
 		try {
 			List<LoginDetailsDto> loginDtoList = loginDetailsList(username);
 			String labCode = loginDtoList.stream()
@@ -477,7 +477,7 @@ public class MasterServiceImpl implements MasterService {
 					})
 					.collect(Collectors.toList());
 		} catch (Exception e) {
-			logger.info(new Date() + " MasterServiceImpl Inside method getprojectMasterList"+ e.getMessage());
+			logger.info( " MasterServiceImpl Inside method getprojectMasterList"+ e.getMessage());
 			return null;
 		}
 	}
