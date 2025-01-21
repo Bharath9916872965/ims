@@ -19,5 +19,8 @@ public interface MasterService {
 	public List<DivisionMasterDto> getDivisionMasterList(String username) throws Exception;
 	public List<DivisionGroupDto> getDivisonGroupList(String username) throws Exception;
 	public List<ProjectMasterDto> getprojectMasterList(String username) throws Exception;
+	public List<SupplyOrderDto> getSupplyOrderList(String labCode) throws Exception;
+	public List<ItemReceivedDto> getItemReceivedList() throws Exception;
+	public List<ActiveProcurementDto> getActiveProcurementList() throws Exception;
 	
 }

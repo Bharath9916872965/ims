@@ -2,41 +2,53 @@ package com.vts.ims.admin.controller;
 
 import java.net.InetAddress;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import com.vts.ims.admin.dto.*;
-import com.vts.ims.master.dto.DivisionMasterDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.vts.ims.admin.service.AdminService;
-import com.vts.ims.audit.dto.AuditPatchDto;
-import com.vts.ims.master.dto.EmployeeDto;
-import com.vts.ims.master.dto.LoginDetailsDto;
-import com.vts.ims.login.Login;
-import com.vts.ims.model.LoginStamping;
-import com.vts.ims.login.LoginRepository;
-
-import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vts.ims.admin.dto.ApprovalAuthorityDto;
+import com.vts.ims.admin.dto.AuditStampingDto;
+import com.vts.ims.admin.dto.FormDetailDto;
+import com.vts.ims.admin.dto.FormModuleDto;
+import com.vts.ims.admin.dto.FormRoleDto;
+import com.vts.ims.admin.dto.FormroleAccessDto;
+import com.vts.ims.admin.dto.NotificationDto;
+import com.vts.ims.admin.dto.UserManageAddEditDto;
+import com.vts.ims.admin.dto.UserManagerListDto;
+import com.vts.ims.admin.entity.AuditPatch;
+import com.vts.ims.admin.service.AdminService;
+import com.vts.ims.audit.dto.AuditPatchDto;
+import com.vts.ims.login.Login;
+import com.vts.ims.login.LoginRepository;
+import com.vts.ims.master.dto.EmployeeDto;
+import com.vts.ims.master.dto.LoginDetailsDto;
+import com.vts.ims.model.LoginStamping;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 
 @RestController
@@ -435,11 +447,14 @@ public class AdminController {
 		}
 	    
 	    
-	    @PostMapping(value = "/update-audit-patch", produces="application/json")
-		public ResponseEntity<String> updateAuditPatch(@RequestHeader  String username, @RequestBody AuditPatchDto auditPatchDto) throws Exception {
+	    @PostMapping(value = "/update-audit-patch", consumes = "multipart/form-data", produces = "application/json")
+	    public ResponseEntity<String> updateAuditPatch(
+	        @RequestHeader String username, 
+	        @RequestParam("file") MultipartFile file, 
+	        @ModelAttribute AuditPatchDto auditPatchDto) throws Exception {
 			logger.info(new Date() +" Inside update-audit-patch" +username);
 			try {
-			Long result = service.updateAuditPatch(auditPatchDto,username);
+			Long result = service.updateAuditPatch(auditPatchDto,username,file);
 			if(result > 0) {
 				 return new ResponseEntity<String>("200" , HttpStatus.OK);
 			 }else {
@@ -451,5 +466,5 @@ public class AdminController {
 				 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
 			}
 		}
-	
+
 }

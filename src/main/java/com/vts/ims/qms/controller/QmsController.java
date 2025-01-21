@@ -834,4 +834,12 @@ public class QmsController {
 		logger.info(" Inside addNewAbbreviations " + username);
 		return service.addNewAbbreviations(addAbbreviationDto,username);
 	}
+	
+	
+	
+	@PostMapping(value = "/get-dwp-version-record-print-list", produces = "application/json")
+	public List<DwpRevisionRecordDto> getDwpVersionRecordPrintDtoList(@RequestBody QmsDocTypeDto qmsDocTypeDto, @RequestHeader  String username) throws Exception {
+		logger.info(" Inside get-dwp-version-record-print-list " + username);
+		return service.getDwpVersionRecordPrintDtoList(qmsDocTypeDto);
+	}
 }

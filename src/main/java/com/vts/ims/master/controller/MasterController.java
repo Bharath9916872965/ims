@@ -1,6 +1,5 @@
 package com.vts.ims.master.controller;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -20,13 +19,16 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vts.ims.master.dto.ActionAssignDto;
+import com.vts.ims.master.dto.ActiveProcurementDto;
 import com.vts.ims.master.dto.CommitteeScheduleDto;
 import com.vts.ims.master.dto.DivisionGroupDto;
 import com.vts.ims.master.dto.DivisionMasterDto;
 import com.vts.ims.master.dto.DocTemplateAttributesDto;
 import com.vts.ims.master.dto.EmployeeDto;
+import com.vts.ims.master.dto.ItemReceivedDto;
 import com.vts.ims.master.dto.LabMasterDto;
 import com.vts.ims.master.dto.ProjectMasterDto;
+import com.vts.ims.master.dto.SupplyOrderDto;
 import com.vts.ims.master.dto.UserDetailsDto;
 import com.vts.ims.master.service.MasterService;
 
@@ -186,4 +188,45 @@ public class MasterController {
 
 		return new ResponseEntity<>(list, HttpStatus.OK);
 	}
+	
+	
+	 @PostMapping(value = "/get-supply-order-list", produces = "application/json")
+	    public ResponseEntity<List<SupplyOrderDto>> getSupplyOrderList(@RequestHeader String username,@RequestBody Map<String, String> requestBody) throws Exception {
+			logger.info( " Inside get-supply-order-list" );
+	    	try {
+				String labCode = requestBody.get("labCode");
+				List<SupplyOrderDto> result=service.getSupplyOrderList(labCode);
+				return new ResponseEntity<List<SupplyOrderDto>>( result,HttpStatus.OK);
+			} catch (Exception e) {
+				e.printStackTrace();
+				logger.error("Error fetching get-supply-order-list: ", e);
+				return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+			}
+		}
+	 
+	 @PostMapping(value = "/get-item-received-list", produces = "application/json")
+	 public ResponseEntity<List<ItemReceivedDto>> getItemReceivedList(@RequestHeader String username) throws Exception {
+		 logger.info( " Inside get-item-received-list" );
+		 try {
+			 List<ItemReceivedDto> result=service.getItemReceivedList();
+			 return new ResponseEntity<List<ItemReceivedDto>>( result,HttpStatus.OK);
+		 } catch (Exception e) {
+			 e.printStackTrace();
+			 logger.error("Error fetching get-item-received-list: ", e);
+			 return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		 }
+	 }
+	 
+	 @PostMapping(value = "/get-active-procurement-list", produces = "application/json")
+	 public ResponseEntity<List<ActiveProcurementDto>> getActiveProcurementList(@RequestHeader String username) throws Exception {
+		 logger.info( " Inside get-active-procurement-list" );
+		 try {
+			 List<ActiveProcurementDto> result=service.getActiveProcurementList();
+			 return new ResponseEntity<List<ActiveProcurementDto>>( result,HttpStatus.OK);
+		 } catch (Exception e) {
+			 e.printStackTrace();
+			 logger.error("Error fetching get-active-procurement-list: ", e);
+			 return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+		 }
+	 }
 }

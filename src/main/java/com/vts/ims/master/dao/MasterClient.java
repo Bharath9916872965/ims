@@ -8,15 +8,18 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.vts.ims.master.dto.ActionAssignDto;
+import com.vts.ims.master.dto.ActiveProcurementDto;
 import com.vts.ims.master.dto.CommitteeScheduleDto;
 import com.vts.ims.master.dto.DivisionEmployeeDto;
 import com.vts.ims.master.dto.DivisionGroupDto;
 import com.vts.ims.master.dto.DivisionMasterDto;
 import com.vts.ims.master.dto.EmpDesignationDto;
 import com.vts.ims.master.dto.EmployeeDto;
+import com.vts.ims.master.dto.ItemReceivedDto;
 import com.vts.ims.master.dto.LabMasterDto;
 import com.vts.ims.master.dto.ProjectEmployeeDto;
 import com.vts.ims.master.dto.ProjectMasterDto;
+import com.vts.ims.master.dto.SupplyOrderDto;
 
 @FeignClient(name = "masterClient", url = "${feign_client_uri}")
 public interface MasterClient {
@@ -72,6 +75,15 @@ public interface MasterClient {
 	    
 	    @PostMapping("/actionAssignData")
 		List<ActionAssignDto> actionAssignData(@RequestHeader("X-API-KEY") String apiKey, @RequestParam("committeeType") String committeeType);
+
+	    @PostMapping("/getSupplyOrderList.htm")
+		List<SupplyOrderDto> getSupplyOrderList(@RequestHeader("X-API-KEY") String apiKey, @RequestParam("labCode") String labCode);
+
+	    @PostMapping("/getItemReceivedList.htm")
+		List<ItemReceivedDto> getItemReceivedList(@RequestHeader("X-API-KEY") String apiKey);
+
+	    @PostMapping("/getActiveProcurementList.htm")
+		List<ActiveProcurementDto> getActiveProcurementList(@RequestHeader("X-API-KEY") String apiKey);
 
 
 

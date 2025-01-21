@@ -6,11 +6,17 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-import com.vts.ims.master.dto.*;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +29,20 @@ import com.vts.ims.admin.repository.ImsFormRoleRepo;
 import com.vts.ims.login.Login;
 import com.vts.ims.login.LoginRepository;
 import com.vts.ims.master.dao.MasterClient;
+import com.vts.ims.master.dto.ActionAssignDto;
+import com.vts.ims.master.dto.ActiveProcurementDto;
+import com.vts.ims.master.dto.CommitteeScheduleDto;
+import com.vts.ims.master.dto.DivisionGroupDto;
+import com.vts.ims.master.dto.DivisionMasterDto;
+import com.vts.ims.master.dto.DocTemplateAttributesDto;
+import com.vts.ims.master.dto.EmpInfoDto;
+import com.vts.ims.master.dto.EmployeeDto;
+import com.vts.ims.master.dto.ItemReceivedDto;
+import com.vts.ims.master.dto.LabMasterDto;
+import com.vts.ims.master.dto.LoginDetailsDto;
+import com.vts.ims.master.dto.ProjectMasterDto;
+import com.vts.ims.master.dto.SupplyOrderDto;
+import com.vts.ims.master.dto.UserDetailsDto;
 import com.vts.ims.master.entity.DocTemplateAttributes;
 import com.vts.ims.master.repository.DocTemplateAttributesRepo;
 
@@ -482,4 +502,53 @@ public class MasterServiceImpl implements MasterService {
 		}
 	}
 
+	
+	@Override
+	public List<SupplyOrderDto> getSupplyOrderList(String labCode) throws Exception {
+		logger.info( " MasterServiceImpl Inside method getSupplyOrderList");
+		 try {
+			 List<SupplyOrderDto> getSupplyOrderList=masterClient.getSupplyOrderList(xApiKey,labCode);
+			 return getSupplyOrderList;
+		 } catch (Exception e) {
+			 logger.info( " MasterServiceImpl Inside method getSupplyOrderList"+ e.getMessage());
+	        return null;
+	    }
+	}
+	
+	@Override
+	public List<ItemReceivedDto> getItemReceivedList() throws Exception {
+		logger.info( " MasterServiceImpl Inside method getItemReceivedList");
+		 try {
+			 List<ItemReceivedDto> getItemReceivedList=masterClient.getItemReceivedList(xApiKey);
+			 List<ProjectMasterDto> projectList = masterClient.getProjectMasterList(xApiKey);
+			 List<DivisionMasterDto> divisionMasterList = masterClient.getDivisionMaster(xApiKey);
+			 
+			 Map<Long, String> projectMap = projectList.stream()
+				        .collect(Collectors.toMap(ProjectMasterDto::getProjectId, ProjectMasterDto::getProjectCode));
+
+				Map<Long, String> divisionMap = divisionMasterList.stream()
+				        .collect(Collectors.toMap(DivisionMasterDto::getDivisionId, DivisionMasterDto::getDivisionCode));
+				
+				for (ItemReceivedDto item : getItemReceivedList) {
+				    item.setProjectCode(projectMap.get(item.getProjectId())); // Set projectCode
+				    item.setDivisionCode(divisionMap.get(item.getDivisionId())); // Set divisionCode
+				}
+			 return getItemReceivedList;
+		 } catch (Exception e) {
+			 logger.info( " MasterServiceImpl Inside method getItemReceivedList"+ e.getMessage());
+	        return null;
+	    }
+	}
+	
+	@Override
+	public List<ActiveProcurementDto> getActiveProcurementList() throws Exception {
+		logger.info( " MasterServiceImpl Inside method getActiveProcurementList");
+		 try {
+			 List<ActiveProcurementDto> getActiveProcurementList=masterClient.getActiveProcurementList(xApiKey);
+			 return getActiveProcurementList;
+		 } catch (Exception e) {
+			 logger.info( " MasterServiceImpl Inside method getActiveProcurementList"+ e.getMessage());
+	        return null;
+	    }
+	}
 }

@@ -2,6 +2,8 @@ package com.vts.ims.admin.service;
 
 import java.util.List;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import com.vts.ims.admin.dto.*;
 import com.vts.ims.audit.dto.AuditPatchDto;
 import com.vts.ims.master.dto.EmployeeDto;
@@ -35,5 +37,5 @@ public interface AdminService {
     public List<NotificationDto> getNotifictionList(String username)throws Exception;
     public long updateNotification(String Username, String notificationId) throws Exception;
 	public List<AuditPatchDto> getAuditPatchList() throws Exception;
-	public Long updateAuditPatch(AuditPatchDto auditPatchDto,String username) throws Exception;
+	public Long updateAuditPatch(AuditPatchDto auditPatchDto,String username,MultipartFile file) throws Exception;
 }
