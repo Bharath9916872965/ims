@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.vts.ims.admin.dto.ApprovalAuthorityDto;
 import com.vts.ims.admin.dto.AuditStampingDto;
@@ -778,13 +780,21 @@ public class AdminServiceImpl implements AdminService {
 	}
 	
 	@Override
-	public Long updateAuditPatch(AuditPatchDto auditPatchDto,String username) throws Exception {
+	public Long updateAuditPatch(AuditPatchDto auditPatchDto,String username,MultipartFile file) throws Exception {
 		 logger.info(new Date() + " AdminServiceImpl Inside method updateAuditPatch ");
 		try {
 			 Optional<AuditPatch> auditOptional = auditPatchRepo.findById(auditPatchDto.getAuditPatchesId());
 			 if (auditOptional.isPresent()) {
+				    byte[] fileData = null;
+				    
+				    if (file != null && !file.isEmpty()) {
+			            // Read the file data directly without compression
+			            fileData = file.getBytes();
+			        }
+
 		            AuditPatch auditPatch = auditOptional.get();
 		            auditPatch.setDescription(auditPatchDto.getDescription());
+		            auditPatch.setAttachment(fileData);
 		            auditPatch.setModifiedBy(username);
 		            auditPatch.setModifiedDate(LocalDateTime.now());
 		            AuditPatch updateAuditPatch = auditPatchRepo.save(auditPatch);

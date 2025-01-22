@@ -864,7 +864,6 @@ public class QmsServiceImpl implements QmsService {
 		logger.info( " Inside getAllDwpChapters() " );
 		try {
 			List<DwpChapters> chapters = dwpChaptersRepo.findAllActiveDwpChapters(qmsDocTypeDto.getDocType(), qmsDocTypeDto.getGroupDivisionId());
-			System.out.println("chapters:"+chapters);
 			return chapters;
 		} catch (Exception e) {
 			logger.error( " Inside getAllDwpChapters() "+ e );
@@ -1485,7 +1484,7 @@ public class QmsServiceImpl implements QmsService {
 
 		try {
 
-
+			if(qmsIssueDto!=null && qmsIssueDto.getIsExisting().equalsIgnoreCase("N")) {
 			DwpRevisionRecord dwpRevisionRecord = new DwpRevisionRecord();
 
 //			Login login = loginRepo.findByUsername(username);
@@ -1500,6 +1499,8 @@ public class QmsServiceImpl implements QmsService {
 			dwpRevisionRecord.setIssueNo(Integer.parseInt(issueVersion.substring(1)));
 			dwpRevisionRecord.setRevisionNo(Integer.parseInt(releaseVersion.substring(1)));
 			dwpRevisionRecord.setStatusCode("INI");
+			dwpRevisionRecord.setStatusCodeNext("INI");
+			dwpRevisionRecord.setIsExisting("N");
 			dwpRevisionRecord.setDateOfRevision((LocalDate.now()));
 			dwpRevisionRecord.setDocType(qmsIssueDto.getDocType());
 			dwpRevisionRecord.setCreatedDate(LocalDateTime.now());
@@ -1544,6 +1545,75 @@ public class QmsServiceImpl implements QmsService {
 //			res = dwpRevisionRecordRepo.save(dwpRevisionRecord).getRevisionRecordId();
 
 			return dwpRevisionRecordRepo.save(dwpRevisionRecord);
+			}else {
+				    DwpRevisionRecord lastSavedRecord = null;
+				for (QmsIssueDto.DynamicField field : qmsIssueDto.getDynamicFields()) {
+				    String currentVersion = field.getCurrentVersion(); // e.g., "I1-R0"
+				    String issueVersion = currentVersion.split("-")[0]; // e.g., "I1"
+				    String releaseVersion = currentVersion.split("-")[1]; // e.g., "R0"
+
+				    // Create a new record instance
+				    DwpRevisionRecord dwpRevisionRecord = new DwpRevisionRecord();
+
+				    // Populate fields for the record
+				    dwpRevisionRecord.setGroupDivisionId(qmsIssueDto.getGroupDivisionId());
+				    dwpRevisionRecord.setDescription(field.getAmendParticulars());
+				    dwpRevisionRecord.setIssueNo(Integer.parseInt(issueVersion.substring(1))); // Extract issue number (e.g., 1)
+				    dwpRevisionRecord.setRevisionNo(Integer.parseInt(releaseVersion.substring(1))); // Extract revision number (e.g., 0)
+				    if(field.getSelExistingVal()!=null && field.getSelExistingVal().equalsIgnoreCase("Y")) {
+				    	dwpRevisionRecord.setStatusCode("APG");
+				    	dwpRevisionRecord.setStatusCodeNext("APG");
+				    }else {
+				    	dwpRevisionRecord.setStatusCode("INI");
+					    dwpRevisionRecord.setStatusCodeNext("INI");
+				    }
+				    dwpRevisionRecord.setDateOfRevision(field.getRevisionDate());
+				    dwpRevisionRecord.setDocType(qmsIssueDto.getDocType());
+				    dwpRevisionRecord.setIsExisting(field.getSelExistingVal()); // Use the selOriginalVal directly
+				    dwpRevisionRecord.setCreatedDate(LocalDateTime.now());
+				    dwpRevisionRecord.setCreatedBy(username);
+				    dwpRevisionRecord.setIsActive(1);
+
+				    // Save the record to the database
+				    lastSavedRecord= dwpRevisionRecordRepo.save(dwpRevisionRecord);
+				}
+				
+				List<DwpSectionsMaster> dwpSectionsMaster = sectionsMasterRepo.findAll();
+				if(!dwpSectionsMaster.isEmpty()){
+					for (DwpSectionsMaster sectionsMaster : dwpSectionsMaster) {
+						DwpSections master = new DwpSections();
+						if(qmsIssueDto.getDocType().equalsIgnoreCase("gwp")){
+							master.setDocType("gwp");
+						}else{
+							master.setDocType("dwp");
+						}
+						master.setSectionName(sectionsMaster.getSectionName());
+						master.setGroupDivisionId(qmsIssueDto.getGroupDivisionId());
+						master.setCreatedDate(LocalDateTime.now());
+						master.setCreatedBy(username);
+						master.setIsActive(1);
+						dwpSectionsRepo.save(master);
+					}
+				}
+
+				List<DwpSections> dwpSections = dwpSectionsRepo.findAllByGroupDivisionIdAndDocTypeAndIsActive(qmsIssueDto.getGroupDivisionId(),qmsIssueDto.getDocType(),1);
+				if(!dwpSections.isEmpty()){
+					for (DwpSections sections : dwpSections) {
+						DwpChapters chapters = new DwpChapters();
+						chapters.setSectionId(sections.getSectionId());
+						chapters.setChapterParentId(0);
+						chapters.setChapterName(sections.getSectionName());
+						chapters.setChapterContent("");
+						chapters.setIsLandscape('N');
+						chapters.setIsPagebreakAfter('N');
+						chapters.setCreatedDate(LocalDateTime.now());
+						chapters.setCreatedBy(username);
+						chapters.setIsActive(1);
+						dwpChaptersRepo.save(chapters);
+					}
+				}
+				return lastSavedRecord;
+			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -2351,6 +2421,7 @@ public class QmsServiceImpl implements QmsService {
 			dwpRevisionRecord.setStatusCodeNext("INI");
 			dwpRevisionRecord.setDocType(dwprevisionRecordDto.getDocType());
 			dwpRevisionRecord.setAbbreviationIdNotReq(dwprevisionRecordDto.getAbbreviationIdNotReq());
+			dwpRevisionRecord.setIsExisting("N");
 			dwpRevisionRecord.setDateOfRevision(LocalDate.now());
 			dwpRevisionRecord.setCreatedDate(LocalDateTime.now());
 			dwpRevisionRecord.setCreatedBy(username);
@@ -2833,6 +2904,88 @@ public class QmsServiceImpl implements QmsService {
 		return 0L;
 	}
 	
+	
+	@Override
+	public List<DwpRevisionRecordDto> getDwpVersionRecordPrintDtoList(QmsDocTypeDto qmsDocTypeDto) throws Exception {
+		logger.info( " Inside getQmVersionRecordDtoList() " );
+		try {
+
+			List<DivisionMasterDto> divisionDtoList = masterClient.getDivisionMaster(xApiKey);
+			List<DivisionGroupDto> divisiongroupDtoList = masterClient.getDivisionGroupList(xApiKey);
+
+			List<QmsDocStatus> qmsdocStatus=qmsdocstatusrepo.findAll();
+			List<EmployeeDto> employeeList=masterClient.getEmployeeList(xApiKey);
+			Map<Long, EmployeeDto> employeeMap = employeeList.stream()
+					.filter(employee -> employee.getEmpId() != null)
+					.collect(Collectors.toMap(EmployeeDto::getEmpId, employee -> employee));
+
+			Map<String, String> statusCodeToStatusMap = qmsdocStatus.stream()
+					.collect(Collectors.toMap(QmsDocStatus::getStatusCode, QmsDocStatus::getStatus));
+
+			List<DwpRevisionRecordDto> revisionRecordDtoList = new ArrayList<DwpRevisionRecordDto>();
+			List<DwpRevisionRecord> revisionRecord = dwpRevisionRecordRepo.findAllActiveDwpPrintRecordsByDocType(qmsDocTypeDto.getDocType(), qmsDocTypeDto.getGroupDivisionId());
+			revisionRecord.forEach(revison -> {
+				EmployeeDto initiatedBy =  employeeMap.get(revison.getInitiatedBy());
+				EmployeeDto reviewed =  employeeMap.get(revison.getReviewedBy());
+				EmployeeDto approved =  employeeMap.get(revison.getApprovedBy()); 
+				DivisionMasterDto divisionDto = null;
+				DivisionGroupDto divisiongroupDto = null;
+
+				if(revison.getDocType().equalsIgnoreCase("dwp")) {
+
+					divisionDto = divisionDtoList.stream()
+							.filter(division -> division.getDivisionId().equals(revison.getGroupDivisionId()))
+							.findFirst()
+							.orElse(null);
+
+				} else if(revison.getDocType().equalsIgnoreCase("gwp")) {
+
+					divisiongroupDto = divisiongroupDtoList.stream()
+							.filter(obj -> obj.getGroupId().equals(revison.getGroupDivisionId()))
+							.findFirst()
+							.orElse(null);
+				}
+
+				DwpRevisionRecordDto qmsQmRevisionRecordDto = DwpRevisionRecordDto.builder()
+
+						.RevisionRecordId(revison.getRevisionRecordId())
+						.DocType(revison.getDocType())
+						.GroupDivisionId(revison.getGroupDivisionId())
+						.divisionMasterDto(divisionDto)
+						.divisionGroupDto(divisiongroupDto)
+						.DocFileName(revison.getDocFileName())
+						.DocFilepath(revison.getDocFilepath())
+						.Description(revison.getDescription())
+						.IssueNo(revison.getIssueNo())
+						.RevisionNo(revison.getRevisionNo())
+						.DateOfRevision(revison.getDateOfRevision())
+						.StatusCode(revison.getStatusCode())
+						.AbbreviationIdNotReq(revison.getAbbreviationIdNotReq())
+						.InitiatedBy(revison.getInitiatedBy())
+						.ReviewedBy(revison.getReviewedBy())
+						.ApprovedBy(revison.getApprovedBy())
+						.StatusCodeNext(revison.getStatusCodeNext())
+						.InitiatedByEmployee(initiatedBy != null ? initiatedBy.getEmpName() + ", " + initiatedBy.getEmpDesigName() : null)
+						.ReviewedByEmployee(reviewed != null ? reviewed.getEmpName() + ", " + reviewed.getEmpDesigName() : null)
+						.ApprovedByEmployee(approved != null ? approved.getEmpName() + ", " + approved.getEmpDesigName() : null)
+						.CreatedBy(revison.getCreatedBy())
+						.CreatedDate(revison.getCreatedDate())
+						.ModifiedBy(revison.getModifiedBy())
+						.ModifiedDate(revison.getModifiedDate())
+						.IsActive(revison.getIsActive())
+						.Status(statusCodeToStatusMap.getOrDefault(revison.getStatusCode(), "Unknown Status"))
+						.build();
+
+				revisionRecordDtoList.add(qmsQmRevisionRecordDto);
+			});
+
+			return revisionRecordDtoList;
+		} catch (Exception e) {
+			logger.error( " Inside getDwpVersionRecordDtoList() "+ e );
+			e.printStackTrace();
+			return new ArrayList<DwpRevisionRecordDto>();
+		}
+	}
 
 
 }

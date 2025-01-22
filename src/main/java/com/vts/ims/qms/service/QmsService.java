@@ -126,6 +126,7 @@ public interface QmsService {
 	public List<QmsQspChaptersRev> getAllQspRevChapters(QmsDocTypeDto qmsDocTypeDto) throws Exception;
 	public List<DwpChaptersRev> getAllDwpChaptersrev(QmsDocTypeDto qmsDocTypeDto) throws Exception;
 	public Long addNewAbbreviations(QmsAddAbbreviationDto addAbbreviationDto, String username) throws Exception;
+	public List<DwpRevisionRecordDto> getDwpVersionRecordPrintDtoList(QmsDocTypeDto qmsDocTypeDto) throws Exception;
 	
 	
 }

@@ -42,6 +42,8 @@ public class DwpRevisionRecord {
 	private String statusCodeNext;
 	@Column(name = "AbbreviationIdNotReq")
 	private String abbreviationIdNotReq;
+	@Column(name = "IsExisting")
+	private String isExisting;
 	@Column(name = "InitiatedBy")
 	private Long initiatedBy;
 	@Column(name = "ReviewedBy")
