@@ -2,6 +2,9 @@ package com.vts.ims.audit.service;
 
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -10,8 +13,10 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -20,6 +25,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -94,6 +100,7 @@ import com.vts.ims.repository.NotificationRepository;
 import com.vts.ims.util.DLocalConvertion;
 import com.vts.ims.util.FormatConverter;
 import com.vts.ims.util.NFormatConvertion;
+
 
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
@@ -2922,5 +2929,56 @@ public class AuditServiceImpl implements AuditService{
 			 return Collections.emptyList();
 		}
 	}
+	@Override
+	public List<String[]> getAttachPdfList(AuditClosureDTO dataDto) throws Exception {
+	List<String[]> list = new ArrayList<String[]>();
+	if(dataDto!=null) {
+	List<Object[]> AuditClsattachmentDetails = auditClosureRepository.getClosureattachmentDetails(dataDto.getIqaId());
+		AuditClsattachmentDetails.forEach(row->System.out.println(Arrays.toString(row)));
+		if(AuditClsattachmentDetails!=null && AuditClsattachmentDetails.size()>0){
+	List<Object[]> pdfRows = AuditClsattachmentDetails.stream()
+			    .filter(data -> (((String) data[2]).endsWith(".pdf")||((String) data[2]).endsWith(".PDF"))) 
+			    .collect(Collectors.toList());
+			pdfRows.forEach(row->System.out.println(Arrays.toString(row)));
+				try {
+						for(Object[] mergePdf:pdfRows) {
+				String[] pdf = new String[5];
+				File file = null;
+							file = Paths.get(storageDrive,"AuditClosure",dataDto.getIqaNo().replace("/", "_"),mergePdf[2].toString()).toFile();
+			pdf[0]=dataDto.getIqaNo();
+			pdf[1]= mergePdf[2].toString();
+			if(file.exists() && !file.isDirectory()) { 
+			pdf[2] = encodeFileToBase64Binary(file);
+				}
+						list.add(pdf);				}
+			
+		} catch (Exception e) {
+			e.printStackTrace();	
+			logger.error(new Date() + " Inside getAttachPdfList Service ");
+			}
+		}
+		}
+		return list;
+	}
+	private static String encodeFileToBase64Binary(File file){
+        String encodedfile = null;
+        try {
+            FileInputStream fileInputStreamReader = new FileInputStream(file);
+            byte[] bytes = new byte[(int)file.length()];
+            fileInputStreamReader.read(bytes);
+           encodedfile = Base64.getEncoder().encodeToString(FileUtils.readFileToByteArray(file));
+           fileInputStreamReader.close();
+        } catch (FileNotFoundException e) {
+        	logger.error(new Date() + " Inside encodeFileToBase64Binary Service " );
+            e.printStackTrace();
+            return encodedfile;
+        } catch (IOException e) {
+        	logger.error(new Date() + " Inside encodeFileToBase64Binary Service " );
+            e.printStackTrace();
+            return encodedfile;
+        }
+
+        return encodedfile;
+    }
 
 }

@@ -827,6 +827,8 @@ public class QmsController {
 	public List<DwpChaptersRev> getAllDwpChaptersrev(@RequestBody QmsDocTypeDto qmsDocTypeDto, @RequestHeader String username) throws Exception {
 		logger.info(" Inside get-all-dwp-chapters-rev " + username);
 		return service.getAllDwpChaptersrev(qmsDocTypeDto);
+		  
+
 	}
 	
 	@PostMapping(value = "/add-new-abbreviation", produces = "application/json")

@@ -4,6 +4,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +62,7 @@ import com.vts.ims.master.dto.DivisionMasterDto;
 import com.vts.ims.master.dto.EmployeeDto;
 import com.vts.ims.master.dto.ProjectMasterDto;
 import com.vts.ims.util.Response;
+
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -1104,4 +1106,14 @@ public class AuditController {
 			return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
 		}
 	}
+	 @PostMapping(value="get-attach-pdf-list",produces ="application/json")
+	 public ResponseEntity<List<String[]>> getAttachPdfList(@RequestHeader String username,@RequestBody AuditClosureDTO dataDto) throws Exception{
+		 logger.info(new Date()+"inside get-attach-pdf-list"+username);
+		List<String[]> result = auditService.getAttachPdfList(dataDto);
+		if (result != null) {
+			return new ResponseEntity<>(result, HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+		}
+	 }
 }

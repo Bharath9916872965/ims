@@ -157,6 +157,8 @@ public interface AuditService {
 
 	public List<CheckListDto> getMostFreqNCDetails(Long mocId)throws Exception;
 
+	public List<String[]> getAttachPdfList(AuditClosureDTO dataDto)throws Exception;
+
 
 
 }
