@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -781,7 +780,7 @@ public class AdminServiceImpl implements AdminService {
 	
 	@Override
 	public Long updateAuditPatch(AuditPatchDto auditPatchDto,String username,MultipartFile file) throws Exception {
-		 logger.info(new Date() + " AdminServiceImpl Inside method updateAuditPatch ");
+		 logger.info(" AdminServiceImpl Inside method updateAuditPatch ");
 		try {
 			 Optional<AuditPatch> auditOptional = auditPatchRepo.findById(auditPatchDto.getAuditPatchesId());
 			 if (auditOptional.isPresent()) {

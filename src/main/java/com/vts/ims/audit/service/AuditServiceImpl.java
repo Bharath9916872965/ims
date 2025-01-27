@@ -1054,7 +1054,8 @@ public class AuditServiceImpl implements AuditService{
 					    + "<br /><br /><span>Regards,</span> <br />"
 						+ "<span>LRDE-IMS Team</span>";
 		
-	    AtomicInteger count = new AtomicInteger(0);
+	    AtomicInteger count     = new AtomicInteger(0);
+	    AtomicInteger mailCount = new AtomicInteger(0);
 		  try {	
 			auditeeMap.forEach((key, value) -> {
 				    StringBuilder tableContent = new StringBuilder();
@@ -1114,6 +1115,19 @@ public class AuditServiceImpl implements AuditService{
 						}
 					}
 		            insertScheduleNomination(key,login.getEmpId(),username,url,NotiMsg);
+		            // Increment mailCount
+		            mailCount.incrementAndGet();
+
+		            // Check if a pause is needed
+		            if (mailCount.get() % 5 == 0) {
+		                logger.info("Pausing for 200 seconds after sending 5 emails...");
+		                try {
+		                    Thread.sleep(200000); // Sleep for 200 seconds
+		                } catch (InterruptedException e) {
+		                    logger.error("Thread interrupted during sleep in sendTeamMail Service", e);
+		                    Thread.currentThread().interrupt(); // Restore interrupt status
+		                }
+		            }
 		            });
 
 		} catch (Exception e) {
@@ -1131,7 +1145,8 @@ public class AuditServiceImpl implements AuditService{
 		String  note = "<br /><br /><span>Important Note: This is an automated message. Kindly avoid responding.</span>"
 					    + "<br /><br /><span>Regards,</span> <br />"
 						+ "<span>LRDE-IMS Team</span>";
-		AtomicInteger count = new AtomicInteger(0);
+		AtomicInteger count     = new AtomicInteger(0);
+		AtomicInteger mailCount = new AtomicInteger(0);
 		  try {			  
 			  teamMap.forEach((key, value) -> {
 				    StringBuilder tableContent = new StringBuilder();
@@ -1174,7 +1189,21 @@ public class AuditServiceImpl implements AuditService{
 								}
 							}
 				            insertScheduleNomination(Long.parseLong(obj[0].toString()),login.getEmpId(),username,url,NotiMsg);
+					        // Increment mailCount
+					        mailCount.incrementAndGet();
+
+					        // Check if a pause is needed
+					        if (mailCount.get() % 5 == 0) {
+					            logger.info("Pausing for 200 seconds after sending 5 emails...");
+					            try {
+					                Thread.sleep(200000); // Sleep for 200 seconds
+					            } catch (InterruptedException e) {
+					                logger.error("Thread interrupted during sleep in sendTeamMail Service", e);
+					                Thread.currentThread().interrupt(); // Restore interrupt status
+					            }
+					        }
 				        }
+	
 				    }
 				});
 
@@ -2468,6 +2497,29 @@ public class AuditServiceImpl implements AuditService{
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("AuditServiceImpl Inside method insertCorrectiveAction()"+ e);
+		}
+		return result;
+	}
+	
+	@Override
+	public long editCorrectiveAction(AuditCarDTO auditCarDTO, String username) throws Exception {
+		long result = 0;
+		logger.info( " AuditServiceImpl Inside method editCorrectiveAction()");
+		try {
+				Optional<AuditCorrectiveAction> carOptional = auditCorrectiveActionRepository.findById(auditCarDTO.getCorrectiveActionId());
+				if(carOptional.isPresent()) {
+					AuditCorrectiveAction car = carOptional.get();
+					car.setActionPlan(auditCarDTO.getAction());				
+					car.setResponsibility(auditCarDTO.getEmployee());				
+					car.setTargetDate(DLocalConvertion.converLocalTime(auditCarDTO.getTargetDate()));				
+					car.setModifiedBy(username);
+					car.setModifiedDate(LocalDateTime.now());
+					
+		   result = auditCorrectiveActionRepository.save(car).getCorrectiveActionId();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("AuditServiceImpl Inside method editCorrectiveAction()"+ e);
 		}
 		return result;
 	}
