@@ -854,6 +854,23 @@ public class AuditController {
 		}
 	}
 	
+	@PostMapping(value = "/edit-corrective-action", produces = "application/json")
+	public ResponseEntity<Response> editCorrectiveAction(@RequestHeader String username, @RequestBody AuditCarDTO auditCarDTO) throws Exception {
+		try {
+			logger.info( " Inside edit-corrective-action" );
+			 long result=auditService.editCorrectiveAction(auditCarDTO,username);
+			 if(result > 0) {
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("Corrective Actions Edited Successfully","S"));
+			 }else {
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("Corrective Actions Edit Unsuccessful","F"));			 
+			 }
+		} catch (Exception e) {
+			 logger.error("error in edit-corrective-action"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
+		}
+	}
+	
 	@PostMapping(value = "/update-corrective-action", produces = "application/json")
 	public ResponseEntity<Response> updateCorrectiveAction(@RequestHeader String username, @RequestBody AuditCarDTO auditCarDTO) throws Exception {
 		try {

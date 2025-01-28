@@ -130,6 +130,8 @@ public interface AuditService {
 	public List<CheckListDto> getMostFrequentNC() throws Exception;
 	
 	public long insertCorrectiveAction(List<AuditCarDTO> auditCarDTO, String username)throws Exception;
+	
+	public long editCorrectiveAction(AuditCarDTO auditCarDTO, String username)throws Exception;
 
 	public long updateCorrectiveAction(AuditCarDTO auditCarDTO, String username)throws Exception;
 
