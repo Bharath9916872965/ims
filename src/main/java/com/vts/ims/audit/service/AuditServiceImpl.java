@@ -928,7 +928,8 @@ public class AuditServiceImpl implements AuditService{
 				    	schedule.setScheduleStatus("ASA");
 		    		}
 					trans.setAuditStatus("ASA");
-		    	}else if(auditScheduleListDto.getLeadEmpId().equals(login.getEmpId())){
+		    	//}else if(auditScheduleListDto.getLeadEmpId().equals(login.getEmpId())){
+		    	 }else {
 		    		if(schedule.getScheduleStatus().equalsIgnoreCase("ASA")) {
 				    	schedule.setScheduleStatus("AAA");
 		    		}else {
@@ -971,7 +972,8 @@ public class AuditServiceImpl implements AuditService{
 			    	if(auditScheduleListDto.getAuditeeEmpId().equals(login.getEmpId())){
 				    	schedule.setScheduleStatus("ASR");
 						trans.setAuditStatus("ASR");
-			    	}else if(auditScheduleListDto.getLeadEmpId().equals(login.getEmpId())){
+//			    	}else if(auditScheduleListDto.getLeadEmpId().equals(login.getEmpId())){
+			    	}else {
 				    	schedule.setScheduleStatus("ARL");
 						trans.setAuditStatus("ARL");
 			    	}
@@ -1663,6 +1665,7 @@ public class AuditServiceImpl implements AuditService{
 					    dto.setTeamMembers(employee != null?employee.getEmpName()+", "+employee.getEmpDesigName():"");
 					    dto.setIsLead(Long.parseLong(obj[3].toString()));
 					    dto.setAuditorId(Long.parseLong(obj[4].toString()));
+					    dto.setEmpId(obj[0] != null?Long.parseLong(obj[0].toString()):0L);
 				        return dto;
 				    })
 				    .collect(Collectors.toList());
