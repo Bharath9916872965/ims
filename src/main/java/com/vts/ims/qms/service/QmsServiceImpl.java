@@ -2891,20 +2891,105 @@ public class QmsServiceImpl implements QmsService {
 	@Override
 	public Long addNewAbbreviations(QmsAddAbbreviationDto addAbbreviationDto, String username) throws Exception {
 		try {
+			List<String> storeId = new ArrayList<>();
+			String existingIds = null;
+			List<String> existingIdList = new ArrayList<>();
+
+			// Save the new abbreviations and collect their IDs
 			for (QmsAbbreviationDto dto : addAbbreviationDto.getAbbreviationDetails()) {
 				QmsAbbreviations abbreviations = new QmsAbbreviations();
 				abbreviations.setAbbreviation(dto.getAbbreviation());
 				abbreviations.setMeaning(dto.getMeaning());
 				qmsAbbreviationsRepo.save(abbreviations);
+				storeId.add(String.valueOf(abbreviations.getAbbreviationId()));
 			}
+
+			// Retrieve existing IDs based on docName
+			if (addAbbreviationDto.getDocName() != null) {
+				switch (addAbbreviationDto.getDocName().toUpperCase()) {
+					case "QM":
+						QmsQmRevisionRecord qmRevisionRecord = qmsQmRevisionRecordRepo.findByRevisionRecordId(addAbbreviationDto.getRevisionRecordId());
+						if (qmRevisionRecord != null) {
+							existingIds = qmRevisionRecord.getAbbreviationIdNotReq();
+						}
+						break;
+					case "DWP":
+					case "GWP":
+						DwpRevisionRecord dwpRevisionRecord = dwpRevisionRecordRepo.findByRevisionRecordId(addAbbreviationDto.getRevisionRecordId());
+						if (dwpRevisionRecord != null) {
+							existingIds = dwpRevisionRecord.getAbbreviationIdNotReq();
+						}
+						break;
+					default:
+						QmsQspRevisionRecord qspRevisionRecord = qspRevisionRecordRepo.findByRevisionRecordId(addAbbreviationDto.getRevisionRecordId());
+						if (qspRevisionRecord != null) {
+							existingIds = qspRevisionRecord.getAbbreviationIdNotReq();
+						}
+						break;
+				}
+			}
+
+			// If there are existing IDs, add them to the list
+			if (existingIds != null && !existingIds.isEmpty()) {
+				existingIdList = new ArrayList<>(Arrays.asList(existingIds.split(",")));
+			}
+
+			// If there are no existing IDs, start with a dummy "0"
+			if (existingIdList.isEmpty()) {
+				existingIdList.add("0");
+			}
+
+			// Add the newly created abbreviation IDs
+			existingIdList.addAll(storeId);
+
+			// Merge and remove duplicates, then join the IDs into a comma-separated string
+			String mergedIds = existingIdList.stream()
+					.distinct()
+					.collect(Collectors.joining(","));
+
+			// Save the updated revision record based on docName
+			if (addAbbreviationDto.getDocName() != null) {
+				switch (addAbbreviationDto.getDocName().toUpperCase()) {
+					case "QM":
+						QmsQmRevisionRecord qmRevisionRecord = qmsQmRevisionRecordRepo.findByRevisionRecordId(addAbbreviationDto.getRevisionRecordId());
+						if (qmRevisionRecord != null) {
+							qmRevisionRecord.setAbbreviationIdNotReq(mergedIds);
+							qmRevisionRecord.setModifiedBy(username);
+							qmRevisionRecord.setModifiedDate(LocalDateTime.now());
+							qmsQmRevisionRecordRepo.save(qmRevisionRecord);
+						}
+						break;
+					case "DWP":
+					case "GWP":
+						DwpRevisionRecord dwpRevisionRecord = dwpRevisionRecordRepo.findByRevisionRecordId(addAbbreviationDto.getRevisionRecordId());
+						if (dwpRevisionRecord != null) {
+							dwpRevisionRecord.setAbbreviationIdNotReq(mergedIds);
+							dwpRevisionRecord.setModifiedBy(username);
+							dwpRevisionRecord.setModifiedDate(LocalDateTime.now());
+							dwpRevisionRecordRepo.save(dwpRevisionRecord);
+						}
+						break;
+					default:
+						QmsQspRevisionRecord qspRevisionRecord = qspRevisionRecordRepo.findByRevisionRecordId(addAbbreviationDto.getRevisionRecordId());
+						if (qspRevisionRecord != null) {
+							qspRevisionRecord.setAbbreviationIdNotReq(mergedIds);
+							qspRevisionRecord.setModifiedBy(username);
+							qspRevisionRecord.setModifiedDate(LocalDateTime.now());
+							qspRevisionRecordRepo.save(qspRevisionRecord);
+						}
+						break;
+				}
+			}
+
 			return 1L;
-		}catch (Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return 0L;
 	}
-	
-	
+
+
+
 	@Override
 	public List<DwpRevisionRecordDto> getDwpVersionRecordPrintDtoList(QmsDocTypeDto qmsDocTypeDto) throws Exception {
 		logger.info( " Inside getQmVersionRecordDtoList() " );
