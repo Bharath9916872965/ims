@@ -11,4 +11,5 @@ public class AuditTeamEmployeeDto {
 	private String teamMembers;
 	private Long isLead;
 	private Long auditorId;
+	private Long empId;
 }
