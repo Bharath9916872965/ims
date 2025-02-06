@@ -834,77 +834,92 @@ public class AuditServiceImpl implements AuditService{
 			EmployeeDto employeeLogIn = masterClient.getEmployee(xApiKey,login.getEmpId()).get(0);
 			List<String> ncObs = Arrays.asList("2","3","4");
 			AuditSchedule schedule = auditScheduleRepository.findById(auditScheduleListDto.getScheduleId()).get();
-		    	if(schedule.getScheduleStatus().equalsIgnoreCase("AES") || schedule.getScheduleStatus().equalsIgnoreCase("RBA")){
-			    	schedule.setScheduleStatus("ARS");
-					trans.setAuditStatus("ARS");
-		    	}else {
-		    		List<Object[]> checkList = auditCheckListRepository.getAuditCheckList(auditScheduleListDto.getScheduleId().toString());
-		    		List<Object[]> ncList = checkList.stream().filter(data -> ncObs.contains(data[4].toString())).collect(Collectors.toList());
-		    		Integer ncCount = auditCorrectiveActionRepository.getActionCount(auditScheduleListDto.getIqaId(),auditScheduleListDto.getScheduleId(),"N");	    		
-		    		Integer obsCount = auditCorrectiveActionRepository.getActionCount(auditScheduleListDto.getIqaId(),auditScheduleListDto.getScheduleId(),"O");	    		
-		    		Integer ofiCount = auditCorrectiveActionRepository.getActionCount(auditScheduleListDto.getIqaId(),auditScheduleListDto.getScheduleId(),"F");	    		
-		    		
-	    			String divisionGroupName = !auditScheduleListDto.getDivisionName().equalsIgnoreCase("") ? auditScheduleListDto.getDivisionName(): (!auditScheduleListDto.getGroupName().equalsIgnoreCase("")?auditScheduleListDto.getGroupName() : auditScheduleListDto.getProjectShortName()); 
-	    			
-		    		for(Object[] obj : ncList) {
-		    			AuditCorrectiveAction action = new AuditCorrectiveAction();
-		    			String ObsCode = "NC";
-		    			String carFlag = "N";
-		    			if(obj[4].toString().equalsIgnoreCase("2")) {
-		    				ObsCode = "NC";
-		    				carFlag = "N";
-			    			action.setCarRefNo(auditScheduleListDto.getIqaNo()+"/"+divisionGroupName+"/"+ObsCode+"/"+ (++ncCount));
-		    			}else if(obj[4].toString().equalsIgnoreCase("3")) {
-		    				ObsCode = "OBS";
-		    				carFlag = "O";
-			    			action.setCarRefNo(auditScheduleListDto.getIqaNo()+"/"+divisionGroupName+"/"+ObsCode+"/"+ (++obsCount));
-		    			}else {
-		    				ObsCode = "OFI";
-		    				carFlag = "F";
-			    			action.setCarRefNo(auditScheduleListDto.getIqaNo()+"/"+divisionGroupName+"/"+ObsCode+"/"+ (++ofiCount));
-		    			} 					
-		    			action.setAuditCheckListId(Long.parseLong(obj[0].toString()));	 
-		    			action.setCarDescription(obj[10].toString());	 
-		    			action.setCarFlag(carFlag);
-		    			action.setIqaId(auditScheduleListDto.getIqaId());	    			
-		    			action.setScheduleId(auditScheduleListDto.getScheduleId());	    			
-		    			action.setCreatedBy(username);
-		    			action.setCreatedDate(LocalDateTime.now());
-		    			action.setIsActive(1);
-		    			auditCorrectiveActionRepository.save(action);
-		    		}
-		    		
-			    	schedule.setScheduleStatus("ABA");
-					trans.setAuditStatus("ABA");
-		    	}
-	
+			if(schedule.getScheduleStatus().equalsIgnoreCase("RAR")){
+		    	schedule.setScheduleStatus("AES");
+				trans.setAuditStatus("AES");
 		    	schedule.setModifiedBy(username);
 		    	schedule.setModifiedDate(LocalDateTime.now());
 		    	result = auditScheduleRepository.save(schedule).getScheduleId();
-		    	
-		
+				
 				trans.setEmpId(login.getEmpId());
 				trans.setScheduleId(result);
 				trans.setTransactionDate(LocalDateTime.now());
-				if(auditScheduleListDto.getScheduleStatus().equalsIgnoreCase("RBA")) {
-					trans.setRemarks(auditScheduleListDto.getMessage());
-				}else {
-					trans.setRemarks("NA");
-				}
+				trans.setRemarks("NA");
 				trans.setAuditType("S");
+				
 				auditTransactionRepository.save(trans);
-				
-				if(schedule.getScheduleStatus().equalsIgnoreCase("AES") || schedule.getScheduleStatus().equalsIgnoreCase("RBA")){
-					String NotiMsg = auditScheduleListDto.getIqaNo()+" Of Audit Schedule CheckList Forwarded by "+ employeeLogIn.getEmpName()+", "+employeeLogIn.getEmpDesigName();
-					insertScheduleNomination(auditScheduleListDto.getAuditeeEmpId(),login.getEmpId(),username,"/schedule-approval",NotiMsg);
-		    	}else {
-		    		List<Object[]> teamMemberDetails = teamRepository.getTeamMemberDetails(auditScheduleListDto.getTeamId());
-					String NotiMsg = auditScheduleListDto.getIqaNo()+" Of Audit Schedule CheckList Accepted by "+ employeeLogIn.getEmpName()+", "+employeeLogIn.getEmpDesigName();
-					for(Object[] obj : teamMemberDetails) {
-						result = insertScheduleNomination(Long.parseLong(obj[1].toString()),login.getEmpId(),username,"/schedule-approval",NotiMsg);
+			}else {
+			    	if(schedule.getScheduleStatus().equalsIgnoreCase("AES") || schedule.getScheduleStatus().equalsIgnoreCase("RBA")){
+				    	schedule.setScheduleStatus("ARS");
+						trans.setAuditStatus("ARS");
+			    	}else {
+			    		List<Object[]> checkList = auditCheckListRepository.getAuditCheckList(auditScheduleListDto.getScheduleId().toString());
+			    		List<Object[]> ncList = checkList.stream().filter(data -> ncObs.contains(data[4].toString())).collect(Collectors.toList());
+			    		Integer ncCount = auditCorrectiveActionRepository.getActionCount(auditScheduleListDto.getIqaId(),auditScheduleListDto.getScheduleId(),"N");	    		
+			    		Integer obsCount = auditCorrectiveActionRepository.getActionCount(auditScheduleListDto.getIqaId(),auditScheduleListDto.getScheduleId(),"O");	    		
+			    		Integer ofiCount = auditCorrectiveActionRepository.getActionCount(auditScheduleListDto.getIqaId(),auditScheduleListDto.getScheduleId(),"F");	    		
+			    		
+		    			String divisionGroupName = !auditScheduleListDto.getDivisionName().equalsIgnoreCase("") ? auditScheduleListDto.getDivisionName(): (!auditScheduleListDto.getGroupName().equalsIgnoreCase("")?auditScheduleListDto.getGroupName() : auditScheduleListDto.getProjectShortName()); 
+		    			
+			    		for(Object[] obj : ncList) {
+			    			AuditCorrectiveAction action = new AuditCorrectiveAction();
+			    			String ObsCode = "NC";
+			    			String carFlag = "N";
+			    			if(obj[4].toString().equalsIgnoreCase("2")) {
+			    				ObsCode = "NC";
+			    				carFlag = "N";
+				    			action.setCarRefNo(auditScheduleListDto.getIqaNo()+"/"+divisionGroupName+"/"+ObsCode+"/"+ (++ncCount));
+			    			}else if(obj[4].toString().equalsIgnoreCase("3")) {
+			    				ObsCode = "OBS";
+			    				carFlag = "O";
+				    			action.setCarRefNo(auditScheduleListDto.getIqaNo()+"/"+divisionGroupName+"/"+ObsCode+"/"+ (++obsCount));
+			    			}else {
+			    				ObsCode = "OFI";
+			    				carFlag = "F";
+				    			action.setCarRefNo(auditScheduleListDto.getIqaNo()+"/"+divisionGroupName+"/"+ObsCode+"/"+ (++ofiCount));
+			    			} 					
+			    			action.setAuditCheckListId(Long.parseLong(obj[0].toString()));	 
+			    			action.setCarDescription(obj[10].toString());	 
+			    			action.setCarFlag(carFlag);
+			    			action.setIqaId(auditScheduleListDto.getIqaId());	    			
+			    			action.setScheduleId(auditScheduleListDto.getScheduleId());	    			
+			    			action.setCreatedBy(username);
+			    			action.setCreatedDate(LocalDateTime.now());
+			    			action.setIsActive(1);
+			    			auditCorrectiveActionRepository.save(action);
+			    		}
+			    		
+				    	schedule.setScheduleStatus("ABA");
+						trans.setAuditStatus("ABA");
+			    	}
+		
+			    	schedule.setModifiedBy(username);
+			    	schedule.setModifiedDate(LocalDateTime.now());
+			    	result = auditScheduleRepository.save(schedule).getScheduleId();
+			    	
+			
+					trans.setEmpId(login.getEmpId());
+					trans.setScheduleId(result);
+					trans.setTransactionDate(LocalDateTime.now());
+					if(auditScheduleListDto.getScheduleStatus().equalsIgnoreCase("RBA")) {
+						trans.setRemarks(auditScheduleListDto.getMessage());
+					}else {
+						trans.setRemarks("NA");
 					}
-		    	}
-				
+					trans.setAuditType("S");
+					auditTransactionRepository.save(trans);
+					
+					if(schedule.getScheduleStatus().equalsIgnoreCase("AES") || schedule.getScheduleStatus().equalsIgnoreCase("RBA")){
+						String NotiMsg = auditScheduleListDto.getIqaNo()+" Of Audit Schedule CheckList Forwarded by "+ employeeLogIn.getEmpName()+", "+employeeLogIn.getEmpDesigName();
+						insertScheduleNomination(auditScheduleListDto.getAuditeeEmpId(),login.getEmpId(),username,"/schedule-approval",NotiMsg);
+			    	}else {
+			    		List<Object[]> teamMemberDetails = teamRepository.getTeamMemberDetails(auditScheduleListDto.getTeamId());
+						String NotiMsg = auditScheduleListDto.getIqaNo()+" Of Audit Schedule CheckList Accepted by "+ employeeLogIn.getEmpName()+", "+employeeLogIn.getEmpDesigName();
+						for(Object[] obj : teamMemberDetails) {
+							result = insertScheduleNomination(Long.parseLong(obj[1].toString()),login.getEmpId(),username,"/schedule-approval",NotiMsg);
+						}
+			    	}
+			}	
 	    	
 	    } catch (Exception e) {
 	    	e.printStackTrace();
@@ -929,6 +944,9 @@ public class AuditServiceImpl implements AuditService{
 		    		}
 					trans.setAuditStatus("ASA");
 		    	//}else if(auditScheduleListDto.getLeadEmpId().equals(login.getEmpId())){
+		    	 }else if(schedule.getScheduleStatus().equalsIgnoreCase("AAL")){
+		    		 schedule.setScheduleStatus("AAA");
+		    		 trans.setAuditStatus("ASA");
 		    	 }else {
 		    		if(schedule.getScheduleStatus().equalsIgnoreCase("ASA")) {
 				    	schedule.setScheduleStatus("AAA");
@@ -968,6 +986,9 @@ public class AuditServiceImpl implements AuditService{
 		    	if(schedule.getScheduleStatus().equalsIgnoreCase("ARS")){
 			    	schedule.setScheduleStatus("RBA");
 					trans.setAuditStatus("RBA");
+		    	}else if(schedule.getScheduleStatus().equalsIgnoreCase("AES")){
+			    	schedule.setScheduleStatus("RAR");
+					trans.setAuditStatus("RAR");
 		    	}else {
 			    	if(auditScheduleListDto.getAuditeeEmpId().equals(login.getEmpId())){
 				    	schedule.setScheduleStatus("ASR");
