@@ -834,77 +834,95 @@ public class AuditServiceImpl implements AuditService{
 			EmployeeDto employeeLogIn = masterClient.getEmployee(xApiKey,login.getEmpId()).get(0);
 			List<String> ncObs = Arrays.asList("2","3","4");
 			AuditSchedule schedule = auditScheduleRepository.findById(auditScheduleListDto.getScheduleId()).get();
-		    	if(schedule.getScheduleStatus().equalsIgnoreCase("AES") || schedule.getScheduleStatus().equalsIgnoreCase("RBA")){
-			    	schedule.setScheduleStatus("ARS");
-					trans.setAuditStatus("ARS");
-		    	}else {
-		    		List<Object[]> checkList = auditCheckListRepository.getAuditCheckList(auditScheduleListDto.getScheduleId().toString());
-		    		List<Object[]> ncList = checkList.stream().filter(data -> ncObs.contains(data[4].toString())).collect(Collectors.toList());
-		    		Integer ncCount = auditCorrectiveActionRepository.getActionCount(auditScheduleListDto.getIqaId(),auditScheduleListDto.getScheduleId(),"N");	    		
-		    		Integer obsCount = auditCorrectiveActionRepository.getActionCount(auditScheduleListDto.getIqaId(),auditScheduleListDto.getScheduleId(),"O");	    		
-		    		Integer ofiCount = auditCorrectiveActionRepository.getActionCount(auditScheduleListDto.getIqaId(),auditScheduleListDto.getScheduleId(),"F");	    		
-		    		
-	    			String divisionGroupName = !auditScheduleListDto.getDivisionName().equalsIgnoreCase("") ? auditScheduleListDto.getDivisionName(): (!auditScheduleListDto.getGroupName().equalsIgnoreCase("")?auditScheduleListDto.getGroupName() : auditScheduleListDto.getProjectShortName()); 
-	    			
-		    		for(Object[] obj : ncList) {
-		    			AuditCorrectiveAction action = new AuditCorrectiveAction();
-		    			String ObsCode = "NC";
-		    			String carFlag = "N";
-		    			if(obj[4].toString().equalsIgnoreCase("2")) {
-		    				ObsCode = "NC";
-		    				carFlag = "N";
-			    			action.setCarRefNo(auditScheduleListDto.getIqaNo()+"/"+divisionGroupName+"/"+ObsCode+"/"+ (++ncCount));
-		    			}else if(obj[4].toString().equalsIgnoreCase("3")) {
-		    				ObsCode = "OBS";
-		    				carFlag = "O";
-			    			action.setCarRefNo(auditScheduleListDto.getIqaNo()+"/"+divisionGroupName+"/"+ObsCode+"/"+ (++obsCount));
-		    			}else {
-		    				ObsCode = "OFI";
-		    				carFlag = "F";
-			    			action.setCarRefNo(auditScheduleListDto.getIqaNo()+"/"+divisionGroupName+"/"+ObsCode+"/"+ (++ofiCount));
-		    			} 					
-		    			action.setAuditCheckListId(Long.parseLong(obj[0].toString()));	 
-		    			action.setCarDescription(obj[10].toString());	 
-		    			action.setCarFlag(carFlag);
-		    			action.setIqaId(auditScheduleListDto.getIqaId());	    			
-		    			action.setScheduleId(auditScheduleListDto.getScheduleId());	    			
-		    			action.setCreatedBy(username);
-		    			action.setCreatedDate(LocalDateTime.now());
-		    			action.setIsActive(1);
-		    			auditCorrectiveActionRepository.save(action);
-		    		}
-		    		
-			    	schedule.setScheduleStatus("ABA");
-					trans.setAuditStatus("ABA");
-		    	}
-	
+            ArrayList<AuditCorrectiveAction> carList = new ArrayList<>();
+			if(schedule.getScheduleStatus().equalsIgnoreCase("RAR")){
+		    	schedule.setScheduleStatus("AES");
+				trans.setAuditStatus("AES");
 		    	schedule.setModifiedBy(username);
 		    	schedule.setModifiedDate(LocalDateTime.now());
 		    	result = auditScheduleRepository.save(schedule).getScheduleId();
-		    	
-		
+				
 				trans.setEmpId(login.getEmpId());
 				trans.setScheduleId(result);
 				trans.setTransactionDate(LocalDateTime.now());
-				if(auditScheduleListDto.getScheduleStatus().equalsIgnoreCase("RBA")) {
-					trans.setRemarks(auditScheduleListDto.getMessage());
-				}else {
-					trans.setRemarks("NA");
-				}
+				trans.setRemarks("NA");
 				trans.setAuditType("S");
+				
 				auditTransactionRepository.save(trans);
-				
-				if(schedule.getScheduleStatus().equalsIgnoreCase("AES") || schedule.getScheduleStatus().equalsIgnoreCase("RBA")){
-					String NotiMsg = auditScheduleListDto.getIqaNo()+" Of Audit Schedule CheckList Forwarded by "+ employeeLogIn.getEmpName()+", "+employeeLogIn.getEmpDesigName();
-					insertScheduleNomination(auditScheduleListDto.getAuditeeEmpId(),login.getEmpId(),username,"/schedule-approval",NotiMsg);
-		    	}else {
-		    		List<Object[]> teamMemberDetails = teamRepository.getTeamMemberDetails(auditScheduleListDto.getTeamId());
-					String NotiMsg = auditScheduleListDto.getIqaNo()+" Of Audit Schedule CheckList Accepted by "+ employeeLogIn.getEmpName()+", "+employeeLogIn.getEmpDesigName();
-					for(Object[] obj : teamMemberDetails) {
-						result = insertScheduleNomination(Long.parseLong(obj[1].toString()),login.getEmpId(),username,"/schedule-approval",NotiMsg);
+			}else {
+			    	if(schedule.getScheduleStatus().equalsIgnoreCase("AES") || schedule.getScheduleStatus().equalsIgnoreCase("RBA")){
+				    	schedule.setScheduleStatus("ARS");
+						trans.setAuditStatus("ARS");
+			    	}else {
+			    		List<Object[]> checkList = auditCheckListRepository.getAuditCheckList(auditScheduleListDto.getScheduleId().toString());
+			    		List<Object[]> ncList = checkList.stream().filter(data -> ncObs.contains(data[4].toString())).collect(Collectors.toList());
+			    		Integer ncCount = auditCorrectiveActionRepository.getActionCount(auditScheduleListDto.getIqaId(),auditScheduleListDto.getScheduleId(),"N");	    		
+			    		Integer obsCount = auditCorrectiveActionRepository.getActionCount(auditScheduleListDto.getIqaId(),auditScheduleListDto.getScheduleId(),"O");	    		
+			    		Integer ofiCount = auditCorrectiveActionRepository.getActionCount(auditScheduleListDto.getIqaId(),auditScheduleListDto.getScheduleId(),"F");	    		
+			    		
+		    			String divisionGroupName = !auditScheduleListDto.getDivisionName().equalsIgnoreCase("") ? auditScheduleListDto.getDivisionName(): (!auditScheduleListDto.getGroupName().equalsIgnoreCase("")?auditScheduleListDto.getGroupName() : auditScheduleListDto.getProjectShortName()); 
+		    			
+			    		for(Object[] obj : ncList) {
+			    			AuditCorrectiveAction action = new AuditCorrectiveAction();
+			    			String ObsCode = "NC";
+			    			String carFlag = "N";
+			    			if(obj[4].toString().equalsIgnoreCase("2")) {
+			    				ObsCode = "NC";
+			    				carFlag = "N";
+				    			action.setCarRefNo(auditScheduleListDto.getIqaNo()+"/"+divisionGroupName+"/"+ObsCode+"/"+ (++ncCount));
+			    			}else if(obj[4].toString().equalsIgnoreCase("3")) {
+			    				ObsCode = "OBS";
+			    				carFlag = "O";
+				    			action.setCarRefNo(auditScheduleListDto.getIqaNo()+"/"+divisionGroupName+"/"+ObsCode+"/"+ (++obsCount));
+			    			}else {
+			    				ObsCode = "OFI";
+			    				carFlag = "F";
+				    			action.setCarRefNo(auditScheduleListDto.getIqaNo()+"/"+divisionGroupName+"/"+ObsCode+"/"+ (++ofiCount));
+			    			} 					
+			    			action.setAuditCheckListId(Long.parseLong(obj[0].toString()));	 
+			    			action.setCarDescription(obj[10].toString());	 
+			    			action.setCarFlag(carFlag);
+			    			action.setIqaId(auditScheduleListDto.getIqaId());	    			
+			    			action.setScheduleId(auditScheduleListDto.getScheduleId());	    			
+			    			action.setCreatedBy(username);
+			    			action.setCreatedDate(LocalDateTime.now());
+			    			action.setIsActive(1);
+			    			//auditCorrectiveActionRepository.save(action);
+			    			carList.add(action);
+			    		}
+			    		auditCorrectiveActionRepository.saveAll(carList);
+			    		
+				    	schedule.setScheduleStatus("ABA");
+						trans.setAuditStatus("ABA");
+			    	}
+		
+			    	schedule.setModifiedBy(username);
+			    	schedule.setModifiedDate(LocalDateTime.now());
+			    	result = auditScheduleRepository.save(schedule).getScheduleId();
+			    	
+			
+					trans.setEmpId(login.getEmpId());
+					trans.setScheduleId(result);
+					trans.setTransactionDate(LocalDateTime.now());
+					if(auditScheduleListDto.getScheduleStatus().equalsIgnoreCase("RBA")) {
+						trans.setRemarks(auditScheduleListDto.getMessage());
+					}else {
+						trans.setRemarks("NA");
 					}
-		    	}
-				
+					trans.setAuditType("S");
+					auditTransactionRepository.save(trans);
+					
+					if(schedule.getScheduleStatus().equalsIgnoreCase("AES") || schedule.getScheduleStatus().equalsIgnoreCase("RBA")){
+						String NotiMsg = auditScheduleListDto.getIqaNo()+" Of Audit Schedule CheckList Forwarded by "+ employeeLogIn.getEmpName()+", "+employeeLogIn.getEmpDesigName();
+						insertScheduleNomination(auditScheduleListDto.getAuditeeEmpId(),login.getEmpId(),username,"/schedule-approval",NotiMsg);
+			    	}else {
+			    		List<Object[]> teamMemberDetails = teamRepository.getTeamMemberDetails(auditScheduleListDto.getTeamId());
+						String NotiMsg = auditScheduleListDto.getIqaNo()+" Of Audit Schedule CheckList Accepted by "+ employeeLogIn.getEmpName()+", "+employeeLogIn.getEmpDesigName();
+						for(Object[] obj : teamMemberDetails) {
+							result = insertScheduleNomination(Long.parseLong(obj[1].toString()),login.getEmpId(),username,"/schedule-approval",NotiMsg);
+						}
+			    	}
+			}	
 	    	
 	    } catch (Exception e) {
 	    	e.printStackTrace();
@@ -929,6 +947,9 @@ public class AuditServiceImpl implements AuditService{
 		    		}
 					trans.setAuditStatus("ASA");
 		    	//}else if(auditScheduleListDto.getLeadEmpId().equals(login.getEmpId())){
+		    	 }else if(schedule.getScheduleStatus().equalsIgnoreCase("AAL")){
+		    		 schedule.setScheduleStatus("AAA");
+		    		 trans.setAuditStatus("ASA");
 		    	 }else {
 		    		if(schedule.getScheduleStatus().equalsIgnoreCase("ASA")) {
 				    	schedule.setScheduleStatus("AAA");
@@ -968,6 +989,9 @@ public class AuditServiceImpl implements AuditService{
 		    	if(schedule.getScheduleStatus().equalsIgnoreCase("ARS")){
 			    	schedule.setScheduleStatus("RBA");
 					trans.setAuditStatus("RBA");
+		    	}else if(schedule.getScheduleStatus().equalsIgnoreCase("AES")){
+			    	schedule.setScheduleStatus("RAR");
+					trans.setAuditStatus("RAR");
 		    	}else {
 			    	if(auditScheduleListDto.getAuditeeEmpId().equals(login.getEmpId())){
 				    	schedule.setScheduleStatus("ASR");
@@ -1995,7 +2019,7 @@ public class AuditServiceImpl implements AuditService{
 		long result = 0;
 		logger.info(" AuditServiceImpl Inside method addAuditCheckList()");
 		try {
-
+			ArrayList<AuditCheckList> auditCheckList = new ArrayList<>();
 			for(CheckListItem item  : auditCheckListDTO.getCheckListMap()){
 				Optional<AuditCheckList> checkListOptiinal = auditCheckListRepository.findById((long)item.getAuditCheckListId());
 				if(checkListOptiinal.isPresent()) {
@@ -2004,9 +2028,11 @@ public class AuditServiceImpl implements AuditService{
 					checkList.setAuditorRemarks(item.getAuditorRemarks());
 					checkList.setModifiedBy(username);
 					checkList.setModifiedDate(LocalDateTime.now());
-					result = auditCheckListRepository.save(checkList).getAuditCheckListId();	
+					//result = auditCheckListRepository.save(checkList).getAuditCheckListId();	
+					auditCheckList.add(checkList);
 				}
-				
+				auditCheckListRepository.saveAll(auditCheckList);
+				result = 1;
 
 			}
 		} catch (Exception e) {
@@ -2021,7 +2047,7 @@ public class AuditServiceImpl implements AuditService{
 		long result = 1;
 		logger.info( " AuditServiceImpl Inside method addAuditeeRemarks()");
 		try {
-
+			ArrayList<AuditCheckList> auditCheckList = new ArrayList<>();
 			Timestamp instant = Timestamp.from(Instant.now());
 			String timestampstr = instant.toString().replace(" ", "").replace(":", "").replace("-", "").replace(".", "");
 			for(CheckListItem item  : auditCheckListDTO.getCheckListMap()){
@@ -2041,8 +2067,10 @@ public class AuditServiceImpl implements AuditService{
 				checkList.setCreatedDate(LocalDateTime.now());
 				checkList.setIsActive(1);
 				
-				result = auditCheckListRepository.save(checkList).getAuditCheckListId();
+				//result = auditCheckListRepository.save(checkList).getAuditCheckListId();
+				auditCheckList.add(checkList);
 			}
+			auditCheckListRepository.saveAll(auditCheckList);
 			saveDocFilesUpload(files,auditCheckListDTO,timestampstr);
 			int auditeeAdd = auditCheckListRepository.checkAuditeeFinalAdd(auditCheckListDTO.getScheduleId());
 			if(auditeeAdd == 1) {
@@ -2088,7 +2116,7 @@ public class AuditServiceImpl implements AuditService{
 		long result = 1;
 		logger.info( " AuditServiceImpl Inside method updateAuditCheckList()");
 		try {
-
+			ArrayList<AuditCheckList> auditCheckList = new ArrayList<>();
 			for(CheckListItem item  : auditCheckListDTO.getCheckListMap()){
 				AuditCheckList checkList = auditCheckListRepository.findById((long)item.getAuditCheckListId()).get();
 				checkList.setMocId((long)item.getMocId());			
@@ -2097,8 +2125,11 @@ public class AuditServiceImpl implements AuditService{
 				checkList.setModifiedBy(username);
 				checkList.setModifiedDate(LocalDateTime.now());
 				
-				result = auditCheckListRepository.save(checkList).getAuditCheckListId();
+				//result = auditCheckListRepository.save(checkList).getAuditCheckListId();
+				auditCheckList.add(checkList);
 			}
+			auditCheckListRepository.saveAll(auditCheckList);
+			result = 1;
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("AuditServiceImpl Inside method updateAuditCheckList()"+ e);
@@ -2111,6 +2142,7 @@ public class AuditServiceImpl implements AuditService{
 		int result = 1;
 		logger.info( " AuditServiceImpl Inside method updateAuditeeRemarks()");
 		try {
+			ArrayList<AuditCheckList> auditCheckList = new ArrayList<>();
 			Timestamp instant = Timestamp.from(Instant.now());
 			String timestampstr = instant.toString().replace(" ", "").replace(":", "").replace("-", "").replace(".", "");
 			for(CheckListItem item  : auditCheckListDTO.getCheckListMap()){
@@ -2144,11 +2176,13 @@ public class AuditServiceImpl implements AuditService{
 						checkList.setAuditeeRemarks(item.getAuditeeRemarks());
 						checkList.setModifiedBy(username);
 						checkList.setModifiedDate(LocalDateTime.now());
-						auditCheckListRepository.save(checkList);
+						//auditCheckListRepository.save(checkList);
+						auditCheckList.add(checkList);
 				}			
 				}
 
 			}
+			auditCheckListRepository.saveAll(auditCheckList);
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("AuditServiceImpl Inside method updateAuditeeRemarks()"+ e);
@@ -2488,6 +2522,7 @@ public class AuditServiceImpl implements AuditService{
 		long result = 0;
 		logger.info( " AuditServiceImpl Inside method insertCorrectiveAction()");
 		try {
+			ArrayList<AuditCorrectiveAction> carList = new ArrayList<>();
 			Login login = loginRepo.findByUsername(username);
 			for(AuditCarDTO dto : auditCarDTO) {
 				Optional<AuditCorrectiveAction> carOptional = auditCorrectiveActionRepository.findById(dto.getCorrectiveActionId());
@@ -2501,9 +2536,12 @@ public class AuditServiceImpl implements AuditService{
 					car.setModifiedBy(username);
 					car.setModifiedDate(LocalDateTime.now());
 					
-		   result = auditCorrectiveActionRepository.save(car).getCorrectiveActionId();				
+		   //result = auditCorrectiveActionRepository.save(car).getCorrectiveActionId();
+					carList.add(car);
 				}
 			}
+			auditCorrectiveActionRepository.saveAll(carList);
+			result = 1;
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("AuditServiceImpl Inside method insertCorrectiveAction()"+ e);
