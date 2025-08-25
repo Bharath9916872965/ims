@@ -466,5 +466,15 @@ public class AdminController {
 				 return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
 			}
 		}
+	    
+		@GetMapping(value = "/get-license", produces="application/json")
+		public ResponseEntity<Long> getLicense() throws Exception {
+			Long result = service.getLicense();
+			if (result != null) {
+				return new ResponseEntity<>(result, HttpStatus.OK);
+			} else {
+				return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+			}
+		}
 
 }

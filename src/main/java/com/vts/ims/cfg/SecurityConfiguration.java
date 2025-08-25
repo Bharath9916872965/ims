@@ -28,6 +28,7 @@ public class SecurityConfiguration {
 						.requestMatchers(HttpMethod.GET, "/api/user/**").hasRole(USER)
 						.requestMatchers(HttpMethod.GET, "/api/admin-and-user/**").hasAnyRole(ADMIN,USER)
 						.requestMatchers(HttpMethod.GET, "/lab-logo").permitAll()
+						.requestMatchers(HttpMethod.GET, "/get-license").permitAll()
 						.anyRequest().authenticated());
 					
 		http.cors(cors -> cors.configurationSource(request -> {

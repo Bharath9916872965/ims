@@ -38,4 +38,5 @@ public interface AdminService {
     public long updateNotification(String Username, String notificationId) throws Exception;
 	public List<AuditPatchDto> getAuditPatchList() throws Exception;
 	public Long updateAuditPatch(AuditPatchDto auditPatchDto,String username,MultipartFile file) throws Exception;
+	public Long getLicense()throws Exception ;
 }
