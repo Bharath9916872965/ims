@@ -2,8 +2,10 @@ package com.vts.ims.admin.service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -16,6 +18,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vts.ims.admin.dto.ApprovalAuthorityDto;
 import com.vts.ims.admin.dto.AuditStampingDto;
 import com.vts.ims.admin.dto.FormDetailDto;
@@ -97,6 +101,9 @@ public class AdminServiceImpl implements AdminService {
 	
 	@Value("${x_api_key}")
 	private String xApiKey;
+	
+	@Value("${license}")
+	private String license;
 	
 	@Override
 	public List<FormModuleDto> formModuleList(Long imsFormRoleId) throws Exception {
@@ -806,6 +813,38 @@ public class AdminServiceImpl implements AdminService {
 			 logger.error("Error in updateAuditPatch: " + e.getMessage(), e);
 		        throw e;
 		}
+	}
+	
+	@Override
+	public Long getLicense() throws Exception {
+		long result = 0;
+		try {
+			String[] parts = license.split("\\.");
+			if (parts.length < 2) {
+				System.out.println("Invalid JWT format");
+				return 0L;
+			}
+			String payloadJson = new String(Base64.getUrlDecoder().decode(parts[1]));
+
+			ObjectMapper mapper = new ObjectMapper();
+			JsonNode payload = mapper.readTree(payloadJson);
+
+			long exp = payload.get("exp").asLong();
+			Date now = new Date(System.currentTimeMillis());
+
+			Date expiresAt = new Date(exp * 1000);
+
+
+			if (expiresAt.before(now)) {
+				result = 0;
+			}else {
+				result = 1;
+			}
+
+		}catch (Exception e) {
+				e.printStackTrace();
+		}
+		return result;
 	}
 	
 }
