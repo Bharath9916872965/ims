@@ -48,6 +48,7 @@ import com.vts.ims.audit.dto.AuditTranDto;
 import com.vts.ims.audit.dto.AuditeeDto;
 import com.vts.ims.audit.dto.AuditorDto;
 import com.vts.ims.audit.dto.AuditorTeamDto;
+import com.vts.ims.audit.dto.CheckListCountDto;
 import com.vts.ims.audit.dto.CheckListDto;
 import com.vts.ims.audit.dto.IqaAuditeeDto;
 import com.vts.ims.audit.dto.IqaAuditeeListDto;
@@ -1133,4 +1134,32 @@ public class AuditController {
 			return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
 		}
 	 }
+	 
+	 @GetMapping(value="get-checklist-add-count/{scheduleId}",produces ="application/json")
+	 public ResponseEntity<List<CheckListCountDto>> getCheckListAddCount(@RequestHeader String username,@PathVariable("scheduleId") String scheduleId) throws Exception{
+		 logger.info(new Date()+"inside get-checklist-add-count"+username);
+		List<CheckListCountDto> result = auditService.getCheckListAddCount(Long.parseLong(scheduleId));
+		if (result != null) {
+			return new ResponseEntity<>(result, HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+		}
+	 }
+	 
+	@PostMapping(value = "/auditee-submit", produces = "application/json")
+	public ResponseEntity<Response> auditeeSubmit(@RequestHeader String username, @RequestBody String scheduleId) throws Exception {
+		try {
+			logger.info( " Inside auditee-submit" );
+			 long result=auditService.auditeeSubmit(scheduleId,username);
+			 if(result > 0) {
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("CheckList Submitted Successfully","S"));
+			 }else {
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("CheckList Submitted Unsuccessful","F"));			 
+			 }
+		} catch (Exception e) {
+			 logger.error("error in auditee-submit"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
+		}
+	}
 }

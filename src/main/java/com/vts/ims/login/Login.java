@@ -9,6 +9,7 @@ import java.util.Set;
 @Table(name = "login")
 public class Login {
 	
+
     private Long LoginId;
     private String Username;
     private String Password;
@@ -22,10 +23,8 @@ public class Login {
     private String ModifiedBy;
     private LocalDateTime ModifiedDate;
     private Set<Role> roles;
- 
     @Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-    
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long getLoginId() {
 		return LoginId;
 	}
