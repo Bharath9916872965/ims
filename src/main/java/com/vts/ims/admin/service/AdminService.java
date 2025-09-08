@@ -20,6 +20,7 @@ public interface AdminService {
 	public long loginStampingInsert(LoginStamping Stamping)throws Exception;
 	public long lastLoginStampingId(long LoginId)throws Exception;
 	public long loginStampingUpdate(LoginStamping Stamping)throws Exception;
+	public Long UserManagerInsert(UserManageAddEditDto UserManageAdd, String LogId)throws Exception;
 	public List<UserManagerListDto> UserManagerList(String username)throws Exception;
 	public List<FormRoleDto> roleList()throws Exception;
 	public List<FormModuleDto> getformModulelist()throws Exception;

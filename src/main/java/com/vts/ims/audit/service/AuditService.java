@@ -21,6 +21,7 @@ import com.vts.ims.audit.dto.AuditTranDto;
 import com.vts.ims.audit.dto.AuditeeDto;
 import com.vts.ims.audit.dto.AuditorDto;
 import com.vts.ims.audit.dto.AuditorTeamDto;
+import com.vts.ims.audit.dto.CheckListCountDto;
 import com.vts.ims.audit.dto.CheckListDto;
 import com.vts.ims.audit.dto.IqaAuditeeDto;
 import com.vts.ims.audit.dto.IqaAuditeeListDto;
@@ -160,6 +161,10 @@ public interface AuditService {
 	public List<CheckListDto> getMostFreqNCDetails(Long mocId)throws Exception;
 
 	public List<String[]> getAttachPdfList(AuditClosureDTO dataDto)throws Exception;
+
+	public List<CheckListCountDto> getCheckListAddCount(long scheduleId)throws Exception;
+
+	public long auditeeSubmit(String scheduleId, String username)throws Exception;
 
 
 

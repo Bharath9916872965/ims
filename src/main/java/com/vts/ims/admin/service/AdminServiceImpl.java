@@ -6,6 +6,7 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -845,6 +846,59 @@ public class AdminServiceImpl implements AdminService {
 				e.printStackTrace();
 		}
 		return result;
+	}
+	
+	@Override
+	public Long UserManagerInsert(UserManageAddEditDto UserManageAdd, String LogId) throws Exception {
+	
+		 logger.info(new Date() + " AdminServiceImpl Inside method UserManagerInsert " );
+		 long result = 0;
+		 try {
+	
+		 
+		 Long usernamPresentCount = 0L;
+			Long count = userManagerRepo.countByUserNameAndActive(UserManageAdd.getUserName());
+	           if(count != null) {
+	        	   usernamPresentCount = count;
+	           }
+
+
+		if(usernamPresentCount ==0) {
+		Login login=new Login();
+		login.setUsername(UserManageAdd.getUserName());
+		login.setPassword("$2y$12$QTTMcjGKiCVKNvNa242tVu8SPi0SytTAMpT3XRscxNXHHu1nY4Kui");
+		login.setImsFormRoleId(UserManageAdd.getRoleId());
+		login.setCreatedBy(LogId);
+		login.setCreatedDate(LocalDateTime.now());
+		login.setIsActive(1);
+		login.setLoginType("NA");
+		if(UserManageAdd.getEmpId()!=null) {
+		     login.setEmpId(UserManageAdd.getEmpId());
+		     List<EmployeeDto> empData = masterClient.getEmployee(xApiKey,UserManageAdd.getEmpId());
+             if (!empData.isEmpty()) {
+		        EmployeeDto eDto = empData.get(0); 
+		        login.setDivisionId(eDto.getDivisionId());
+		     }else {
+			    login.setDivisionId(Long.parseLong("0"));
+		     }
+		
+		}else {
+			login.setEmpId(Long.parseLong("0"));
+			login.setDivisionId(Long.parseLong("0"));
+		}
+		//HashSet< com.vts.ims.login.Role> Roles=new HashSet<com.vts.ims.login.Role>();
+		//Roles.add(roleRepo.findById(UserManageAdd.getRoleId()).get());
+		//login.setRoles(Roles);
+		userManagerRepo.save(login);
+		result = login.getLoginId();
+		}else {
+			throw new Exception();
+		}
+		 } catch (Exception e) {
+	        	logger.error(new Date() +" error in AdminServiceImpl Inside method UserManagerInsert "+ e.getMessage());
+			         e.printStackTrace();
+			}
+		 return result;
 	}
 	
 }

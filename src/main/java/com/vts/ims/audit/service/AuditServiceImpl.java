@@ -50,6 +50,7 @@ import com.vts.ims.audit.dto.AuditTranDto;
 import com.vts.ims.audit.dto.AuditeeDto;
 import com.vts.ims.audit.dto.AuditorDto;
 import com.vts.ims.audit.dto.AuditorTeamDto;
+import com.vts.ims.audit.dto.CheckListCountDto;
 import com.vts.ims.audit.dto.CheckListDto;
 import com.vts.ims.audit.dto.CheckListItem;
 import com.vts.ims.audit.dto.IqaAuditeeDto;
@@ -212,9 +213,9 @@ public class AuditServiceImpl implements AuditService{
 				        AuditorDto auditorDto = new AuditorDto();
 				        EmployeeDto employeeDto =  employeeMap.get(obj.getEmpId());
 				        auditorDto.setEmpId(obj.getEmpId());
-				        auditorDto.setEmpName(employeeDto.getEmpName());
-				        auditorDto.setDesignation(employeeDto.getEmpDesigName());
-				        auditorDto.setDivisionName(employeeDto.getEmpDivCode());
+				        auditorDto.setEmpName(employeeDto != null?employeeDto.getEmpName():"");
+				        auditorDto.setDesignation(employeeDto != null?employeeDto.getEmpDesigName():"");
+				        auditorDto.setDivisionName(employeeDto != null?employeeDto.getEmpDivCode():"");
 				        auditorDto.setAuditorId(obj.getAuditorId());
 				        auditorDto.setIsActive(obj.getIsActive());
 				        return auditorDto;
@@ -1554,9 +1555,9 @@ public class AuditServiceImpl implements AuditService{
 				        AuditorDto auditorDto = new AuditorDto();
 				        EmployeeDto employeeDto =  employeeMap.get(obj.getEmpId());
 				        auditorDto.setEmpId(obj.getEmpId());
-				        auditorDto.setEmpName(employeeDto.getEmpName());
-				        auditorDto.setDesignation(employeeDto.getEmpDesigName());
-				        auditorDto.setDivisionName(employeeDto.getEmpDivCode());
+				        auditorDto.setEmpName(employeeDto != null ?employeeDto.getEmpName():"");
+				        auditorDto.setDesignation(employeeDto != null ?employeeDto.getEmpDesigName():"");
+				        auditorDto.setDivisionName(employeeDto != null ?employeeDto.getEmpDivCode():"");
 				        auditorDto.setAuditorId(obj.getAuditorId());
 				        return auditorDto;
 				    })
@@ -3073,5 +3074,65 @@ public class AuditServiceImpl implements AuditService{
 
         return encodedfile;
     }
+
+	@Override
+	public List<CheckListCountDto> getCheckListAddCount(long scheduleId) throws Exception {
+		try {
+			List<Object[]> result = auditCheckListRepository.getCheckListAddCount(scheduleId);
+			return Optional.ofNullable(result).orElse(Collections.emptyList()).stream().map(rowData ->{
+				return CheckListCountDto.builder()
+				.addCount(rowData[0] != null? Long.parseLong(rowData[0].toString()):0L)	
+				.checkListType(rowData[1] != null? rowData[1].toString():"")	
+				.build();
+				}).collect(Collectors.toList());			
+			} catch (Exception e) {
+			e.printStackTrace();	
+			logger.error(new Date() + " Inside getCheckListAddCount Service ");
+		}
+		
+		return null;
+	}
+
+
+	@Override
+	public long auditeeSubmit(String scheduleId, String username) throws Exception {
+		long result =0;
+		try {
+    	    Login login = loginRepo.findByUsername(username);
+		    EmployeeDto employeeLogIn = masterClient.getEmployee(xApiKey,login.getEmpId()).get(0);
+		    
+	    	AuditSchedule schedule = auditScheduleRepository.findById(Long.parseLong(scheduleId)).get();
+	    	AuditTransaction trans = new AuditTransaction();
+		    	
+				
+			schedule.setScheduleStatus("AES");
+	    	schedule.setModifiedBy(username);
+	    	schedule.setModifiedDate(LocalDateTime.now());
+	    	result = auditScheduleRepository.save(schedule).getScheduleId();
+	    	
+	    	trans.setAuditStatus("AES");
+			trans.setEmpId(login.getEmpId());
+			trans.setScheduleId(result);
+			trans.setTransactionDate(LocalDateTime.now());
+			trans.setRemarks("NA");
+			trans.setAuditType("S");
+			
+			auditTransactionRepository.save(trans);
+			
+			List<Object[]> members = teamMemberRepository.getTeamMembersByScheduleId(Integer.parseInt(scheduleId));
+			String url= "/schedule-approval";
+			String NotiMsg = members.get(0)[0] +" Of Audit Schedule Submitted by "+ employeeLogIn.getEmpName()+", "+employeeLogIn.getEmpDesigName();
+			
+			for(Object[] obj: members) {
+				result = insertScheduleNomination(Long.parseLong(obj[1].toString()),login.getEmpId(),username,url,NotiMsg);
+			}
+				result = 1;
+			} catch (Exception e) {
+			e.printStackTrace();	
+			logger.error(new Date() + " Inside auditeeSubmit Service ");
+		}
+		
+		return result;
+	}
 
 }

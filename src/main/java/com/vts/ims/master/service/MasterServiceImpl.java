@@ -239,21 +239,30 @@ public class MasterServiceImpl implements MasterService {
 	public UserDetailsDto GetEmpDetails(String  username)throws Exception
 	{
 	try {
-		 Object[] login = loginRepo.getLoginDetails(username).get(0);
+		Object[] login = null;
+		 List<Object[]> loginList = loginRepo.getLoginDetails(username);
+		 if(loginList != null && loginList.size() > 0) {
+			 login = loginList.get(0);
+		 }
 		 
 		 if(login !=null) {
-				EmployeeDto employeeLogIn = masterClient.getEmployee(xApiKey,Long.parseLong(login[2].toString())).get(0);
-				List<DivisionMasterDto> divisionDto = masterClient.getDivisionDetailsById(xApiKey,Long.parseLong(login[3].toString()));
-				return UserDetailsDto.builder()
-		 			  .loginId(Long.parseLong(login[0].toString()))	  
-		 			  .username(login[1].toString())	    
-		 			  .empId(Long.parseLong(login[2].toString()))	  
-		 			  .divisionId(Long.parseLong(login[3].toString()))	
-		 			  .groupId(divisionDto.isEmpty() ? 0 : divisionDto.get(0).getGroupId())
-		 			  .imsFormRoleId(Long.parseLong(login[4].toString()))	
-		 			  .roleName(login[5].toString())	
-		 			  .labCode(employeeLogIn.getLabCode())	
-		 			  .build();	
+				List<EmployeeDto> employeeLogInList = masterClient.getEmployee(xApiKey,Long.parseLong(login[2].toString()));
+				if(employeeLogInList != null && employeeLogInList.size() > 0) {
+					EmployeeDto employeeLogIn = employeeLogInList.get(0);
+					List<DivisionMasterDto> divisionDto = masterClient.getDivisionDetailsById(xApiKey,Long.parseLong(login[3].toString()));
+					return UserDetailsDto.builder()
+			 			  .loginId(Long.parseLong(login[0].toString()))	  
+			 			  .username(login[1].toString())	    
+			 			  .empId(Long.parseLong(login[2].toString()))	  
+			 			  .divisionId(Long.parseLong(login[3].toString()))	
+			 			  .groupId(divisionDto.isEmpty() ? 0 : divisionDto.get(0).getGroupId())
+			 			  .imsFormRoleId(Long.parseLong(login[4].toString()))	
+			 			  .roleName(login[5].toString())	
+			 			  .labCode(employeeLogIn.getLabCode())	
+			 			  .build();	
+				}else {
+					return null;
+				}
 		 }else {
 			 return null;
 		 }

@@ -219,6 +219,20 @@ public class AdminController {
 		}
 		return new ResponseEntity<>(list, HttpStatus.OK);
 	}
+	
+	@RequestMapping(value = "user-manager-add-submit", method = RequestMethod.POST, produces="application/json")
+	public ResponseEntity<Long> UserManagerAddSubmit(@RequestBody UserManageAddEditDto UserManageAdd,Authentication authentication)
+			throws Exception {
+		logger.info(new Date() + " Inside user-manager-add-submit " );
+		Long count = 0L;
+		try {
+			count = service.UserManagerInsert(UserManageAdd, authentication.getName());
+		} catch (Exception e) {
+			 logger.error(new Date() +"error in user-manager-add-submit "+ e.getMessage());
+			 e.printStackTrace();
+		}
+		return new ResponseEntity<>(count, HttpStatus.OK);
+	}
 
 
 	@PostMapping(value = "roles-list", produces="application/json")

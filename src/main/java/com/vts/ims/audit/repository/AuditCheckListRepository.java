@@ -17,8 +17,14 @@ public interface AuditCheckListRepository extends JpaRepository<AuditCheckList, 
 	@Query(value = "SELECT b.AuditCheckListId,b.Attachment FROM ims_qms_qm_mapping_classes a,ims_audit_check_list b WHERE a.IsActive = 1 AND b.IsActive = 1 AND a.ClauseNo = '8.3.1' AND a.MocId = b.MocId AND b.ScheduleId = :scheduleId",nativeQuery = true)
 	public List<Object[]> getCheckListUpload(@Param("scheduleId")String scheduleId);
 
-	@Query(value = "SELECT CASE WHEN (SELECT COUNT(a.MocId) FROM ims_qms_qm_mapping_classes a WHERE a.IsActive = 1 AND a.IsForCheckList = 'Y') = ((SELECT COUNT(b.AuditCheckListId) FROM ims_audit_check_list b WHERE b.IsActive = 1 AND b.ScheduleId = :scheduleId) + 1) THEN 1 ELSE 0 END AS 'Result'",nativeQuery = true)
+	@Query(value = "WITH counts AS(SELECT(SELECT COUNT(*) FROM ims_qms_qm_mapping_classes a WHERE a.IsActive = 1 AND a.IsForCheckList = 'Y') AS moc_count,(SELECT COUNT(*) FROM ims_audit_check_list b WHERE b.IsActive = 1 AND b.ScheduleId = :scheduleId) AS checklist_count)\r\n"
+			+ "SELECT CASE WHEN moc_count = checklist_count OR moc_count = checklist_count+1 THEN 1 ELSE 0 END AS 'Result' FROM counts",nativeQuery = true)
 	public Integer checkAuditeeFinalAdd(@Param("scheduleId")Integer scheduleId);
+	
+	@Query(value = "SELECT COUNT(a.MocId) AS 'addCount','M' AS 'checkListType' FROM ims_qms_qm_mapping_classes a WHERE a.IsActive = 1 AND a.IsForCheckList = 'Y'\r\n"
+			+ "UNION\r\n"
+			+ "SELECT COUNT(b.AuditCheckListId) AS 'addCount','C' AS 'checkListType' FROM ims_audit_check_list b WHERE b.IsActive = 1 AND b.ScheduleId = :scheduleId",nativeQuery = true)
+	public List<Object[]> getCheckListAddCount(@Param("scheduleId")Long scheduleId);
 	
 	
 	 @Query(value = """
