@@ -166,6 +166,10 @@ public interface AuditService {
 
 	public long auditeeSubmit(String scheduleId, String username)throws Exception;
 
+	public long auditeeCheckListForward(String scheduleId, String username)throws Exception;
+
+	public long auditeeCheckListRevoke(String scheduleId, String username) throws Exception;
+
 
 
 }

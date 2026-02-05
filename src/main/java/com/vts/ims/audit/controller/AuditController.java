@@ -1162,4 +1162,40 @@ public class AuditController {
 			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
 		}
 	}
+	
+	
+	@PostMapping(value = "/auditee-checklist-forward", produces = "application/json")
+	public ResponseEntity<Response> auditeeCheckListForward(@RequestHeader String username, @RequestBody String scheduleId) throws Exception {
+		try {
+			logger.info( " Inside auditee-submit" );
+			 long result=auditService.auditeeCheckListForward(scheduleId,username);
+			 if(result > 0) {
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("auditee CheckList Forward Successfully","S"));
+			 }else {
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("auditee CheckList Forward Unsuccessful","F"));			 
+			 }
+		} catch (Exception e) {
+			 logger.error("error in auditee CheckList Forward"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
+		}
+	}
+	@PostMapping(value = "/auditee-checklist-Revoke", produces = "application/json")
+	public ResponseEntity<Response> auditeeCheckListRevoke(@RequestHeader String username, @RequestBody String scheduleId) throws Exception {
+		try {
+			logger.info( " Inside auditee-submit" );
+			 long result=auditService.auditeeCheckListRevoke(scheduleId,username);
+			 if(result > 0) {
+				 return ResponseEntity.status(HttpStatus.OK).body(new Response("auditee CheckList Revoke Successfully","S"));
+			 }else {
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("auditee CheckList Revoke Unsuccessful","F"));			 
+			 }
+		} catch (Exception e) {
+			 logger.error("error in auditee CheckList Forward"+ e.getMessage());
+			 e.printStackTrace();
+			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response("Error occurred: " + e.getMessage(),"I"));
+		}
+	}
+	
+	
 }

@@ -781,6 +781,7 @@ public class AuditServiceImpl implements AuditService{
 					    	dto.setGroupName(group != null ? group.getGroupName() : "");
 					    	dto.setProjectName(project != null ? project.getProjectName() : "");
 					    	dto.setProjectShortName(project != null ? project.getProjectShortName() : "");
+					    	dto.setProjectCode(project != null ? project.getProjectCode() : "");
 					    	return dto;
 				    })
 				    .collect(Collectors.toList());
@@ -3130,6 +3131,89 @@ public class AuditServiceImpl implements AuditService{
 			} catch (Exception e) {
 			e.printStackTrace();	
 			logger.error(new Date() + " Inside auditeeSubmit Service ");
+		}
+		
+		return result;
+	}
+	
+	@Override
+	public long auditeeCheckListForward(String scheduleId, String username) throws Exception {
+		long result =0;
+		try {
+    	    Login login = loginRepo.findByUsername(username);
+		    EmployeeDto employeeLogIn = masterClient.getEmployee(xApiKey,login.getEmpId()).get(0);
+		    
+	    	AuditSchedule schedule = auditScheduleRepository.findById(Long.parseLong(scheduleId)).get();
+	    	AuditTransaction trans = new AuditTransaction();
+		    	
+				
+			schedule.setScheduleStatus("ACF");
+	    	schedule.setModifiedBy(username);
+	    	schedule.setModifiedDate(LocalDateTime.now());
+	    	result = auditScheduleRepository.save(schedule).getScheduleId();
+	    	
+	    	trans.setAuditStatus("ACF");
+			trans.setEmpId(login.getEmpId());
+			trans.setScheduleId(result);
+			trans.setTransactionDate(LocalDateTime.now());
+			trans.setRemarks("NA");
+			trans.setAuditType("S");
+			
+			auditTransactionRepository.save(trans);
+			
+			List<Object[]> members = teamMemberRepository.getTeamMembersByScheduleId(Integer.parseInt(scheduleId));
+			String url= "/schedule-approval";
+			String NotiMsg = members.get(0)[0] +" Of auditee CheckList Forward "+ employeeLogIn.getEmpName()+", "+employeeLogIn.getEmpDesigName();
+			
+			for(Object[] obj: members) {
+				result = insertScheduleNomination(Long.parseLong(obj[1].toString()),login.getEmpId(),username,url,NotiMsg);
+			}
+				result = 1;
+			} catch (Exception e) {
+			e.printStackTrace();	
+			logger.error(new Date() + " Inside auditee CheckList Forward  Auditor Service ");
+		}
+		
+		return result;
+	}
+	
+	
+	@Override
+	public long auditeeCheckListRevoke(String scheduleId, String username) throws Exception {
+		long result =0;
+		try {
+    	    Login login = loginRepo.findByUsername(username);
+		    EmployeeDto employeeLogIn = masterClient.getEmployee(xApiKey,login.getEmpId()).get(0);
+		    
+	    	AuditSchedule schedule = auditScheduleRepository.findById(Long.parseLong(scheduleId)).get();
+	    	AuditTransaction trans = new AuditTransaction();
+		    	
+				
+			schedule.setScheduleStatus("ACR");
+	    	schedule.setModifiedBy(username);
+	    	schedule.setModifiedDate(LocalDateTime.now());
+	    	result = auditScheduleRepository.save(schedule).getScheduleId();
+	    	
+	    	trans.setAuditStatus("ACR");
+			trans.setEmpId(login.getEmpId());
+			trans.setScheduleId(result);
+			trans.setTransactionDate(LocalDateTime.now());
+			trans.setRemarks("NA");
+			trans.setAuditType("S");
+			
+			auditTransactionRepository.save(trans);
+			
+			List<Object[]> members = teamMemberRepository.getTeamMembersByScheduleId(Integer.parseInt(scheduleId));
+			String url= "/schedule-approval";
+			String NotiMsg = members.get(0)[0] +" Of auditee CheckList Revoke "+ employeeLogIn.getEmpName()+", "+employeeLogIn.getEmpDesigName();
+			
+			for(Object[] obj: members) {
+				result = insertScheduleNomination(Long.parseLong(obj[1].toString()),login.getEmpId(),username,url,NotiMsg);
+			}
+				result = 1;
+			} catch (Exception e) {
+			e.printStackTrace();	
+			logger.error(new Date() + " Inside auditee CheckList Revoke  Auditor Service ");
 		}
 		
 		return result;
